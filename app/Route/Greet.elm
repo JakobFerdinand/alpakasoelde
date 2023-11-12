@@ -6,7 +6,6 @@ import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
-import Html
 import Json.Decode as Decode
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
@@ -15,6 +14,7 @@ import Server.Request as Request exposing (Request)
 import Server.Response as Response exposing (Response)
 import Shared
 import View exposing (View)
+import Element
 
 
 type alias Model =
@@ -95,13 +95,13 @@ view :
 view app shared =
     { title = "Greetings"
     , body =
-        [ Html.div []
+        [ Element.column []
             [ case app.data.name of
                 Just name ->
-                    Html.text ("Hello " ++ name)
+                    Element.text ("Hello " ++ name)
 
                 Nothing ->
-                    Html.text "Hello, I didn't find your name"
+                    Element.text "Hello, I didn't find your name"
             ]
         ]
     }

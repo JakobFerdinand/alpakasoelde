@@ -3,10 +3,10 @@ module Route.Hello exposing (ActionData, Data, Model, Msg(..), RouteParams, acti
 import BackendTask exposing (BackendTask)
 import BackendTask.Http
 import Effect exposing (Effect)
+import Element
 import ErrorPage exposing (ErrorPage)
 import FatalError exposing (FatalError)
 import Head
-import Html
 import Json.Decode as Decode
 import PagesMsg exposing (PagesMsg)
 import RouteBuilder exposing (App)
@@ -108,7 +108,9 @@ view :
     -> Model
     -> View (PagesMsg Msg)
 view app shared model =
-    { title = "Hello", body = [ Html.text (String.fromInt app.data.stars) ] }
+    { title = "Hello"
+    , body = [ Element.text (String.fromInt app.data.stars) ]
+    }
 
 
 action :
