@@ -95,7 +95,7 @@ view :
     -> { body : List (Html msg), title : String }
 view sharedData page model toMsg pageView =
     { body =
-        [ layout [ width fill, height fill ] <|
+        [ layout [ width fill, height fill, padding 10 ] <|
             column [ width fill, height fill ]
                 [ navigation model |> Element.map toMsg
                 , column [ Region.mainContent, width fill, height fill ] pageView.body
@@ -107,30 +107,40 @@ view sharedData page model toMsg pageView =
 
 navigation : Model -> Element Msg
 navigation model =
-    column [ Region.navigation, width fill ]
-        [ Input.button []
-            { onPress = Just MenuClicked
-            , label =
-                text
-                    (if model.showMenu then
-                        "Close Menu"
-
-                     else
-                        "Open Menu"
-                    )
-            }
-        , if model.showMenu then
-            row [ width fill ]
-                [ Input.button []
-                    { onPress = Nothing
-                    , label = text "Menu item 1"
-                    }
-                , Input.button []
-                    { onPress = Nothing
-                    , label = text "Menu item 2"
-                    }
-                ]
-
-          else
-            none
+    el
+        [ Region.navigation
+        , width fill
         ]
+    <|
+        el
+            [ width fill
+            , if model.showMenu then
+                below <|
+                    column [ width fill, alignRight, paddingXY 0 10 ]
+                        [ Input.button [ alignRight ]
+                            { onPress = Nothing
+                            , label = text "Menu item 1"
+                            }
+                        , Input.button [ alignRight ]
+                            { onPress = Nothing
+                            , label = text "Kontakt"
+                            }
+                        ]
+
+              else
+                inFront <| none
+            ]
+        <|
+            Input.button
+                [ alignRight
+                ]
+                { onPress = Just MenuClicked
+                , label =
+                    text
+                        (if model.showMenu then
+                            "Close Menu"
+
+                         else
+                            "Open Menu"
+                        )
+                }

@@ -2,14 +2,18 @@ module Route.Index exposing (ActionData, Data, Model, Msg, route)
 
 import BackendTask exposing (BackendTask)
 import Element exposing (..)
+import Element.Region as Region
 import FatalError exposing (FatalError)
 import Head
 import Head.Seo as Seo
+import Html.Attributes as HtmlAttributes
 import Pages.Url
 import PagesMsg exposing (PagesMsg)
 import Route
 import RouteBuilder exposing (App, StatelessRoute)
 import Shared
+import Svg as Svg exposing (svg)
+import Svg.Attributes as SvgAttributes
 import UrlPath
 import View exposing (View)
 
@@ -57,16 +61,16 @@ head :
 head app =
     Seo.summary
         { canonicalUrlOverride = Nothing
-        , siteName = "elm-pages"
+        , siteName = "Alpakasölde"
         , image =
             { url = [ "images", "icon-png.png" ] |> UrlPath.join |> Pages.Url.fromPath
-            , alt = "elm-pages logo"
+            , alt = "Alpakasölde Logo"
             , dimensions = Nothing
             , mimeType = Nothing
             }
-        , description = "Welcome to elm-pages!"
+        , description = "Schön, dass sie die Seite der Alpakasölde besuchen."
         , locale = Nothing
-        , title = "elm-pages is running"
+        , title = "Alpakasölde"
         }
         |> Seo.website
 
@@ -76,9 +80,14 @@ view :
     -> Shared.Model
     -> View (PagesMsg Msg)
 view app shared =
-    { title = "elm-pages is running"
+    { title = "Alpakasölde"
     , body =
-        [ el [ centerX, centerY ] (Element.text "elm-pages is up and running!")
+        [ el [ centerX, centerY, Region.heading 1 ] (Element.text "Alpakasölde 🦙")
+        , html <|
+            svg [ SvgAttributes.viewBox "0 0 100 100" ]
+                [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+                , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+                ]
 
         -- , Route.Blog__Slug_ { slug = "hello" }
         --     |> Route.link [] [ Element.text "My blog post" ]
