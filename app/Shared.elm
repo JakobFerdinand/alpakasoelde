@@ -3,7 +3,7 @@ module Shared exposing (Data, Model, Msg(..), SharedMsg(..), template)
 import BackendTask exposing (BackendTask)
 import Effect exposing (Effect)
 import Element exposing (..)
-import Element.Input as Input
+import Element.Font as Font
 import Element.Region as Region
 import FatalError exposing (FatalError)
 import Html exposing (Html)
@@ -28,7 +28,6 @@ template =
 
 type Msg
     = SharedMsg SharedMsg
-    | MenuClicked
 
 
 type alias Data =
@@ -40,8 +39,7 @@ type SharedMsg
 
 
 type alias Model =
-    { showMenu : Bool
-    }
+    {}
 
 
 init :
@@ -58,7 +56,7 @@ init :
             }
     -> ( Model, Effect Msg )
 init flags maybePagePath =
-    ( { showMenu = False }
+    ( {}
     , Effect.none
     )
 
@@ -68,9 +66,6 @@ update msg model =
     case msg of
         SharedMsg globalMsg ->
             ( model, Effect.none )
-
-        MenuClicked ->
-            ( { model | showMenu = not model.showMenu }, Effect.none )
 
 
 subscriptions : UrlPath -> Model -> Sub Msg
@@ -97,50 +92,30 @@ view sharedData page model toMsg pageView =
     { body =
         [ layout [ width fill, height fill, padding 10 ] <|
             column [ width fill, height fill ]
-                [ navigation model |> Element.map toMsg
-                , column [ Region.mainContent, width fill, height fill ] pageView.body
+                [ header
+                , content pageView.body
                 ]
         ]
     , title = pageView.title
     }
 
 
-navigation : Model -> Element Msg
-navigation model =
-    el
+header : Element msg
+header =
+    row
         [ Region.navigation
         , width fill
+        , alignTop
+        , padding 16
+        , spacing 16
         ]
-    <|
-        el
-            [ width fill
-            , if model.showMenu then
-                below <|
-                    column [ width fill, alignRight, paddingXY 0 10 ]
-                        [ Input.button [ alignRight ]
-                            { onPress = Nothing
-                            , label = text "Menu item 1"
-                            }
-                        , Input.button [ alignRight ]
-                            { onPress = Nothing
-                            , label = text "Kontakt"
-                            }
-                        ]
+        [ link [ alignLeft ] { url = "/", label = el [ Font.bold, Font.size 36 ] <| text "🦙" }
+        , link [ alignRight ] { url = Route.toString (Route.Blog__Slug_ { slug = "hello" }), label = text "Blog" }
+        , link [ alignRight ] { url = Route.toString Route.Greet, label = text "Greet" }
+        , link [ alignRight ] { url = Route.toString Route.Hello, label = text "Hello" }
+        ]
 
-              else
-                inFront <| none
-            ]
-        <|
-            Input.button
-                [ alignRight
-                ]
-                { onPress = Just MenuClicked
-                , label =
-                    text
-                        (if model.showMenu then
-                            "Close Menu"
 
-                         else
-                            "Open Menu"
-                        )
-                }
+content : List (Element msg) -> Element msg
+content body =
+    column [ Region.mainContent, width fill, height fill ] body
