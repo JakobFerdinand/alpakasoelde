@@ -34,10 +34,10 @@ jobs:
         run: |
           curl https://static.lamdera.com/bin/lamdera-1.2.1-linux-x86_64 -o /usr/local/bin/lamdera
           chmod a+x /usr/local/bin/lamdera
-          npm install elm-optimize-level-2
+          npm install elm-pages
           
       - name: Build elm-pages
-        run: npx elm-pages build
+        run: elm-pages build
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
