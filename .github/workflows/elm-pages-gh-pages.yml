@@ -30,12 +30,54 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      - name: Install Dependencies
-        run: |
-          curl https://static.lamdera.com/bin/lamdera-1.2.1-linux-x86_64 -o /usr/local/bin/lamdera
-          chmod a+x /usr/local/bin/lamdera
-          npm install -g elm-pages
-          
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v1
+        with:
+          node-version: 20
+      # Re-use node_modules between runs until package-lock.json changes.
+      - name: Cache node_modules
+        id: cache-node_modules
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cache/Cypress
+            node_modules
+          key: node_modules-node-v${{ matrix.node }}-1-${{ hashFiles('package-lock.json') }}
+        
+      
+      # Re-use ~/.elm between runs until elm.json, elm-tooling.json or
+      # review/elm.json changes. The Elm compiler saves downloaded Elm packages
+      # to ~/.elm, and elm-tooling saves downloaded tool executables there.
+      - name: Cache ~/.elm
+        uses: actions/cache@v2
+        with:
+          path: ~/.elm
+          key: elm-${{ hashFiles('elm.json', 'elm-tooling.json', 'generator/elm.json', 'review/elm.json', 'examples/routing/elm.json', 'examples/escaping/elm.json', 'examples/base-path/elm.json') }}
+      - name: Download lamdera
+        run: curl https://static.lamdera.com/bin/linux/lamdera-next-alpine-musl -o /usr/local/bin/lamdera && chmod a+x /usr/local/bin/lamdera
+      
+      # Install npm packages, unless we restored them from cache.
+      # Since `npm ci` removes the node_modules folder before running it’s
+      # important to skip this step if cache was restored.
+      - name: npm ci
+        if: steps.cache-node_modules.outputs.cache-hit != 'true'
+        env:
+          # If you have a `"postinstall": "elm-tooling install"` script in your
+          # package.json, this turns it into a no-op. We’ll run it in the next
+          # step because of the caching. If elm-tooling.json changes but
+          # package-lock.json does not, the postinstall script needs running
+          # but this step won’t.
+          NO_ELM_TOOLING_INSTALL: 1
+        run: npm ci
+      - name: elm-tooling install
+        run: npx --no-install elm-tooling install
+      - name: Add elm-review, elm and elm-format to path
+        run: realpath node_modules/.bin >> $GITHUB_PATH
+      - uses: sparksp/elm-review-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: Build elm-pages
         run: elm-pages build
       - name: Upload artifact
