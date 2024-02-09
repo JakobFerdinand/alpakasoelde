@@ -83,13 +83,12 @@ view app shared =
     { title = "Alpakasölde"
     , body =
         [ el [ centerX, centerY, Region.heading 1 ] (Element.text "ALPAKASÖLDE")
-        , html <|
-            svg [ SvgAttributes.viewBox "0 0 100 100" ]
-                [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
-                , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
-                ]
+        , el [ centerX, centerY ] (Element.text "Schön, dass sie die Seite der Alpakasölde besuchen.")
 
-        -- , Route.Blog__Slug_ { slug = "hello" }
-        --     |> Route.link [] [ Element.text "My blog post" ]
+        -- , html <|
+        --     svg [ SvgAttributes.viewBox "0 0 100 100" ]
+        --         [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+        --         , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+        --         ]
         ]
     }
