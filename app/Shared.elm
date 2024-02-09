@@ -147,9 +147,6 @@ header =
         , spacing 16
         ]
         [ link [ alignLeft ] { url = "/", label = el [ Font.bold, Font.size 36 ] <| text "🦙" }
-        , link [ alignRight ] { url = Route.toString (Route.Blog__Slug_ { slug = "hello" }), label = text "Blog" }
-        , link [ alignRight ] { url = Route.toString Route.Greet, label = text "Greet" }
-        , link [ alignRight ] { url = Route.toString Route.Hello, label = text "Hello" }
         ]
 
 
