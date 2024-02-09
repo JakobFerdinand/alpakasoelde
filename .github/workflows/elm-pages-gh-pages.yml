@@ -30,6 +30,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup Pages
         uses: actions/configure-pages@v4
+      - name: Install Lamdera
+        run: |
+          curl https://static.lamdera.com/bin/lamdera-1.2.1-linux-x86_64 -o /usr/local/bin/lamdera
+          chmod a+x /usr/local/bin/lamdera
+          
       - name: Build elm-pages
         run: npx elm-pages build
       - name: Upload artifact
