@@ -16,7 +16,7 @@ updates:
       interval: weekly
 
   - package-ecosystem: "elm"
-    direcotry: "/"
+    directory: "/"
     schedule:
       interval: weekly
 
