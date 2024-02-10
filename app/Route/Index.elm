@@ -96,13 +96,21 @@ view app shared =
 
                 BigDesktop ->
                     paddingXY 180 10
+
+        headingFontSize =
+            case shared.device.class of
+                Phone ->
+                    Font.size 36
+
+                _ ->
+                    Font.size 52
     in
     { title = "Alpakasölde"
     , body =
         [ column [ contentPadding, centerY, width fill ]
             [ image [ width (fill |> maximum 512), centerX, height (fill |> maximum 512) ] { src = "alpakafarm.svg", description = "Alpakasölde" }
             , column [ centerX, Font.center, spacing 30 ]
-                [ el [ centerX, Region.heading 1, Font.size 52 ] (text "ALPAKASÖLDE")
+                [ el [ centerX, Region.heading 1, headingFontSize ] (text "ALPAKASÖLDE")
                 , column [ centerX, spacing 10 ]
                     [ paragraph [] [ text "Willkommen auf unserer Alpaka-Farm!" ]
                     , paragraph [] [ text "Wir freuen uns, dass Sie den Weg zu uns gefunden haben und möchten Sie in die zauberhafte Welt unserer Alpakas entführen." ]
