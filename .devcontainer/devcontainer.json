@@ -2,5 +2,16 @@
 	"image": "mcr.microsoft.com/devcontainers/universal:2",
 	"features": {
 		"ghcr.io/joshuanianji/devcontainer-features/lamdera:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"elmTooling.elm-ls-vscode",
+				"GitHub.codespaces",
+				"GitHub.copilot",
+				"github.vscode-github-actions",
+				"ms-vscode-remote.remote-containers"
+			]
+		}
 	}
 }
