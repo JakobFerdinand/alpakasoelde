@@ -19,8 +19,8 @@ routes getStaticRoutes htmlToString =
 manifest : Manifest.Config
 manifest =
     Manifest.init
-        { name = "Site Name"
-        , description = "Description"
+        { name = "Alpakasölde"
+        , description = "Alpakasölde"
         , startUrl = Route.Index |> Route.toPath
         , icons = []
         }
