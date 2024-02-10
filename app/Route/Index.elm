@@ -82,8 +82,8 @@ view :
 view app shared =
     { title = "Alpakasölde"
     , body =
-        [ el [ centerX, centerY, Region.heading 1 ] (Element.text "ALPAKASÖLDE")
-        , el [ centerX, centerY ] (Element.text "Schön, dass sie die Seite der Alpakasölde besuchen.")
+        [ el [ centerX, centerY, Region.heading 1 ] (text "ALPAKASÖLDE")
+        , paragraph [ centerX, centerY ] [ text "Schön, dass sie die Seite der Alpakasölde besuchen." ]
 
         -- , html <|
         --     svg [ SvgAttributes.viewBox "0 0 100 100" ]
