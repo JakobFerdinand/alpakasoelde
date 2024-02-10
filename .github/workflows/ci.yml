@@ -16,15 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - uses: actions/checkout@v4
 
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
       # Re-use node_modules between runs until package-lock.json changes.
       - name: Cache node_modules
         id: cache-node_modules
@@ -35,7 +33,6 @@ jobs:
             node_modules
           key: node_modules-node-v${{ matrix.node }}-1-${{ hashFiles('package-lock.json') }}
         
-      
       # Re-use ~/.elm between runs until elm.json, elm-tooling.json or
       # review/elm.json changes. The Elm compiler saves downloaded Elm packages
       # to ~/.elm, and elm-tooling saves downloaded tool executables there.
@@ -44,6 +41,7 @@ jobs:
         with:
           path: ~/.elm
           key: elm-${{ hashFiles('elm.json', 'elm-tooling.json', 'generator/elm.json', 'review/elm.json', 'examples/routing/elm.json', 'examples/escaping/elm.json', 'examples/base-path/elm.json') }}
+
       - name: Download lamdera
         run: curl https://static.lamdera.com/bin/linux/lamdera-next-alpine-musl -o /usr/local/bin/lamdera && chmod a+x /usr/local/bin/lamdera
       
@@ -60,10 +58,13 @@ jobs:
           # but this step won’t.
           NO_ELM_TOOLING_INSTALL: 1
         run: npm ci
+
       - name: elm-tooling install
         run: npx --no-install elm-tooling install
+
       - name: Add elm-review, elm and elm-format to path
         run: realpath node_modules/.bin >> $GITHUB_PATH
+
       #- uses: sparksp/elm-review-action@v1
       #  env:
       #    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
