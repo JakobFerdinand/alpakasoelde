@@ -105,10 +105,10 @@ view app shared =
                 [ el [ centerX, Region.heading 1, Font.size 52 ] (text "ALPAKASÖLDE")
                 , column [ centerX, spacing 10 ]
                     [ paragraph [] [ text "Willkommen auf unserer Alpaka-Farm!" ]
-                    , paragraph [] [ text "Wir freuen uns, dass Sie den Weg zu uns gefunden haben und möchten Sie in die zauberhafte Welt unserer Alpakas entführen. Unsere Farm ist ein Ort der Ruhe und des Staunens, wo Sie die Gelegenheit haben, die faszinierenden Tiere kennenzulernen und mehr über ihre Lebensweise zu erfahren." ]
+                    , paragraph [] [ text "Wir freuen uns, dass Sie den Weg zu uns gefunden haben und möchten Sie in die zauberhafte Welt unserer Alpakas entführen." ]
+                    , paragraph [] [ text "Unsere Farm ist ein Ort der Ruhe und des Staunens, wo Sie die Gelegenheit haben, die faszinierenden Tiere kennenzulernen und mehr über ihre Lebensweise zu erfahren." ]
                     , paragraph [] [ text "Bei uns dreht sich alles um das Wohlergehen unserer flauschigen Freunde. Von ihrer Pflege bis hin zur Haltung legen wir großen Wert darauf, dass sich unsere Alpakas rundum wohl fühlen." ]
                     , paragraph [] [ text "Wir laden Sie ein, unsere Webseite zu erkunden und mehr über unsere Arbeit und unsere liebevollen Gefährten zu erfahren. Falls Sie Fragen haben oder sich für bestimmte Aspekte interessieren, zögern Sie nicht, uns zu kontaktieren." ]
-                    , paragraph [] [ text "Willkommen auf unserer Alpaka-Farm – wir freuen uns darauf, Ihnen unsere Welt näherzubringen!" ]
                     ]
                 ]
             ]
