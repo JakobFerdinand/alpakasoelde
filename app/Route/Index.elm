@@ -2,6 +2,7 @@ module Route.Index exposing (ActionData, Data, Model, Msg, route)
 
 import BackendTask exposing (BackendTask)
 import Element exposing (..)
+import Element.Font as Font
 import Element.Region as Region
 import FatalError exposing (FatalError)
 import Head
@@ -82,13 +83,15 @@ view :
 view app shared =
     { title = "Alpakasölde"
     , body =
-        [ el [ centerX, centerY, Region.heading 1 ] (text "ALPAKASÖLDE")
-        , paragraph [ centerX, centerY ] [ text "Schön, dass sie die Seite der Alpakasölde besuchen." ]
+        [ column [ spacing 20, centerY, width fill ]
+            [ el [ centerX, Region.heading 1 ] (text "ALPAKASÖLDE")
+            , el [ centerX ] (paragraph [ Font.center ] [ text "Schön, dass sie die Seite der Alpakasölde besuchen." ])
 
-        -- , html <|
-        --     svg [ SvgAttributes.viewBox "0 0 100 100" ]
-        --         [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
-        --         , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
-        --         ]
+            -- , html <|
+            --     svg [ SvgAttributes.viewBox "0 0 100 100" ]
+            --         [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+            --         , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+            --         ]
+            ]
         ]
     }
