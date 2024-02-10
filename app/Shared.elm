@@ -129,8 +129,8 @@ view sharedData page model toMsg pageView =
     { body =
         [ layout [ width fill, height fill, padding 10 ] <|
             column [ width fill, height fill ]
-                [ header
-                , content pageView.body
+                [ -- header
+                  content pageView.body
                 ]
         ]
     , title = pageView.title

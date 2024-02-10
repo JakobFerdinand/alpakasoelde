@@ -1,6 +1,7 @@
 module Route.Index exposing (ActionData, Data, Model, Msg, route)
 
 import BackendTask exposing (BackendTask)
+import Css exposing (maxHeight)
 import Element exposing (..)
 import Element.Font as Font
 import Element.Region as Region
@@ -81,17 +82,42 @@ view :
     -> Shared.Model
     -> View (PagesMsg Msg)
 view app shared =
+    let
+        contentPadding =
+            case shared.device.class of
+                Phone ->
+                    padding 20
+
+                Tablet ->
+                    paddingXY 80 10
+
+                Desktop ->
+                    paddingXY 120 10
+
+                BigDesktop ->
+                    paddingXY 180 10
+    in
     { title = "Alpakasölde"
     , body =
-        [ column [ spacing 20, centerY, width fill ]
-            [ el [ centerX, Region.heading 1 ] (text "ALPAKASÖLDE")
-            , el [ centerX ] (paragraph [ Font.center ] [ text "Schön, dass sie die Seite der Alpakasölde besuchen." ])
-
-            -- , html <|
-            --     svg [ SvgAttributes.viewBox "0 0 100 100" ]
-            --         [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
-            --         , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
-            --         ]
+        [ column [ contentPadding, centerY, width fill ]
+            [ image [ width (fill |> maximum 512), centerX, height (fill |> maximum 512) ] { src = "alpakafarm.svg", description = "Alpakasölde" }
+            , column [ centerX, Font.center, spacing 30 ]
+                [ el [ centerX, Region.heading 1, Font.size 52 ] (text "ALPAKASÖLDE")
+                , column [ centerX, spacing 10 ]
+                    [ paragraph [] [ text "Willkommen auf unserer Alpaka-Farm!" ]
+                    , paragraph [] [ text "Wir freuen uns, dass Sie den Weg zu uns gefunden haben und möchten Sie in die zauberhafte Welt unserer Alpakas entführen." ]
+                    , paragraph [] [ text "Unsere Farm ist ein Ort der Ruhe und des Staunens, wo Sie die Gelegenheit haben, die faszinierenden Tiere kennenzulernen und mehr über ihre Lebensweise zu erfahren." ]
+                    , paragraph [] [ text "Bei uns dreht sich alles um das Wohlergehen unserer flauschigen Freunde. Von ihrer Pflege bis hin zur Haltung legen wir großen Wert darauf, dass sich unsere Alpakas rundum wohl fühlen." ]
+                    , paragraph [] [ text "Wir laden Sie ein, unsere Webseite zu erkunden und mehr über unsere Arbeit und unsere liebevollen Gefährten zu erfahren. Falls Sie Fragen haben oder sich für bestimmte Aspekte interessieren, zögern Sie nicht, uns zu kontaktieren." ]
+                    ]
+                ]
             ]
+        , el [ padding 50 ] <| none
+
+        -- , html <|
+        --     svg [ SvgAttributes.viewBox "0 0 100 100" ]
+        --         [ Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+        --         , Svg.path [ SvgAttributes.d "M 10 10 L 90 90" ] []
+        --         ]
         ]
     }
