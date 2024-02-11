@@ -1,18 +1,19 @@
 module Shared exposing (Data, Model, Msg(..), SharedMsg(..), template)
 
 import BackendTask exposing (BackendTask)
-import Browser.Events
+import Css.Global
 import Effect exposing (Effect)
-import Element exposing (..)
-import Element.Font as Font
-import Element.Region as Region
 import FatalError exposing (FatalError)
-import Html exposing (Html)
-import Json.Decode as Decode
+import Html
+import Html.Styled exposing (..)
+import Html.Styled.Attributes as Attr exposing (css)
+import Html.Styled.Events as Events
 import Pages.Flags
 import Pages.PageUrl exposing (PageUrl)
 import Route exposing (Route)
 import SharedTemplate exposing (SharedTemplate)
+import Tailwind.Breakpoints as BP
+import Tailwind.Utilities exposing (..)
 import UrlPath exposing (UrlPath)
 import View exposing (View)
 
@@ -30,7 +31,7 @@ template =
 
 type Msg
     = SharedMsg SharedMsg
-    | WindowSizeChanged Device
+    | MenuClicked
 
 
 type alias Data =
@@ -42,7 +43,8 @@ type SharedMsg
 
 
 type alias Model =
-    { device : Device }
+    { showMenu : Bool
+    }
 
 
 init :
@@ -59,37 +61,7 @@ init :
             }
     -> ( Model, Effect Msg )
 init flags maybePagePath =
-    let
-        classify : Int -> Int -> Device
-        classify height width =
-            classifyDevice { height = height, width = width }
-
-        decodeFlags =
-            Decode.decodeValue
-                (Decode.map2 classify
-                    (Decode.field "height" Decode.int)
-                    (Decode.field "width" Decode.int)
-                )
-
-        getDevice : Device
-        getDevice =
-            case flags of
-                Pages.Flags.PreRenderFlags ->
-                    { class = Desktop
-                    , orientation = Portrait
-                    }
-
-                Pages.Flags.BrowserFlags value ->
-                    case decodeFlags value of
-                        Ok device ->
-                            device
-
-                        Err _ ->
-                            { class = Desktop
-                            , orientation = Portrait
-                            }
-    in
-    ( { device = getDevice }
+    ( { showMenu = False }
     , Effect.none
     )
 
@@ -100,14 +72,15 @@ update msg model =
         SharedMsg globalMsg ->
             ( model, Effect.none )
 
-        WindowSizeChanged device ->
-            ( { model | device = device }, Effect.none )
+        MenuClicked ->
+            ( { model | showMenu = not model.showMenu }
+            , Effect.none
+            )
 
 
 subscriptions : UrlPath -> Model -> Sub Msg
 subscriptions _ _ =
-    Browser.Events.onResize
-        (\w h -> WindowSizeChanged <| classifyDevice { height = h, width = w })
+    Sub.none
 
 
 data : BackendTask FatalError Data
@@ -124,32 +97,46 @@ view :
     -> Model
     -> (Msg -> msg)
     -> View msg
-    -> { body : List (Html msg), title : String }
+    -> { body : List (Html.Html msg), title : String }
 view sharedData page model toMsg pageView =
     { body =
-        [ layout [ width fill, height fill, padding 10 ] <|
-            column [ width fill, height fill ]
-                [ -- header
-                  content pageView.body
+        [ div [ Attr.css [ flex, flex_col, h_screen ] ]
+            [ Css.Global.global globalStyles
+
+            -- , nav []
+            --     [ button
+            --         [ Events.onClick MenuClicked
+            --         , Attr.css
+            --             [ bg_color green_500 ]
+            --         ]
+            --         [ text
+            --             (if model.showMenu then
+            --                 "Close Menu"
+            --              else
+            --                 "Open Menu"
+            --             )
+            --         ]
+            --     , if model.showMenu then
+            --         ul []
+            --             [ li [] [ text "Menu item 1" ]
+            --             , li [] [ text "Menu item 2" ]
+            --             ]
+            --       else
+            --         text ""
+            --     ]
+            --     |> map toMsg
+            , main_
+                [ css
+                    [ h_screen
+                    , mx_7
+                    , my_7
+                    , BP.md [ mx_16, my_10 ]
+                    , BP.lg [ mx_20, my_14 ]
+                    ]
                 ]
+                pageView.body
+            ]
+            |> toUnstyled
         ]
     , title = pageView.title
     }
-
-
-header : Element msg
-header =
-    row
-        [ Region.navigation
-        , width fill
-        , alignTop
-        , padding 16
-        , spacing 16
-        ]
-        [ link [ alignLeft ] { url = "/", label = el [ Font.bold, Font.size 36 ] <| text "🦙" }
-        ]
-
-
-content : List (Element msg) -> Element msg
-content body =
-    column [ Region.mainContent, width fill, height fill ] body
