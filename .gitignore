@@ -4,3 +4,6 @@ dist/
 .elm-pages/
 functions/render/elm-pages-cli.js
 functions/render/elm-pages-cli.mjs
+functions/render/index.mjs
+functions/server-render/elm-pages-cli.mjs
+functions/server-render/index.mjs
