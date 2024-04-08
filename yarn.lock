@@ -1216,10 +1216,10 @@ ee-first@1.1.1:
   resolved "https://registry.npmjs.org/ee-first/-/ee-first-1.1.1.tgz"
   integrity sha512-WMwm9LhRUo+WUaRN+vRuETqG89IgZphVSNkdFgeb6sS/E4OrDIN7t48CAewSHXc6C8lefD8KKfr5vY61brQlow==
 
-elm-codegen@^0.5.2:
-  version "0.5.2"
-  resolved "https://registry.npmjs.org/elm-codegen/-/elm-codegen-0.5.2.tgz"
-  integrity sha512-U9Plxwu85TSdod+1KGJuFufJnoDBlNhbObfRC5UWF+KIEcwAlA0bdUXom60R+ZzXx2TKUXt0Htfe3Dcji6PriQ==
+elm-codegen@^0.5.3:
+  version "0.5.3"
+  resolved "https://registry.yarnpkg.com/elm-codegen/-/elm-codegen-0.5.3.tgz#28ab430fe6addd7e3938a346d4d0c3bfd8ca4917"
+  integrity sha512-LKscQHnDeNGQsvaoDXq1nxlm9XlsWaIQCUiqBgJjXk/gPU6PtcXVC0ji1ytmmSW+/N0zb+DWegSbPPYGeV4eew==
   dependencies:
     chalk "^4.1.1"
     chokidar "^3.5.1"
