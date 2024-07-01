@@ -12,7 +12,7 @@
     "elm-pages": "^3.0.3",
     "elm-review": "^2.11.2",
     "elm-tooling": "^1.15.1",
-    "vite": "^5.2.13"
+    "vite": "^5.3.2"
   },
   "dependencies": {
     "@netlify/functions": "^2.5.1"
