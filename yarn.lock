@@ -399,17 +399,17 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@netlify/functions@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@netlify/functions/-/functions-3.0.1.tgz#abba1a4b85f318c7adfc6fd0a96b1e778c4d91d1"
-  integrity sha512-KqVvGatPnn3lw80vXsFbYV3H2S9FI9TQHneFVR6BBvfHWiqTvs8NwUoBpnUWgqPKKeUMuynycDabeSi9CW2WWw==
+"@netlify/functions@^3.0.4":
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/@netlify/functions/-/functions-3.0.4.tgz#0668f0cb5995948624f8f597c29b4bcf0b1eb7fc"
+  integrity sha512-Ox8+ABI+nsLK+c4/oC5dpquXuEIjzfTlJrdQKgQijCsDQoje7inXFAtKDLvvaGvuvE+PVpMLwQcIUL6P9Ob1hQ==
   dependencies:
-    "@netlify/serverless-functions-api" "1.35.0"
+    "@netlify/serverless-functions-api" "1.36.0"
 
-"@netlify/serverless-functions-api@1.35.0":
-  version "1.35.0"
-  resolved "https://registry.yarnpkg.com/@netlify/serverless-functions-api/-/serverless-functions-api-1.35.0.tgz#ea43830f5a8508740967bfd130d5b5698ad94d0d"
-  integrity sha512-BH9eF3s7bUbqkcEUMR7dne/iCXSpZD10KVkGcs53eDrON5pKxsMdXvrdAx/q0HD24vJgHXGXObGSr5sjPllGEA==
+"@netlify/serverless-functions-api@1.36.0":
+  version "1.36.0"
+  resolved "https://registry.yarnpkg.com/@netlify/serverless-functions-api/-/serverless-functions-api-1.36.0.tgz#e7e9ce83d059c4c845440ec861a7e69c0d800bfa"
+  integrity sha512-z6okREyK8in0486a22Oro0k+YsuyEjDXJt46FpgeOgXqKJ9ElM8QPll0iuLBkpbH33ENiNbIPLd1cuClRQnhiw==
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
