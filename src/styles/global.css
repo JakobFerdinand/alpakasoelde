@@ -1,4 +1,7 @@
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
 :root {
   --warm-honey: #E7AA4F;
