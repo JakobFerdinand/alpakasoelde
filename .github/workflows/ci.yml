@@ -31,9 +31,9 @@ jobs:
           path: node_modules
           key: node_modules-${{ hashFiles('package-lock.json') }}
 
-      - name: npm ci
+      - name: npm install
         if: steps.cache-node_modules.outputs.cache-hit != 'true'
-        run: npm ci
+        run: npm install
 
       - name: Build
         run: npm run build
