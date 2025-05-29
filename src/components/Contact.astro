@@ -1,24 +1,24 @@
-<section id="kontakt" class="py-16 bg-dusty-sky text-vanilla-cream">
-  <h2 class="text-3xl font-bold text-center mb-8">Kontakt</h2>
-  <div class="container mx-auto grid gap-8 md:grid-cols-2 px-4">
+<section id="kontakt" class="contact section">
+  <h2>Kontakt</h2>
+  <div class="contact-content container">
     <div>
       <p>Frauenstein 12<br/>4962 Mining</p>
-      <p class="mt-2">E-Mail: <a href="mailto:info@alpakasoelde.at" class="underline">info@alpakasoelde.at</a></p>
+      <p>E-Mail: <a href="mailto:info@alpakasoelde.at" class="link">info@alpakasoelde.at</a></p>
     </div>
-    <form class="flex flex-col gap-4" name="contact" method="post" action="#">
-      <label class="flex flex-col">
-        <span class="mb-1">Name*</span>
-        <input type="text" name="name" required class="p-2 rounded text-slate-river" />
+    <form name="contact" method="post" action="#">
+      <label>
+        <span>Name*</span>
+        <input type="text" name="name" required />
       </label>
-      <label class="flex flex-col">
-        <span class="mb-1">E-Mail*</span>
-        <input type="email" name="email" required class="p-2 rounded text-slate-river" />
+      <label>
+        <span>E-Mail*</span>
+        <input type="email" name="email" required />
       </label>
-      <label class="flex flex-col">
-        <span class="mb-1">Nachricht*</span>
-        <textarea name="message" required class="p-2 rounded h-32 text-slate-river"></textarea>
+      <label>
+        <span>Nachricht*</span>
+        <textarea name="message" required></textarea>
       </label>
-      <button type="submit" class="bg-warm-honey text-vanilla-cream px-6 py-3 rounded font-semibold">Senden</button>
+      <button type="submit" class="btn">Senden</button>
     </form>
   </div>
 </section>

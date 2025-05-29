@@ -5,10 +5,10 @@ const images = [
   'https://source.unsplash.com/800x500/?alpaca&3'
 ];
 ---
-<ul class="relative w-full overflow-hidden h-64 md:h-96" id="slideshow">
+<ul class="slideshow" id="slideshow">
   {images.map((src, i) => (
-    <li class={`absolute inset-0 transition-opacity duration-1000 ${i === 0 ? 'opacity-100' : 'opacity-0'}`} image-slide>
-      <img src={src} alt="Alpaka" class="object-cover w-full h-full" />
+    <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
+      <img src={src} alt="Alpaka" />
     </li>
   ))}
 </ul>
@@ -17,8 +17,8 @@ const images = [
   const slides = Array.from(document.querySelectorAll('[image-slide]'));
   let index = 0;
   setInterval(() => {
-    slides[index].classList.add('opacity-0');
+    slides[index].classList.add('hidden');
     index = (index + 1) % slides.length;
-    slides[index].classList.remove('opacity-0');
+    slides[index].classList.remove('hidden');
   }, 4000);
 </script>
