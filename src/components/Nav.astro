@@ -1,0 +1,23 @@
+---
+---
+<nav class="navbar">
+  <a href="/" class="nav-brand">
+    <img src="/Alpakasoelde.svg" alt="Alpakasölde Logo" />
+  </a>
+  <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="#leistungen">Leistungen</a></li>
+    <li><a href="#ueber-uns">Über uns</a></li>
+    <li><a href="#kontakt">Kontakt</a></li>
+  </ul>
+</nav>
+
+<script>
+  const toggle = document.querySelector('.nav-toggle');
+  const links = document.querySelector('.nav-links');
+  toggle.addEventListener('click', () => {
+    links.classList.toggle('open');
+  });
+</script>
+
