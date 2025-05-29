@@ -30,6 +30,14 @@ body {
   padding: 4rem 0;
 }
 
+.section h2 {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+}
+
+
 .hero {
   display: flex;
   flex-direction: column;
@@ -65,12 +73,6 @@ body {
   text-decoration: none;
 }
 
-.services h2 {
-  text-align: center;
-  font-size: 1.875rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-}
 
 .services-grid {
   display: grid;
@@ -130,18 +132,11 @@ body {
   background-color: var(--dusty-sky);
   color: var(--vanilla-cream);
 }
-
-.contact h2 {
-  text-align: center;
-  font-size: 1.875rem;
-  font-weight: bold;
-  margin-bottom: 2rem;
-}
-
 .contact-content {
   display: grid;
   gap: 2rem;
 }
+
 
 @media (min-width: 768px) {
   .contact-content {
