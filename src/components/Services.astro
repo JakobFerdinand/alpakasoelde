@@ -15,3 +15,27 @@
     </div>
   </div>
 </section>
+
+<style is:scoped>
+  .services-grid {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .service-item {
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .service-item h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .services-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+</style>
