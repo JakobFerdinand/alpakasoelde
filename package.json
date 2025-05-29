@@ -1,0 +1,20 @@
+{
+  "name": "alpakasoelde",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.8.0"
+  },
+  "devDependencies": {
+    "@astrojs/tailwind": "^5.0.0",
+    "@tailwindcss/vite": "^4.1.7",
+    "tailwindcss": "^4.1.7",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32"
+  }
+}
