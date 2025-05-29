@@ -1,15 +1,5 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   *,
   ::after,
@@ -18,4 +8,22 @@
   ::file-selector-button {
     border-color: var(--color-gray-200, currentColor);
   }
+}
+
+:root {
+  --warm-honey: #E7AA4F;
+  --vanilla-cream: #FDF6EE;
+  --olive-leaf: #A7B64F;
+  --dusty-sky: #7399C0;
+  --sunset-coral: #E58150;
+  --seafoam-mist: #97C8C4;
+  --forest-fern: #568468;
+  --slate-river: #3D5464;
+}
+
+body {
+  background-color: var(--vanilla-cream);
+  color: var(--slate-river);
+  font-family: sans-serif;
+  margin: 0;
 }
