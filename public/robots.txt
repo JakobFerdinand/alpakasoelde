@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://alpakasoelde.at/sitemap.xml
