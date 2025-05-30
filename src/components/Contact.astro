@@ -27,6 +27,14 @@
         Frauenstein 12<br/>
         4962 Mining
       </address>
+      <div class="map-frame">
+        <iframe
+          title="OpenStreetMap location"
+          src="https://www.openstreetmap.org/export/embed.html?bbox=12.96%2C48.21%2C13.0%2C48.23&layer=mapnik&marker=48.22%2C12.98"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+      </div>
     </aside>
   </div>
 </section>
@@ -89,6 +97,19 @@
   .contact-address address {
     font-style: normal;
     line-height: 1.5;
+  }
+
+  .map-frame {
+    width: 100%;
+    height: 250px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .map-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
   }
 
   .contact-card {
