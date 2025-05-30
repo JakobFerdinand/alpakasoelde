@@ -18,16 +18,26 @@ const { title } = Astro.props;
 		<meta name="generator" content={Astro.generator} />
                 <title>{title} | Alpakasölde</title>
 		
-		<!-- SEO Meta Tags -->
+                <!-- SEO Meta Tags -->
                 <meta name="description" content="Kleine Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
                 <meta name="keywords" content="Alpakas, Alpakahof, Frauenstein, Österreich, Tiererlebnisse" />
                 <meta name="author" content="Alpakasölde" />
+                <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
+                <meta name="robots" content="index, follow" />
 		
 		<!-- Open Graph / Social Media -->
-		<meta property="og:type" content="website" />
+                <meta property="og:type" content="website" />
                 <meta property="og:title" content={`${title} | Alpakasölde`} />
                 <meta property="og:description" content="Kleine Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
                 <meta property="og:site_name" content="Alpakasölde" />
+                <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).toString()} />
+                <meta property="og:image" content={new URL('/alpakasoelde-logo.svg', Astro.site).toString()} />
+
+                <!-- Twitter Cards -->
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={`${title} | Alpakasölde`} />
+                <meta name="twitter:description" content="Kleine Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+                <meta name="twitter:image" content={new URL('/alpakasoelde-logo.svg', Astro.site).toString()} />
 		
 		<!-- Structured Data -->
                 <script type="application/ld+json">
