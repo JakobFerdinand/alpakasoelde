@@ -27,6 +27,14 @@ jobs:
       - name: NPM Install
         run: npm install
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Build Functions
+        run: dotnet publish Api/Api.csproj -c Release -o api_output
+
       - name: Build Page
         run: npm run build
       
@@ -40,7 +48,7 @@ jobs:
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "./dist" # App source code path
-          api_location: "" # Api source code path - optional
+          api_location: "./api_output" # Api source code path - optional
           output_location: "." # Built app content directory - optional
           ###### End of Repository/Build Configurations ######
 
