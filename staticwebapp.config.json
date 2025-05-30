@@ -1,0 +1,8 @@
+{
+  "app_settings": [
+    {
+      "name": "FUNCTIONS_WORKER_RUNTIME",
+      "value": "dotnet-isolated"
+    }
+  ]
+}
