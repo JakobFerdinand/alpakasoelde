@@ -1,0 +1,22 @@
+name: Deploy Table Storage
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy Bicep
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az deployment group create \
+              --subscription 8c599ae4-ed4f-43ba-9754-0a380ea6f0e1 \
+              --resource-group RG-Alpakasoelde \
+              --template-file infrastructure/table-storage.bicep
