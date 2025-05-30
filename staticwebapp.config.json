@@ -1,8 +1,6 @@
 {
-  "app_settings": [
-    {
-      "name": "FUNCTIONS_WORKER_RUNTIME",
-      "value": "dotnet-isolated"
-    }
-  ]
+  "platform": {
+    "apiRuntime": "dotnet-isolated:9.0"
+  }
 }
+
