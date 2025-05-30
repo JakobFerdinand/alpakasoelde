@@ -13,21 +13,29 @@ const { title } = Astro.props;
 <html lang="de">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+                <meta name="generator" content={Astro.generator} />
                 <title>{title} | Alpakasölde</title>
+                <link rel="canonical" href="https://alpakasoelde.at" />
 		
 		<!-- SEO Meta Tags -->
                 <meta name="description" content="Kleine Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
                 <meta name="keywords" content="Alpakas, Alpakahof, Frauenstein, Österreich, Tiererlebnisse" />
                 <meta name="author" content="Alpakasölde" />
 		
-		<!-- Open Graph / Social Media -->
-		<meta property="og:type" content="website" />
+                <!-- Open Graph / Social Media -->
+                <meta property="og:type" content="website" />
                 <meta property="og:title" content={`${title} | Alpakasölde`} />
                 <meta property="og:description" content="Kleine Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+                <meta property="og:image" content="/Alpakasoelde.svg" />
                 <meta property="og:site_name" content="Alpakasölde" />
+
+                <!-- Twitter Cards -->
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={`${title} | Alpakasölde`} />
+                <meta name="twitter:description" content="Kleine Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+                <meta name="twitter:image" content="/Alpakasoelde.svg" />
 		
 		<!-- Structured Data -->
                 <script type="application/ld+json">
