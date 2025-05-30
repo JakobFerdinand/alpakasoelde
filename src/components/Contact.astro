@@ -1,7 +1,7 @@
 <section id="kontakt" class="contact section">
   <h2>Kontakt</h2>
   <div class="contact-content container">
-    <form name="contact" method="post" action="#" class="contact-card">
+    <form id="contact-form" name="contact" method="post" action="#" class="contact-card">
       <div class="form-field">
         <label for="name">Name*</label>
         <input id="name" type="text" name="name" autocomplete="name" required placeholder="Dein Name" />
@@ -30,6 +30,24 @@
     </aside>
   </div>
 </section>
+
+<script type="module">
+  const form = document.getElementById('contact-form');
+  form?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const data = {
+      name: form.name.value,
+      email: form.email.value,
+      message: form.message.value
+    };
+    await fetch('/api/SendContact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    form.reset();
+  });
+</script>
 
 <style>
   .contact {
