@@ -1,7 +1,7 @@
 targetScope = 'resourceGroup'
 
 @description('Name of the storage account to create')
-param storageAccountName string = 'alpakasoeldetables'
+param storageAccountName string = 'alpakasoelde'
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageAccountName
