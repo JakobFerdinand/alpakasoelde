@@ -10,3 +10,39 @@
     </div>
   </div>
 </section>
+
+<style>
+  .about {
+    background-color: var(--seafoam-mist);
+  }
+
+  .about-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .about-text {
+    margin-bottom: 1.5rem;
+  }
+
+  .about-image img {
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .about-content {
+      flex-direction: row;
+    }
+
+    .about-text {
+      width: 50%;
+      padding-right: 2rem;
+      margin-bottom: 0;
+    }
+
+    .about-image {
+      width: 50%;
+    }
+  }
+</style>
