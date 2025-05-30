@@ -50,6 +50,7 @@ jobs:
           app_location: "./dist" # App source code path
           api_location: "./api_output" # Published API path
           output_location: "." # Built app content directory
+          config_file_location: "/"
           skip_api_build: true
           skip_app_build: true
           ###### End of Repository/Build Configurations ######
