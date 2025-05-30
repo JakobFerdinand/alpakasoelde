@@ -16,8 +16,14 @@
   <script>
     const toggle = document.querySelector('.nav-toggle');
     const links = document.querySelector('.nav-links');
+    const linkItems = document.querySelectorAll('.nav-links a');
     toggle.addEventListener('click', () => {
       links.classList.toggle('open');
+    });
+    linkItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        links.classList.remove('open');
+      });
     });
   </script>
 </nav>
