@@ -1,18 +1,6 @@
 <section id="kontakt" class="contact section">
   <h2>Kontakt</h2>
   <div class="contact-content container">
-    <aside class="contact-address">
-      <header>
-        <svg width="24" height="24" fill="currentColor" aria-hidden="true">
-          <path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7z"/>
-        </svg>
-        <h3>Standort</h3>
-      </header>
-      <address>
-        Frauenstein 12<br/>
-        4962 Mining
-      </address>
-    </aside>
     <form name="contact" method="post" action="#" class="contact-card">
       <div class="form-field">
         <label for="name">Name*</label>
@@ -28,6 +16,18 @@
       </div>
       <button type="submit" class="btn">Senden</button>
     </form>
+    <aside class="contact-address">
+      <header>
+        <svg width="24" height="24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2a7 7 0 00-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 00-7-7z"/>
+        </svg>
+        <h3>Standort</h3>
+      </header>
+      <address>
+        Frauenstein 12<br/>
+        4962 Mining
+      </address>
+    </aside>
   </div>
 </section>
 
@@ -41,8 +41,8 @@
     display: grid;
     gap: 2rem;
     grid-template-areas:
-      "address"
-      "form";
+      "form"
+      "address";
   }
 
   .contact-address {
@@ -87,16 +87,7 @@
   @media (min-width: 768px) {
     .contact-content {
       grid-template-columns: 1fr 1fr;
-      grid-template-areas: "address form";
-    }
-  }
-
-  @media (max-width: 767px) {
-    .contact-address {
-      order: 2;
-    }
-    .contact-card {
-      order: 1;
+      grid-template-areas: "form address";
     }
   }
 
