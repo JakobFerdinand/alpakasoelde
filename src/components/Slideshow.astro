@@ -7,20 +7,40 @@ const images = [
 ];
 ---
 <ul class="slideshow" id="slideshow">
-  {images.map((src, i) => (
-    <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
+  {images.map((src) => (
+    <li class="slide">
       <img src={src} alt="Alpaka" />
     </li>
   ))}
 </ul>
 
 <script>
-  const slides = Array.from(document.querySelectorAll('[image-slide]'));
+  const slides = Array.from(document.querySelectorAll('#slideshow .slide'));
   let index = 0;
+
+  function updateSlides() {
+    slides.forEach((slide, i) => {
+      slide.classList.remove('current', 'next', 'previous', 'off-left', 'off-right');
+      const diff = (i - index + slides.length) % slides.length;
+
+      if (i === index) {
+        slide.classList.add('current');
+      } else if (diff === 1) {
+        slide.classList.add('next');
+      } else if (diff === slides.length - 1) {
+        slide.classList.add('previous');
+      } else if (diff < slides.length / 2) {
+        slide.classList.add('off-right');
+      } else {
+        slide.classList.add('off-left');
+      }
+    });
+  }
+
+  updateSlides();
   setInterval(() => {
-    slides[index].classList.add('hidden');
     index = (index + 1) % slides.length;
-    slides[index].classList.remove('hidden');
+    updateSlides();
   }, 4000);
 </script>
 
@@ -44,16 +64,38 @@ const images = [
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: opacity 1s;
+    transition: transform 1s, opacity 1s;
     background-color: var(--vanilla-cream);
   }
 
-  .slide.hidden {
-    opacity: 0;
+  .slide.current {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+    z-index: 3;
   }
 
-  .slide.visible {
-    opacity: 1;
+  .slide.next {
+    transform: translateX(100%) scale(0.8);
+    opacity: 0.7;
+    z-index: 2;
+  }
+
+  .slide.previous {
+    transform: translateX(-100%) scale(0.8);
+    opacity: 0.7;
+    z-index: 2;
+  }
+
+  .slide.off-right {
+    transform: translateX(100%) scale(0.6);
+    opacity: 0;
+    z-index: 1;
+  }
+
+  .slide.off-left {
+    transform: translateX(-100%) scale(0.6);
+    opacity: 0;
+    z-index: 1;
   }
 
   .slide img {
