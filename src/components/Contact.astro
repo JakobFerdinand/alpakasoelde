@@ -16,6 +16,8 @@
       </div>
       <button type="submit" class="btn">Senden</button>
     </form>
+
+    <!-- Redesigned “Standort” block starts here -->
     <aside class="contact-address">
       <header>
         <svg width="24" height="24" fill="currentColor" aria-hidden="true">
@@ -23,36 +25,39 @@
         </svg>
         <h3>Standort</h3>
       </header>
+
       <div class="map-frame">
-        <iframe src="https://www.openstreetmap.org/export/embed.html?bbox=12.98515319824219%2C48.18669012834026%2C13.351135253906252%2C48.38453015818211&amp;layer=mapnik&amp;marker=48.28570595443409%2C13.167816996574402"></iframe><br/><small><a href="https://www.openstreetmap.org/?mlat=48.2857&amp;mlon=13.1681#map=12/48.2857/13.1681">View Larger Map</a></small>
+        <iframe
+          src="https://www.openstreetmap.org/export/embed.html?bbox=12.98515319824219%2C48.18669012834026%2C13.351135253906252%2C48.38453015818211&amp;layer=mapnik&amp;marker=48.28570595443409%2C13.167816996574402"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
       </div>
-      <address>
-        Frauenstein 12<br/>
-        4962 Mining
-      </address>
+
+      <div class="address-details">
+        <svg
+          class="address-icon"
+          width="20"
+          height="20"
+          fill="currentColor"
+          aria-hidden="true"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
+        </svg>
+        <div class="address-lines">
+          <p>Frauenstein 12</p>
+          <p>4962 Mining</p>
+        </div>
+      </div>
     </aside>
+    <!-- Redesigned block ends here -->
+
   </div>
 </section>
 
-<script type="module">
-  const form = document.getElementById('contact-form');
-  form?.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const data = {
-      name: form.name.value,
-      email: form.email.value,
-      message: form.message.value
-    };
-    await fetch('/api/SendContact', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    });
-    form.reset();
-  });
-</script>
-
 <style>
+  /* ===== container & grid setup (unchanged) ===== */
   .contact {
     background-color: var(--dusty-sky);
     color: var(--vanilla-cream);
@@ -66,47 +71,14 @@
       "address";
   }
 
-  .contact-address {
-    grid-area: address;
-    background: var(--vanilla-cream);
-    color: var(--slate-river);
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  @media (min-width: 768px) {
+    .contact-content {
+      grid-template-columns: 1fr 1fr;
+      grid-template-areas: "form address";
+    }
   }
 
-  .contact-address header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .contact-address h3 {
-    margin: 0;
-    font-size: 1.25rem;
-  }
-
-  .contact-address address {
-    font-style: normal;
-    line-height: 1.5;
-  }
-
-  .map-frame {
-    width: 100%;
-    height: 250px;
-    border-radius: 0.5rem;
-    overflow: hidden;
-  }
-
-  .map-frame iframe {
-    width: 100%;
-    height: 100%;
-    border: 0;
-  }
-
+  /* ===== form card (unchanged) ===== */
   .contact-card {
     grid-area: form;
     display: flex;
@@ -116,13 +88,6 @@
     padding: 2rem;
     border-radius: 0.5rem;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (min-width: 768px) {
-    .contact-content {
-      grid-template-columns: 1fr 1fr;
-      grid-template-areas: "form address";
-    }
   }
 
   .form-field {
@@ -165,5 +130,73 @@
 
   .contact button:hover {
     background-color: var(--olive-leaf);
+  }
+
+  /* ===== redesigned “Standort” (address) ===== */
+  .contact-address {
+    grid-area: address;
+    background: var(--vanilla-cream);
+    color: var(--slate-river);
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .contact-address header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .contact-address h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  /* ===== map styling (unchanged) ===== */
+  .map-frame {
+    width: 100%;
+    height: 250px;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .map-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  /* ===== new address-details layout ===== */
+  .address-details {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-left: 4px solid var(--warm-honey);
+    border-radius: 0.25rem;
+  }
+
+  .address-icon {
+    flex-shrink: 0;
+    color: var(--warm-honey);
+    margin-top: 0.15rem; /* slightly align icon vertically with text */
+  }
+
+  .address-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .address-lines p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: var(--slate-river);
   }
 </style>
