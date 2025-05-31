@@ -9,6 +9,15 @@ Dieses Repository enthält den Quellcode für die Webseite **Alpakasölde**. Die
 - **CSS**: Styling der Komponenten in `src/styles/global.css`.
 - **Astro Components**: Seiten und Komponenten befinden sich unter `src/` und nutzen die `.astro` Syntax.
 - **TypeScript-Konfiguration**: `tsconfig.json` enthält eine strikte Voreinstellung für Astro.
+- **Azure Static Web Apps**: Hosting und Deployment erfolgen über GitHub Actions (`.github/workflows/ci.yml`). Die Laufzeitkonfiguration steht in `staticwebapp.config.json`.
+- **Azure Functions**: Unter `Api/` liegt eine isolierte .NET 9 Function (`SendContactFunction`), die POST-Anfragen annimmt.
+- **Azure Table Storage**: Die Bereitstellung des Speichers kann mit dem Bicep-Skript `infrastructure/table-storage.bicep` erfolgen.
+
+## Azure Funktionsweise
+
+- Der CI-Workflow `.github/workflows/ci.yml` baut sowohl die Astro-Seite als auch das API-Projekt und deployt beides als Azure Static Web App.
+- Die API ist unter `/api` erreichbar; `SendContactFunction` nimmt dort POST-Daten entgegen und bestätigt mit "ok".
+- Mit `infrastructure/table-storage.bicep` kann bei Bedarf eine Azure Table zur Speicherung solcher Daten erstellt werden.
 
 ## Hinweise für LLM Agents
 
