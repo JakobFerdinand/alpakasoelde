@@ -1,21 +1,21 @@
 <section id="leistungen" class="services section">
   <h2>Unsere Leistungen</h2>
   <div class="services-grid container">
-    <a href="/alpaka-wanderungen" class="service-item link">
+    <a href="/alpaka-wanderungen" class="service-item">
       <h3>Alpaka-Wanderungen</h3>
       <p>
         Gemütliche Touren durch die Natur mit unseren freundlichen
         Alpakas inklusive Hofbesuch.
       </p>
     </a>
-    <a href="/wollverarbeitung" class="service-item link">
+    <a href="/wollverarbeitung" class="service-item">
       <h3>Wollverarbeitungs-Workshop</h3>
       <p>
         Lerne, was mit der Wolle nach dem Scheren passiert und probiere
         dich im Kadieren und Spinnen am Spinnrad.
       </p>
     </a>
-    <a href="/produkte" class="service-item link">
+    <a href="/produkte" class="service-item">
       <h3>Produkte</h3>
       <p>Wolle, Accessoires und mehr – direkt von unseren Alpakas.</p>
     </a>
@@ -34,8 +34,33 @@
   }
 
   .service-item {
-    padding: 1rem;
+    display: block;
+    position: relative;
+    padding: 1.5rem 1rem;
     text-align: center;
+    background-color: var(--vanilla-cream);
+    color: var(--slate-river);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  .service-item::after {
+    content: '→';
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s;
+  }
+
+  .service-item:hover {
+    background-color: var(--warm-honey);
+    color: var(--vanilla-cream);
+  }
+
+  .service-item:hover::after {
+    transform: translateY(-50%) translateX(0.25rem);
   }
 
   .service-item h3 {
