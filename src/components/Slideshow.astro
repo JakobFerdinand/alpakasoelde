@@ -1,13 +1,20 @@
 ---
-const images = [
+interface Props {
+  images?: string[];
+}
+
+const defaultImages = [
   '/slideshow1.jpg',
   '/slideshow2.jpg',
   '/slideshow3.jpg',
   '/slideshow4.jpg'
 ];
+
+const { images } = Astro.props as Props;
+const slideshowImages = images ?? defaultImages;
 ---
 <ul class="slideshow" id="slideshow">
-  {images.map((src, i) => (
+  {slideshowImages.map((src, i) => (
     <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
       <img src={src} alt="Alpaka auf der Alpakasölde Farm" />
     </li>

@@ -1,5 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Slideshow from '../components/Slideshow.astro';
+
+const images = [
+  '/amadeus.JPG',
+  '/ludwig.JPG',
+  '/johann.JPG',
+  '/richard.JPG'
+];
 ---
 
 <Layout title="Alpaka-Wanderungen">
@@ -12,11 +20,37 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </div>
   </section>
+
+  <Slideshow images={images} />
+
+  <section class="details section">
+    <div class="container">
+      <h3>Details</h3>
+      <p>
+        Bei einer gemütlichen Runde über unsere Felder lernst du die Tiere
+        kennen und kannst die Landschaft genießen.
+      </p>
+      <ul class="details-list">
+        <li><strong>Preis:</strong> 30&nbsp;€ pro Person</li>
+        <li><strong>Dauer:</strong> ca. 2&nbsp;Stunden</li>
+        <li><strong>Hinweis:</strong> Hunde können leider nicht mitwandern</li>
+      </ul>
+    </div>
+  </section>
 </Layout>
 
 <style>
   .service-page {
     background-color: var(--seafoam-mist);
     color: var(--slate-river);
+  }
+
+  .details-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .details-list li {
+    margin-bottom: 0.5rem;
   }
 </style>
