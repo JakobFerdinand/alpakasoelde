@@ -1,4 +1,7 @@
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System.Linq;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
