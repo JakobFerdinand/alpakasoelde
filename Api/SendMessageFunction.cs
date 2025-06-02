@@ -24,13 +24,13 @@ public sealed class ReceiveMessageOutput
     public required MessageEntity ContactRow { get; init; }
 }
 
-public class ReceiveMessageFunction(ILoggerFactory loggerFactory)
+public class SendMessageFunction(ILoggerFactory loggerFactory) // Renamed class
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<ReceiveMessageFunction>();
+    private readonly ILogger _logger = loggerFactory.CreateLogger<SendMessageFunction>(); // Renamed class in logger
 
-    [Function("ReceiveMessage")]
+    [Function("SendMessage")] // Renamed function
     public async Task<object> Run( // Changed return type to Task<object>
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/contact-messages")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/sendmessage")] HttpRequestData req,
         FunctionContext context)
     {
         // Read the entire request body as a string
