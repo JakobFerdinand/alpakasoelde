@@ -29,7 +29,7 @@ public class ReceiveMessageFunction(ILoggerFactory loggerFactory)
     private readonly ILogger _logger = loggerFactory.CreateLogger<ReceiveMessageFunction>();
 
     [Function("ReceiveMessage")]
-    public async Task<ReceiveMessageOutput> Run(
+    public async Task<object> Run( // Changed return type to Task<object>
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         FunctionContext context)
     {
@@ -48,9 +48,14 @@ public class ReceiveMessageFunction(ILoggerFactory loggerFactory)
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(messageContent))
         {
             _logger.LogWarning("Form submission contained missing fields. Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
-            // Throwing an exception will result in a 500 Internal Server Error.
-            // For a production scenario, a more graceful error response (e.g., HTTP 400) should be crafted.
-            throw new ArgumentException("Name, Email, and Message are required fields and must be provided.");
+            
+            var badRequestResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+            await badRequestResponse.WriteAsJsonAsync(new { 
+                title = "Bad Request", 
+                status = (int)System.Net.HttpStatusCode.BadRequest,
+                detail = "Name, Email, and Message are required fields and must be provided."
+            }).ConfigureAwait(false);
+            return badRequestResponse; // Return HttpResponseData for 400 error
         }
 
         // Create the HTTP 200 OK response with a simple "ok" payload
