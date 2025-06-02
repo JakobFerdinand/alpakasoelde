@@ -30,7 +30,7 @@ public class ReceiveMessageFunction(ILoggerFactory loggerFactory)
 
     [Function("ReceiveMessage")]
     public async Task<object> Run( // Changed return type to Task<object>
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/contact-messages")] HttpRequestData req,
         FunctionContext context)
     {
         // Read the entire request body as a string
