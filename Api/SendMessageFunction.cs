@@ -21,7 +21,7 @@ public sealed class SendMessageOutput
     public required HttpResponseData HttpResponse { get; init; }
 
     [TableOutput("messages", Connection = "AzureWebJobsStorage")]
-    public required MessageEntity ContactRow { get; init; }
+    public required MessageEntity? ContactRow { get; init; }
 }
 
 public class SendMessageFunction(ILoggerFactory loggerFactory)
@@ -29,7 +29,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
     private readonly ILogger _logger = loggerFactory.CreateLogger<SendMessageFunction>();
 
     [Function("send-message")]
-    public async Task<object> Run(
+    public async Task<SendMessageOutput> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         FunctionContext context)
     {
@@ -55,7 +55,11 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
                 status = (int)System.Net.HttpStatusCode.BadRequest,
                 detail = "Name, Email, and Message are required fields and must be provided."
             }).ConfigureAwait(false);
-            return badRequestResponse; // Return HttpResponseData for 400 error
+            return new SendMessageOutput
+            {
+                HttpResponse = badRequestResponse,
+                ContactRow = null
+            };
         }
 
         // Create the HTTP 200 OK response with a simple "ok" payload
