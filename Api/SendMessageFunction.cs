@@ -28,9 +28,9 @@ public class SendMessageFunction(ILoggerFactory loggerFactory) // Renamed class
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<SendMessageFunction>(); // Renamed class in logger
 
-    [Function("SendMessage")] // Renamed function
+    [Function("send-message")] // Renamed function
     public async Task<object> Run( // Changed return type to Task<object>
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/sendmessage")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         FunctionContext context)
     {
         // Read the entire request body as a string
