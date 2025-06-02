@@ -16,7 +16,7 @@ public sealed record MessageEntity(string Name, string Email, string Message) : 
     public string RowKey { get; set; } = Guid.NewGuid().ToString();
 }
 
-public sealed class ReceiveMessageOutput
+public sealed class SendMessageOutput
 {
     public required HttpResponseData HttpResponse { get; init; }
 
@@ -65,7 +65,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         MessageEntity messageEntity = new(name, email, messageContent);
 
         // Return both the HTTP response and the entity to be written to Table Storage
-        return new ReceiveMessageOutput
+        return new SendMessageOutput
         {
             HttpResponse = response,
             ContactRow = messageEntity
