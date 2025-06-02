@@ -22,3 +22,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+
+# .net generated files
+Api/bin/
+Api/obj/
