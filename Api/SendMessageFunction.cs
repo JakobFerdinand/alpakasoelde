@@ -44,14 +44,17 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         string? email = parsedForm["email"];
         string? messageContent = parsedForm["message"]; // Use messageContent to avoid potential naming conflicts
 
+        _logger.LogInformation("Parsed form data - Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
+
         // Basic validation for required fields
         if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(messageContent))
         {
             _logger.LogWarning("Form submission contained missing fields. Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
-            
+
             var badRequestResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
-            await badRequestResponse.WriteAsJsonAsync(new { 
-                title = "Bad Request", 
+            await badRequestResponse.WriteAsJsonAsync(new
+            {
+                title = "Bad Request",
                 status = (int)System.Net.HttpStatusCode.BadRequest,
                 detail = "Name, Email, and Message are required fields and must be provided."
             }).ConfigureAwait(false);
