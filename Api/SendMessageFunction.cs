@@ -65,9 +65,9 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             };
         }
 
-        // Create the HTTP 200 OK response with a simple "ok" payload
-        var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-        await response.WriteStringAsync("ok").ConfigureAwait(false);
+        // Return a redirect so the user sees the thank you page after submitting
+        var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
+        response.Headers.Add("Location", "/kontakt-erfolgreich");
 
         MessageEntity messageEntity = new(name, email, messageContent);
 
