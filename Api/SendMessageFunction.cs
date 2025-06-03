@@ -20,7 +20,7 @@ public sealed class SendMessageOutput
 {
     public required HttpResponseData HttpResponse { get; init; }
 
-    [TableOutput("messages", Connection = "AzureWebJobsStorage")]
+    [TableOutput("messages", Connection = "MessageStorageConnection")]
     public required MessageEntity? ContactRow { get; init; }
 }
 
