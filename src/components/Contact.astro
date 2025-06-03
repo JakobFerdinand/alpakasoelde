@@ -4,15 +4,15 @@
     <form id="contact-form" name="contact" method="post" action="/api/send-message" class="contact-card">
       <div class="form-field">
         <label for="name">Name*</label>
-        <input id="name" type="text" name="name" autocomplete="name" required placeholder="Dein Name" />
+        <input id="name" type="text" name="name" autocomplete="name" required placeholder="Dein Name" maxlength="100" />
       </div>
       <div class="form-field">
         <label for="email">E-Mail*</label>
-        <input id="email" type="email" name="email" autocomplete="email" required placeholder="deine@mail.at" />
+        <input id="email" type="email" name="email" autocomplete="email" required placeholder="deine@mail.at" maxlength="254" />
       </div>
       <div class="form-field">
         <label for="message">Nachricht*</label>
-        <textarea id="message" name="message" required placeholder="Deine Nachricht"></textarea>
+        <textarea id="message" name="message" required placeholder="Deine Nachricht" maxlength="2000"></textarea>
       </div>
       <button type="submit" class="btn">Senden</button>
     </form>
@@ -49,8 +49,36 @@
           <p>4962 Mining</p>
         </div>
       </div>
+
     </aside>
   </div>
+  <script>
+    const form = document.getElementById('contact-form');
+    const limits = { name: 100, email: 254, message: 2000 };
+
+    Object.entries(limits).forEach(([id, max]) => {
+      const el = document.getElementById(id);
+      el.addEventListener('input', () => {
+        if (el.value.length > max) {
+          el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
+        } else {
+          el.setCustomValidity('');
+        }
+      });
+    });
+
+    form.addEventListener('submit', (e) => {
+      for (const [id, max] of Object.entries(limits)) {
+        const el = document.getElementById(id);
+        if (el.value.trim().length > max) {
+          el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
+          el.reportValidity();
+          e.preventDefault();
+          return;
+        }
+      }
+    });
+  </script>
 </section>
 
 <style>
