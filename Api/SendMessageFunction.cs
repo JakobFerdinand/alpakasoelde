@@ -94,14 +94,14 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             return badRequestResponse;
         }
 
-        var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
-        response.Headers.Add("Location", "/nachricht-gesendet");
-
         MessageEntity messageEntity = new(name!, email!, messageContent!);
 
         string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
-        var tableClient = new TableClient(connectionString, "messages");
+        TableClient tableClient = new(connectionString, "messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
+
+        var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
+        response.Headers.Add("Location", "/nachricht-gesendet");
 
         return response;
     }
