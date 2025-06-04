@@ -1,7 +1,6 @@
 using Azure;
 using Azure.Data.Tables;
 using Azure.Communication.Email;
-using Azure.Communication.Email.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -134,7 +133,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
                     PlainText = $"Name: {name}\nEmail: {email}\nMessage:\n{messageContent}"
                 };
 
-                EmailRecipients recipients = new(new[] { new EmailAddress(emailRecipient) });
+                EmailRecipients recipients = new([new EmailAddress(emailRecipient)]);
 
                 EmailMessage emailMessage = new(emailSender, recipients, content);
 
