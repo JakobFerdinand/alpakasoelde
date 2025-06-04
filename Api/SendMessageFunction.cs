@@ -3,8 +3,7 @@ using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Collections.Generic;
+using System.Net;
 using System.Web;
 
 namespace Api;
@@ -45,75 +44,75 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         var parsedForm = HttpUtility.ParseQueryString(body);
         string? name = parsedForm["name"]?.Trim();
         string? email = parsedForm["email"]?.Trim();
-        string? messageContent = parsedForm["message"]?.Trim(); 
+        string? messageContent = parsedForm["message"]?.Trim();
         _logger.LogInformation("Parsed form data - Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
 
-if (new[]
-    {
-        (Value: name,        FieldName: "Name"),
-        (Value: email,       FieldName: "Email"),
-        (Value: messageContent, FieldName: "Message")
-    }
-    .Where(x => string.IsNullOrWhiteSpace(x.Value))
-    .Select(x => x.FieldName)
-    .ToList()
-    is { Count: > 0 } missingFields)
-{
-    _logger.LogWarning(
-        "Form submission contained missing fields: {MissingFields}. Name: '{Name}', Email: '{Email}', Message: '{Message}'",
-        string.Join(", ", missingFields), name, email, messageContent);
+        if (new[]
+            {
+                (Value: name,        FieldName: "Name"),
+                (Value: email,       FieldName: "Email"),
+                (Value: messageContent, FieldName: "Message")
+            }
+            .Where(x => string.IsNullOrWhiteSpace(x.Value))
+            .Select(x => x.FieldName)
+            .ToList()
+            is { Count: > 0 } missingFields)
+        {
+            _logger.LogWarning(
+                "Form submission contained missing fields: {MissingFields}. Name: '{Name}', Email: '{Email}', Message: '{Message}'",
+                string.Join(", ", missingFields), name, email, messageContent);
 
-    var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-    await badRequestResponse.WriteAsJsonAsync(new
-    {
-        title  = "Bad Request",
-        status = (int)HttpStatusCode.BadRequest,
-        detail = $"{string.Join(", ", missingFields)} are required fields and must be provided."
-    }).ConfigureAwait(false);
+            var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequestResponse.WriteAsJsonAsync(new
+            {
+                title = "Bad Request",
+                status = (int)HttpStatusCode.BadRequest,
+                detail = $"{string.Join(", ", missingFields)} are required fields and must be provided."
+            }).ConfigureAwait(false);
 
-    return new SendMessageOutput
-    {
-        HttpResponse = badRequestResponse,
-        ContactRow   = null
-    };
-}
+            return new SendMessageOutput
+            {
+                HttpResponse = badRequestResponse,
+                ContactRow = null
+            };
+        }
 
-var errors = new[]
-{
-    name           is { Length: > NameMaxLength }        ? $"Name exceeds {NameMaxLength} characters."        : null,
-    email          is { Length: > EmailMaxLength }       ? $"Email exceeds {EmailMaxLength} characters."       : null,
-    messageContent is { Length: > MessageMaxLength }     ? $"Message exceeds {MessageMaxLength} characters."   : null
-}
-.Where(errorMsg => errorMsg is not null)
-.ToList();
+        var errors = new[]
+        {
+            name           is { Length: > NameMaxLength }        ? $"Name exceeds {NameMaxLength} characters."        : null,
+            email          is { Length: > EmailMaxLength }       ? $"Email exceeds {EmailMaxLength} characters."       : null,
+            messageContent is { Length: > MessageMaxLength }     ? $"Message exceeds {MessageMaxLength} characters."   : null
+        }
+        .Where(errorMsg => errorMsg is not null)
+        .ToList();
 
-if (errors.Any())
-{
-    _logger.LogWarning(
-        "Form submission exceeded field limits. Errors: {Errors}. Name length: {NameLen}, Email length: {EmailLen}, Message length: {MessageLen}",
-        string.Join(" | ", errors),
-        name.Length, email.Length, messageContent.Length
-    );
+        if (errors.Count is > 0)
+        {
+            _logger.LogWarning(
+                "Form submission exceeded field limits. Errors: {Errors}. Name length: {NameLen}, Email length: {EmailLen}, Message length: {MessageLen}",
+                string.Join(" | ", errors),
+                name!.Length, email!.Length, messageContent!.Length
+            );
 
-    var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-    await badRequestResponse.WriteAsJsonAsync(new
-    {
-        title  = "Bad Request",
-        status = (int)HttpStatusCode.BadRequest,
-        detail = string.Join(" ", errors)
-    }).ConfigureAwait(false);
+            var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequestResponse.WriteAsJsonAsync(new
+            {
+                title = "Bad Request",
+                status = (int)HttpStatusCode.BadRequest,
+                detail = string.Join(" ", errors)
+            }).ConfigureAwait(false);
 
-    return new SendMessageOutput
-    {
-        HttpResponse = badRequestResponse,
-        ContactRow   = null
-    };
-}
+            return new SendMessageOutput
+            {
+                HttpResponse = badRequestResponse,
+                ContactRow = null
+            };
+        }
 
         var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
         response.Headers.Add("Location", "/kontakt-erfolgreich");
 
-        MessageEntity messageEntity = new(name, email, messageContent);
+        MessageEntity messageEntity = new(name!, email!, messageContent!);
 
         return new SendMessageOutput
         {
