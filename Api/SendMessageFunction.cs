@@ -1,5 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
+using Azure.Communication.Email;
+using Azure.Communication.Email.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -114,6 +116,39 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
         TableClient tableClient = new(connectionString, "messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
+
+        string? emailConnectionString = Environment.GetEnvironmentVariable("EmailConnectionString");
+        string? emailSender = Environment.GetEnvironmentVariable("EmailSender");
+        string? emailRecipient = Environment.GetEnvironmentVariable("EmailRecipient");
+
+        if (!string.IsNullOrWhiteSpace(emailConnectionString) &&
+            !string.IsNullOrWhiteSpace(emailSender) &&
+            !string.IsNullOrWhiteSpace(emailRecipient))
+        {
+            try
+            {
+                EmailClient emailClient = new(emailConnectionString);
+
+                EmailContent content = new("New contact form submission")
+                {
+                    PlainText = $"Name: {name}\nEmail: {email}\nMessage:\n{messageContent}"
+                };
+
+                EmailRecipients recipients = new(new[] { new EmailAddress(emailRecipient) });
+
+                EmailMessage emailMessage = new(emailSender, recipients, content);
+
+                await emailClient.SendAsync(WaitUntil.Completed, emailMessage).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send notification email.");
+            }
+        }
+        else
+        {
+            _logger.LogWarning("Email environment variables are not fully configured. Email not sent.");
+        }
 
         var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
         response.Headers.Add("Location", "/nachricht-gesendet");
