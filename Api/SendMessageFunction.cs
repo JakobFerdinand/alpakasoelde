@@ -16,13 +16,6 @@ public sealed record MessageEntity(string Name, string Email, string Message) : 
     public string RowKey { get; set; } = Guid.NewGuid().ToString();
 }
 
-public sealed class SendMessageOutput
-{
-    public required HttpResponseData HttpResponse { get; init; }
-
-    [TableOutput("messages", Connection = "MessageStorageConnection")]
-    public required MessageEntity? ContactRow { get; init; }
-}
 
 public class SendMessageFunction(ILoggerFactory loggerFactory)
 {
@@ -33,7 +26,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
     private const int MessageMaxLength = 2000;
 
     [Function("send-message")]
-    public async Task<SendMessageOutput> Run(
+    public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         FunctionContext context)
     {
@@ -70,11 +63,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
                 detail = $"{string.Join(", ", missingFields)} are required fields and must be provided."
             }).ConfigureAwait(false);
 
-            return new SendMessageOutput
-            {
-                HttpResponse = badRequestResponse,
-                ContactRow = null
-            };
+            return badRequestResponse;
         }
 
         var errors = new[]
@@ -102,11 +91,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
                 detail = string.Join(" ", errors)
             }).ConfigureAwait(false);
 
-            return new SendMessageOutput
-            {
-                HttpResponse = badRequestResponse,
-                ContactRow = null
-            };
+            return badRequestResponse;
         }
 
         var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
@@ -114,10 +99,10 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
 
         MessageEntity messageEntity = new(name!, email!, messageContent!);
 
-        return new SendMessageOutput
-        {
-            HttpResponse = response,
-            ContactRow = messageEntity
-        };
+        string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
+        var tableClient = new TableClient(connectionString, "messages");
+        await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
+
+        return response;
     }
 }
