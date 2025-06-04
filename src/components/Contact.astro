@@ -67,6 +67,8 @@
       });
     });
 
+    const submitButton = form.querySelector('button[type="submit"]');
+
     form.addEventListener('submit', (e) => {
       for (const [id, max] of Object.entries(limits)) {
         const el = document.getElementById(id);
@@ -77,6 +79,11 @@
           return;
         }
       }
+
+      form.querySelectorAll('input, textarea, button').forEach((el) => {
+        el.disabled = true;
+      });
+      submitButton.classList.add('loading');
     });
   </script>
 </section>
@@ -155,6 +162,30 @@
 
   .contact button:hover {
     background-color: var(--olive-leaf);
+  }
+
+  .contact button.loading::after,
+  .contact button:disabled::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+  }
+
+  .contact button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   /* ===== redesigned “Standort” (address) ===== */
