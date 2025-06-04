@@ -67,7 +67,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
 
         // Return a redirect so the user sees the thank you page after submitting
         var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
-        response.Headers.Add("Location", "/kontakt-erfolgreich");
+        response.Headers.Add("Location", "/nachricht-gesendet");
 
         MessageEntity messageEntity = new(name, email, messageContent);
 
