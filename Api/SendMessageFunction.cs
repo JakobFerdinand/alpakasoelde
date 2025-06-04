@@ -25,31 +25,22 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
     private const int EmailMaxLength = 254;
     private const int MessageMaxLength = 2000;
 
-    [Function("send-message")]
-    public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
-        FunctionContext context)
+    private async Task<HttpResponseData?> ValidateFormData(
+        HttpRequestData req,
+        string? name,
+        string? email,
+        string? messageContent)
     {
-        string? body = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
-
-        _logger.LogInformation("Received data: {Body}", body);
-
-        var parsedForm = HttpUtility.ParseQueryString(body);
-        string? name = parsedForm["name"]?.Trim();
-        string? email = parsedForm["email"]?.Trim();
-        string? messageContent = parsedForm["message"]?.Trim();
-        _logger.LogInformation("Parsed form data - Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
-
         if (new[]
-            {
-                (Value: name,        FieldName: "Name"),
-                (Value: email,       FieldName: "Email"),
-                (Value: messageContent, FieldName: "Message")
-            }
-            .Where(x => string.IsNullOrWhiteSpace(x.Value))
-            .Select(x => x.FieldName)
-            .ToList()
-            is { Count: > 0 } missingFields)
+                {
+                    (Value: name,        FieldName: "Name"),
+                    (Value: email,       FieldName: "Email"),
+                    (Value: messageContent, FieldName: "Message")
+                }
+                .Where(x => string.IsNullOrWhiteSpace(x.Value))
+                .Select(x => x.FieldName)
+                .ToList()
+                is { Count: > 0 } missingFields)
         {
             _logger.LogWarning(
                 "Form submission contained missing fields: {MissingFields}. Name: '{Name}', Email: '{Email}', Message: '{Message}'",
@@ -92,6 +83,30 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             }).ConfigureAwait(false);
 
             return badRequestResponse;
+        }
+
+        return null;
+    }
+
+    [Function("send-message")]
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
+        FunctionContext context)
+    {
+        string? body = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+
+        _logger.LogInformation("Received data: {Body}", body);
+
+        var parsedForm = HttpUtility.ParseQueryString(body);
+        string? name = parsedForm["name"]?.Trim();
+        string? email = parsedForm["email"]?.Trim();
+        string? messageContent = parsedForm["message"]?.Trim();
+        _logger.LogInformation("Parsed form data - Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
+
+        HttpResponseData? validationResult = await ValidateFormData(req, name, email, messageContent);
+        if (validationResult is not null)
+        {
+            return validationResult;
         }
 
         MessageEntity messageEntity = new(name!, email!, messageContent!);
