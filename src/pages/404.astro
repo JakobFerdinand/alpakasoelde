@@ -2,12 +2,12 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Seite nicht gefunden">
+<Layout title="404 Not Found">
   <section class="service-page section">
     <div class="container">
-      <h2>404 – Seite nicht gefunden</h2>
+      <h2>404 Not Found</h2>
+      <p class="alpaca-highlight">Selbst unsere neugierigsten Alpakas haben hier nichts entdeckt.</p>
       <img src="/johann_neugierig.png" alt="Verirrtes Alpaka" class="alpaca-img" />
-      <p>Selbst unsere neugierigsten Alpakas haben hier nichts entdeckt.</p>
       <p style="text-align:center;margin-top:2rem;">
         <a href="/" class="btn">Zurück zur Startseite</a>
       </p>
@@ -27,6 +27,12 @@ import Layout from '../layouts/Layout.astro';
     margin: 2rem auto;
     display: block;
     animation: float 3s ease-in-out infinite;
+  }
+
+  .alpaca-highlight {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
   }
 
   @keyframes float {
