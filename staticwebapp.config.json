@@ -10,6 +10,10 @@
       "allowedRoles": ["admin"]
     },
     {
+      "route": "/api/get-messages",
+      "allowedRoles": ["admin"]
+    },
+    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200,
