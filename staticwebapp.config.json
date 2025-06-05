@@ -25,7 +25,7 @@
             "statusCode": 302,
             "redirect": "/.auth/login/github?post_login_redirect_uri=.referrer"
         }
-    },
+    }
   },
   "platform": {
     "apiRuntime": "dotnet-isolated:9.0"
