@@ -24,7 +24,7 @@ import Layout from '../../layouts/Layout.astro';
       msgs.forEach((msg) => {
         const li = document.createElement('li');
         li.classList.add('message');
-        li.innerHTML = `<h3>${msg.name} <span class="email">(${msg.email})</span></h3><p>${msg.message}</p>`;
+        li.innerHTML = `<h3>${msg.Name} <span class="email">(${msg.Email})</span></h3><p>${msg.Message}</p>`;
         list.appendChild(li);
       });
     } catch {
