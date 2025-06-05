@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import JohannNeugierig from '../images/johann_neugierig.png';
 ---
 
 <Layout title="404 Not Found">
@@ -7,7 +9,7 @@ import Layout from '../layouts/Layout.astro';
     <div class="container">
       <h2>404 Not Found</h2>
       <p class="alpaca-highlight">Selbst unsere neugierigsten Alpakas haben hier nichts entdeckt.</p>
-      <img src="/johann_neugierig.png" alt="Verirrtes Alpaka" class="alpaca-img" />
+      <Image src={JohannNeugierig} alt="Verirrtes Alpaka" class="alpaca-img" />
       <p style="text-align:center;margin-top:2rem;">
         <a href="/" class="btn">Zurück zur Startseite</a>
       </p>
