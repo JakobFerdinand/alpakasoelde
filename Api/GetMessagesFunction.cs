@@ -18,7 +18,16 @@ public class GetMessagesFunction(ILoggerFactory loggerFactory)
         string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
         TableClient tableClient = new(connectionString, "messages");
 
-        var messages = tableClient.Query<MessageEntity>().ToList();
+        var messages = tableClient
+            .Query<MessageEntity>()
+            .Select(m => new
+            {
+                m.Name,
+                m.Email,
+                m.Message,
+                m.Timestamp
+            })
+            .ToList();
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(messages).ConfigureAwait(false);
