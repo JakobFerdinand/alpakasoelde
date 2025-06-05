@@ -6,21 +6,23 @@ import Layout from '../../layouts/Layout.astro';
   <section class="admin-page section">
     <div class="container">
       <h2>Eingegangene Nachrichten</h2>
-      <table class="message-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Email</th>
-            <th>Nachricht</th>
-            <th>Zeitpunkt</th>
-          </tr>
-        </thead>
-        <tbody id="message-table-body">
-          <tr>
-            <td colspan="4">Lade Nachrichten...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrapper">
+        <table class="message-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Nachricht</th>
+              <th>Zeitpunkt</th>
+            </tr>
+          </thead>
+          <tbody id="message-table-body">
+            <tr>
+              <td colspan="4">Lade Nachrichten...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>
 </Layout>
@@ -38,7 +40,7 @@ import Layout from '../../layouts/Layout.astro';
         const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
           timeZone: 'Europe/Vienna',
         });
-        tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td>${msg.Message}</td><td>${time}</td>`;
+        tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
         tbody.appendChild(tr);
       });
     } catch {
@@ -54,20 +56,44 @@ import Layout from '../../layouts/Layout.astro';
     color: var(--slate-river);
   }
 
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .message-table {
     width: 100%;
+    min-width: 40rem;
     border-collapse: collapse;
   }
 
   .message-table th,
   .message-table td {
-    padding: 0.5rem;
-    border: 1px solid var(--slate-river);
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--slate-river);
     text-align: left;
   }
 
   .message-table th {
     background: var(--dusty-sky);
     color: var(--vanilla-cream);
+    position: sticky;
+    top: 0;
+  }
+
+  .message-table tbody tr:nth-child(odd) {
+    background-color: var(--vanilla-cream);
+  }
+
+  .message-cell {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  @media (max-width: 600px) {
+    .message-table th,
+    .message-table td {
+      font-size: 0.875rem;
+    }
   }
 </style>
