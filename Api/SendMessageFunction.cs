@@ -100,7 +100,12 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             return validationResult;
         }
 
-        MessageEntity messageEntity = new(name!, email!, messageContent!);
+        MessageEntity messageEntity = new()
+        {
+            Name = name!,
+            Email = email!,
+            Message = messageContent!
+        };
 
         string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
         TableClient tableClient = new(connectionString, "messages");
