@@ -1,29 +1,38 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-
-const messages = [
-  { name: 'Anna Beispiel', email: 'anna@example.com', text: 'Hallo, ich interessiere mich f\xFCr eine Alpaka-Wanderung.' },
-  { name: 'Bernd Muster', email: 'bernd@example.com', text: 'Wann finden die n\xE4chsten Workshops statt?' },
-  { name: 'Carla Demo', email: 'carla@example.com', text: 'K\xF6nnen wir euch spontan besuchen?' },
-  { name: 'David Test', email: 'david@example.com', text: 'Ich m\xF6chte Wolle bestellen.' }
-];
 ---
 
 <Layout title="Nachrichten">
   <section class="admin-page section">
     <div class="container">
       <h2>Eingegangene Nachrichten</h2>
-      <ul class="message-list">
-        {messages.map(msg => (
-          <li class="message" key={msg.email}>
-            <h3>{msg.name} <span class="email">({msg.email})</span></h3>
-            <p>{msg.text}</p>
-          </li>
-        ))}
+      <ul class="message-list" id="message-list">
+        <li>Lade Nachrichten...</li>
       </ul>
     </div>
   </section>
 </Layout>
+
+<script>
+  async function loadMessages() {
+    try {
+      const res = await fetch('/api/get-messages');
+      if (!res.ok) return;
+      const msgs = await res.json();
+      const list = document.getElementById('message-list');
+      list.innerHTML = '';
+      msgs.forEach((msg) => {
+        const li = document.createElement('li');
+        li.classList.add('message');
+        li.innerHTML = `<h3>${msg.name} <span class="email">(${msg.email})</span></h3><p>${msg.message}</p>`;
+        list.appendChild(li);
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+  loadMessages();
+</script>
 
 <style>
   .admin-page {
