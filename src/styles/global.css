@@ -16,7 +16,8 @@
 body {
   background-color: var(--vanilla-cream);
   color: var(--slate-river);
-  font-family: sans-serif;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 300;
   margin: 0;
 }
 
@@ -35,8 +36,12 @@ body {
 .section h2 {
   text-align: center;
   font-size: 1.875rem;
-  font-weight: bold;
+  font-weight: 400;
   margin-bottom: 2rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 400;
 }
 
 .btn {
