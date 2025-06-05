@@ -6,6 +6,10 @@ import Layout from '../../layouts/Layout.astro';
   <section class="admin-page section">
     <div class="container">
       <h2>Dashboard</h2>
+      <div class="user-info">
+        <img id="avatar" class="avatar" alt="" />
+        <p id="greeting" class="greeting"></p>
+      </div>
       <ul class="admin-links">
         <li><a class="btn" href="/admin/messages">Nachrichten</a></li>
       </ul>
@@ -20,6 +24,25 @@ import Layout from '../../layouts/Layout.astro';
     text-align: center;
   }
 
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: none;
+  }
+
+  .greeting {
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+
   .admin-links {
     list-style: none;
     padding: 0;
@@ -29,3 +52,24 @@ import Layout from '../../layouts/Layout.astro';
     margin-bottom: 1rem;
   }
 </style>
+
+<script>
+  async function loadUser() {
+    try {
+      const res = await fetch('/.auth/me');
+      if (!res.ok) return;
+      const data = await res.json();
+      const user = data.clientPrincipal;
+      if (!user) return;
+      const name = user.userDetails || 'User';
+      document.getElementById('greeting').textContent = `Hallo ${name}!`;
+      const avatar = document.getElementById('avatar');
+      avatar.src = `https://github.com/${name}.png`;
+      avatar.alt = name;
+      avatar.style.display = 'block';
+    } catch {
+      /* ignore */
+    }
+  }
+  loadUser();
+</script>
