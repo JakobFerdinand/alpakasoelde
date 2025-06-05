@@ -1,0 +1,122 @@
+---
+---
+<nav class="navbar">
+  <div class="container">
+    <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
+    <ul class="nav-links">
+      <li><a href="/admin/messages">Messages</a></li>
+    </ul>
+    <div class="user-info">
+      <span class="user-name"></span>
+      <img class="avatar" alt="" />
+    </div>
+  </div>
+  <script>
+    const toggle = document.querySelector('.nav-toggle');
+    const links = document.querySelector('.nav-links');
+    const user = document.querySelector('.user-info');
+    toggle.addEventListener('click', () => {
+      links.classList.toggle('open');
+      user.classList.toggle('open');
+    });
+    document.querySelectorAll('.nav-links a').forEach((item) => {
+      item.addEventListener('click', () => {
+        links.classList.remove('open');
+        user.classList.remove('open');
+      });
+    });
+    async function loadUser() {
+      try {
+        const res = await fetch('/.auth/me');
+        if (!res.ok) return;
+        const data = await res.json();
+        const principal = data.clientPrincipal;
+        if (!principal) return;
+        const name = principal.userDetails || 'User';
+        document.querySelector('.user-name').textContent = name;
+        const avatar = document.querySelector('.avatar');
+        avatar.src = `https://github.com/${name}.png`;
+        avatar.alt = name;
+      } catch {
+        /* ignore */
+      }
+    }
+    loadUser();
+  </script>
+</nav>
+<style>
+  .navbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background-color: var(--vanilla-cream);
+    padding: 0.5rem 0;
+  }
+  .navbar .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-links {
+    list-style: none;
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-links a {
+    text-decoration: none;
+    color: var(--slate-river);
+    font-weight: 600;
+  }
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+  }
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+  .nav-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--slate-river);
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none;
+      flex-direction: column;
+      background-color: var(--vanilla-cream);
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      padding: 1rem;
+    }
+    .user-info {
+      display: none;
+      flex-direction: column;
+      background-color: var(--vanilla-cream);
+      position: absolute;
+      top: 100%;
+      right: 0;
+      padding: 1rem;
+      align-items: flex-start;
+    }
+    .nav-links.open {
+      display: flex;
+    }
+    .user-info.open {
+      display: flex;
+    }
+    .nav-toggle {
+      display: block;
+    }
+  }
+</style>
