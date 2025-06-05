@@ -1,0 +1,31 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Admin Dashboard">
+  <section class="admin-page section">
+    <div class="container">
+      <h2>Dashboard</h2>
+      <ul class="admin-links">
+        <li><a class="btn" href="/admin/messages">Nachrichten</a></li>
+      </ul>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .admin-page {
+    background-color: var(--seafoam-mist);
+    color: var(--slate-river);
+    text-align: center;
+  }
+
+  .admin-links {
+    list-style: none;
+    padding: 0;
+  }
+
+  .admin-links li {
+    margin-bottom: 1rem;
+  }
+</style>
