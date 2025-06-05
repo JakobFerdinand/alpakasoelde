@@ -20,7 +20,12 @@
         "404": {
             "rewrite": "/404.html",
             "statusCode": 404
+        },
+        "401": {
+            "statusCode": 302,
+            "redirect": "/.auth/login/github?post_login_redirect_uri=.referrer"
         }
+    },
   },
   "platform": {
     "apiRuntime": "dotnet-isolated:9.0"
