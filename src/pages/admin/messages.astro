@@ -6,9 +6,21 @@ import Layout from '../../layouts/Layout.astro';
   <section class="admin-page section">
     <div class="container">
       <h2>Eingegangene Nachrichten</h2>
-      <ul class="message-list" id="message-list">
-        <li>Lade Nachrichten...</li>
-      </ul>
+      <table class="message-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Nachricht</th>
+            <th>Zeitpunkt</th>
+          </tr>
+        </thead>
+        <tbody id="message-table-body">
+          <tr>
+            <td colspan="4">Lade Nachrichten...</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </section>
 </Layout>
@@ -19,13 +31,15 @@ import Layout from '../../layouts/Layout.astro';
       const res = await fetch('/api/get-messages');
       if (!res.ok) return;
       const msgs = await res.json();
-      const list = document.getElementById('message-list');
-      list.innerHTML = '';
+      const tbody = document.getElementById('message-table-body');
+      tbody.innerHTML = '';
       msgs.forEach((msg) => {
-        const li = document.createElement('li');
-        li.classList.add('message');
-        li.innerHTML = `<h3>${msg.Name} <span class="email">(${msg.Email})</span></h3><p>${msg.Message}</p>`;
-        list.appendChild(li);
+        const tr = document.createElement('tr');
+        const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
+          timeZone: 'Europe/Vienna',
+        });
+        tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td>${msg.Message}</td><td>${time}</td>`;
+        tbody.appendChild(tr);
       });
     } catch {
       /* ignore */
@@ -40,22 +54,20 @@ import Layout from '../../layouts/Layout.astro';
     color: var(--slate-river);
   }
 
-  .message-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
+  .message-table {
+    width: 100%;
+    border-collapse: collapse;
   }
 
-  .message {
-    background: var(--vanilla-cream);
-    color: var(--slate-river);
-    padding: 1rem;
-    border-radius: 0.5rem;
-    margin-bottom: 1rem;
+  .message-table th,
+  .message-table td {
+    padding: 0.5rem;
+    border: 1px solid var(--slate-river);
+    text-align: left;
   }
 
-  .email {
-    font-weight: normal;
-    font-size: 0.875rem;
+  .message-table th {
+    background: var(--dusty-sky);
+    color: var(--vanilla-cream);
   }
 </style>
