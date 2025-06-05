@@ -3,6 +3,8 @@ import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Favicon from '../images/favicon.svg';
 import Logo from '../images/alpakasoelde-logo.svg';
+import '@fontsource/bricolage-grotesque/300.css';
+import '@fontsource/bricolage-grotesque/400.css';
 
 interface Props {
 	title: string;
@@ -19,9 +21,6 @@ const { title } = Astro.props;
                 <link rel="icon" type="image/svg+xml" href={Favicon.src} />
                 <meta name="generator" content={Astro.generator} />
                 <title>{title} | Alpakasölde</title>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-                <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400&display=swap" rel="stylesheet" />
 		
                 <!-- SEO Meta Tags -->
                 <meta name="description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
