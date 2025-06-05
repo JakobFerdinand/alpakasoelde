@@ -1,0 +1,14 @@
+@base=https://alpakasoelde.at
+@devbase=http://localhost:7071
+
+
+###
+
+POST {{base}}/api/send-message
+Content-Type: application/x-www-form-urlencoded
+
+name=TestName&email=test@example.com&message=Hello from .http file
+
+###
+
+GET {{base}}/api/get-messages
