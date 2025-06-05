@@ -1,3 +1,8 @@
+---
+import { Image } from 'astro:assets';
+import AboutImage from '../images/Alpakasoelde.svg';
+---
+
 <section id="ueber-uns" class="about section">
   <div class="about-content container">
     <div class="about-text">
@@ -6,7 +11,7 @@
       <p>Bei uns kannst du den Alltag für eine Weile hinter dir lassen und unvergessliche Momente mit unseren neugierigen Tieren erleben.</p>
     </div>
     <div class="about-image">
-      <img src="/Alpakasoelde.svg" alt="Illustration der Alpakasölde" />
+      <Image src={AboutImage} alt="Illustration der Alpakasölde" />
     </div>
   </div>
 </section>
@@ -26,8 +31,17 @@
     margin-bottom: 1.5rem;
   }
 
+  .about-image {
+    max-height: 400px;
+    display: flex;
+    align-items: center;
+  }
+
   .about-image img {
     width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
   }
 
   @media (min-width: 768px) {

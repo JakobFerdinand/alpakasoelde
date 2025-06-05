@@ -1,28 +1,37 @@
+---
+import { Image } from 'astro:assets';
+import Amadeus from '../images/amadeus.JPG';
+import Ludwig from '../images/ludwig.JPG';
+import Johann from '../images/johann.JPG';
+import Richard from '../images/richard.JPG';
+import Antonio from '../images/antonio.JPEG';
+---
+
 <section id="alpakas" class="alpacas section">
   <h2>Unsere Alpakas</h2>
   <div class="alpaca-grid container">
     <div class="alpaca-item">
-      <img src="/amadeus.JPG" alt="Alpaka Amadeus" class="alpaca-photo" />
+      <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo" />
       <h3>Amadeus</h3>
       <p>Der ruhige Anführer der Herde, benannt nach Mozart.</p>
     </div>
     <div class="alpaca-item">
-      <img src="/ludwig.JPG" alt="Alpaka Ludwig" class="alpaca-photo" />
+      <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo" />
       <h3>Ludwig</h3>
       <p>Lebhaft und neugierig, wie Beethovens Musik.</p>
     </div>
     <div class="alpaca-item">
-      <img src="/johann.JPG" alt="Alpaka Johann" class="alpaca-photo" />
+      <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo" />
       <h3>Johann</h3>
       <p>Harmonisch und ausgeglichen, unser kleiner Bach.</p>
     </div>
     <div class="alpaca-item">
-      <img src="/richard.JPG" alt="Alpaka Richard" class="alpaca-photo" />
+      <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo" />
       <h3>Richard</h3>
       <p>Stolz und majestätisch, wie Wagners Opern.</p>
     </div>
     <div class="alpaca-item">
-      <img src="/antonio.HEIC" alt="Alpaka Antonio" class="alpaca-photo" />
+      <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo" />
       <h3>Antonio</h3>
       <p>Spritzig und freundlich, inspiriert von Vivaldi.</p>
     </div>

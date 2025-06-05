@@ -1,13 +1,18 @@
 ---
+import { Image } from "astro:assets";
+import Slide1 from "../images/slideshow1.jpg";
+import Slide2 from "../images/slideshow2.jpg";
+import Slide3 from "../images/slideshow3.jpg";
+import Slide4 from "../images/slideshow4.jpg";
 interface Props {
-  images?: string[];
+  images?: any[];
 }
 
 const defaultImages = [
-  '/slideshow1.jpg',
-  '/slideshow2.jpg',
-  '/slideshow3.jpg',
-  '/slideshow4.jpg'
+  Slide1,
+  Slide2,
+  Slide3,
+  Slide4
 ];
 
 const { images } = Astro.props as Props;
@@ -16,7 +21,7 @@ const slideshowImages = images ?? defaultImages;
 <ul class="slideshow" id="slideshow">
   {slideshowImages.map((src, i) => (
     <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
-      <img src={src} alt="Alpaka auf der Alpakasölde Farm" />
+      <Image src={src} alt="Alpaka auf der Alpakasölde Farm" />
     </li>
   ))}
 </ul>
