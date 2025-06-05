@@ -31,8 +31,17 @@ import AboutImage from '../images/Alpakasoelde.svg';
     margin-bottom: 1.5rem;
   }
 
+  .about-image {
+    max-height: 400px;
+    display: flex;
+    align-items: center;
+  }
+
   .about-image img {
     width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
   }
 
   @media (min-width: 768px) {
