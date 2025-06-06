@@ -157,13 +157,6 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         TableClient tableClient = new(connectionString, "messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
 
-        // try
-        // {
-        // }
-        // catch (Exception ex)
-        // {
-        //     _logger.LogError(ex, "Error sending email");
-        // }
         await SendEmail((name!, email!, messageContent!)).ConfigureAwait(false);
 
         var response = req.CreateResponse(HttpStatusCode.SeeOther);
