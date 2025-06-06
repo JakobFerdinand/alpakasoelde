@@ -1,16 +1,16 @@
 ---
 import { Image } from "astro:assets";
-import Logo from "../images/AS_Symbolik_Schwarz.svg";
+import Logo from "../images/AS_Symbolik_Backstein.svg";
 ---
 <nav class="navbar">
   <div class="container">
-    <a href="/" class="logo">
+    <a href="/admin" class="logo">
       <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
     </a>
     <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
     <div class="nav-right">
       <ul class="nav-links">
-        <li><a href="/admin">Dashboard</a></li>
+        <li><a href="/">Zur App</a></li>
         <li><a href="/admin/messages">Messages</a></li>
       </ul>
       <div class="user-info">
@@ -52,6 +52,7 @@ import Logo from "../images/AS_Symbolik_Schwarz.svg";
     loadUser();
   </script>
 </nav>
+
 <style>
   .navbar {
     position: sticky;
