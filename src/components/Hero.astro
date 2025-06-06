@@ -1,11 +1,11 @@
 ---
-import { Image } from 'astro:assets';
-import Logo from '../images/AS_Symbolik_Schwarz.svg';
+import { Image } from "astro:assets";
+import Logo from "../images/AS_Gesammt_untereinander_Schwarz.svg";
 ---
 
 <section class="hero">
   <Image src={Logo} alt="Alpakasölde Logo" />
-  <h1>Alpakasölde</h1>
+  <h1 class="sr-only">Alpakasölde</h1>
   <p>Erlebe unvergessliche Momente mit unseren Alpakas in Frauenstein.</p>
   <a href="#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
 </section>
@@ -27,10 +27,16 @@ import Logo from '../images/AS_Symbolik_Schwarz.svg';
     margin-bottom: 1.5rem;
   }
 
-  .hero h1 {
-    font-size: 3rem;
-    font-weight: 400;
-    margin-bottom: 1rem;
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .hero p {
