@@ -3,19 +3,21 @@
 }
 
 :root {
-  --warm-honey: #E7AA4F;
-  --vanilla-cream: #FDF6EE;
-  --olive-leaf: #A7B64F;
-  --dusty-sky: #7399C0;
-  --sunset-coral: #E58150;
-  --seafoam-mist: #97C8C4;
-  --forest-fern: #568468;
-  --slate-river: #3D5464;
+  --bluetenhonig: #e1b14a;
+  --schurwolle: #fbf7ed;
+  --jungtrieb: #b9bc49;
+  --himmelblau: #8da5d3;
+  --backstein: #d7854b;
+  --auwasser: #9abfba;
+  --weidegruen: #698a6e;
+  --taubenblau: #4b5b73;
+  --schwarz: #1f1f1d;
+  --weiss: #ffffff;
 }
 
 body {
-  background-color: var(--vanilla-cream);
-  color: var(--slate-river);
+  background-color: var(--schurwolle);
+  color: var(--taubenblau);
   font-family: "Bricolage Grotesque", sans-serif;
   font-weight: 300;
   margin: 0;
@@ -45,8 +47,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn {
-  background-color: var(--warm-honey);
-  color: var(--vanilla-cream);
+  background-color: var(--bluetenhonig);
+  color: var(--schurwolle);
   padding: 0.75rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: 600;
