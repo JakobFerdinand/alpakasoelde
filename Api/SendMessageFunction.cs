@@ -1,4 +1,5 @@
 using Azure;
+using Azure.Communication.Email;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -79,6 +80,51 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         return null;
     }
 
+    private async Task<EmailSendOperation> SendEmail(
+        (string Name, string Email, string Message) messageData)
+    {
+        string plainTextContent = $"""
+            Neue Kontaktanfrage über alpakasoelde.at
+
+            Name: {messageData.Name}
+            E-Mail: {messageData.Email}
+            Nachricht: {messageData.Message}
+            """;
+
+        string htmlContent = $"""
+            <html>
+                <body>
+                    <h1>Neue Kontaktanfrage über alpakasoelde.at</h1>
+                    <p><strong>Name:</strong> {messageData.Name}</p>
+                    <p><strong>E-Mail:</strong> {messageData.Email}</p>
+                    <p><strong>Nachricht:</strong> {messageData.Message}</p>
+                </body>
+            </html>
+            """;
+
+        string? senderEmail = Environment.GetEnvironmentVariable("EmailSenderAddress");
+        var receinverEmailList = Environment.GetEnvironmentVariable("ReceiverEmailAddresses")!
+            .Split(';')
+            .Select(email => new EmailAddress(email.Trim()))
+            .ToArray(); 
+
+        string? emailConnection = Environment.GetEnvironmentVariable("EmailConnection");
+        EmailClient emailClient = new(emailConnection);
+        EmailMessage emailMessage = new(
+            senderAddress: senderEmail,
+            content: new EmailContent("Neue Kontaktanfrage über alpakasoelde.at")
+            {
+                PlainText = plainTextContent,
+                Html = htmlContent
+            },
+            recipients: new EmailRecipients(receinverEmailList));
+
+
+        return await emailClient.SendAsync(
+            WaitUntil.Completed,
+            emailMessage);
+    }
+
     [Function("send-message")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
@@ -111,7 +157,16 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         TableClient tableClient = new(connectionString, "messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
 
-        var response = req.CreateResponse(System.Net.HttpStatusCode.SeeOther);
+        try
+        {
+            await SendEmail((name!, email!, messageContent!)).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending email");
+        }
+
+        var response = req.CreateResponse(HttpStatusCode.SeeOther);
         response.Headers.Add("Location", "/nachricht-gesendet");
 
         return response;
