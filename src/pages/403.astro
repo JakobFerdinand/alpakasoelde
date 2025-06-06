@@ -1,0 +1,47 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Image } from 'astro:assets';
+import JohannNeugierig from '../images/alpakas/johann_neugierig.png';
+---
+
+<Layout title="403 Kein Zutritt">
+  <section class="service-page section">
+    <div class="container">
+      <h2>403 Kein Zutritt</h2>
+      <p class="alpaca-highlight">Hier kommen nur Admin-Alpakas vorbei. Du scheinst keines zu sein!</p>
+      <Image src={JohannNeugierig} alt="Ueberraschte Alpaka" class="alpaca-img" />
+      <p style="text-align:center;margin-top:2rem;">
+        <a href="/" class="btn">Zur&uuml;ck zur Startseite</a>
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .service-page {
+    background-color: var(--auwasser);
+    color: var(--taubenblau);
+    text-align: center;
+  }
+
+  .alpaca-img {
+    width: 10rem;
+    height: 10rem;
+    margin: 2rem auto;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .alpaca-highlight {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+  }
+</style>
+
