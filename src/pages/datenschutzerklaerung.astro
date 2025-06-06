@@ -1,0 +1,91 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Datenschutzerklärung">
+  <section class="service-page section">
+    <div class="container">
+      <h2>Datenschutzerklärung</h2>
+      <p><em>Letztes Update: Juni 2025</em></p>
+
+      <h3 id="verantwortliche-stelle">1. Verantwortliche Stelle</h3>
+      <p><strong>Jakob Wegenschimmel & Marlene Diermair</strong><br />
+      Frauenstein 12<br />
+      4962 Mining<br />
+      Österreich<br />
+      E-Mail: <a href="mailto:kontakt@alpakasoelde.at" class="link">kontakt@alpakasoelde.at</a></p>
+
+      <hr />
+
+      <h3 id="allgemeines-zur-datenverarbeitung">2. Allgemeines zur Datenverarbeitung</h3>
+      <p>Wir verarbeiten personenbezogene Daten Ihrer Websitebesuche nur im technisch notwendigen Umfang. Diese Erklärung informiert Sie über Art, Umfang und Zweck der Verarbeitung Ihrer Daten.</p>
+
+      <hr />
+
+      <h3 id="hosting">3. Hosting</h3>
+      <p>Unsere Website wird bei <strong>Microsoft Azure (Azure Static Web Apps, Region West Europe)</strong> gehostet. Der Anbieter ist:</p>
+      <p><strong>Microsoft Ireland Operations Limited</strong><br />
+      One Microsoft Place<br />
+      South County Business Park, Leopardstown<br />
+      Dublin 18, D18 P521, Irland</p>
+      <p>Es wurde ein Auftragsverarbeitungsvertrag (Data Processing Agreement) mit Microsoft geschlossen. Weitere Informationen finden Sie in der <a href="https://privacy.microsoft.com/de-de/privacystatement" class="link" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von Microsoft</a>.</p>
+
+      <hr />
+
+      <h3 id="kontaktformular">4. Kontaktformular</h3>
+      <p>Wenn Sie uns über das Formular kontaktieren, werden folgende Daten verarbeitet:</p>
+      <ul>
+        <li>Name (falls angegeben)</li>
+        <li>E-Mail-Adresse</li>
+        <li>Ihre Nachricht</li>
+      </ul>
+      <p>Diese Daten werden:</p>
+      <ul>
+        <li>in einer <strong>Azure Table Storage Instanz (Germany West Central)</strong> gespeichert</li>
+        <li>über <strong>Azure Communication Services</strong> per E-Mail an uns weitergeleitet</li>
+      </ul>
+      <p>Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. f DSGVO auf Basis unseres berechtigten Interesses, Ihre Anfrage zu beantworten.</p>
+      <blockquote>Die übermittelten Daten werden <strong>manuell alle 6 Monate gelöscht</strong>, sofern sie nicht mehr benötigt werden oder gesetzliche Aufbewahrungsfristen entgegenstehen. Auf Wunsch können Sie jederzeit eine vorzeitige Löschung Ihrer Daten verlangen (siehe Punkt 7).</blockquote>
+
+      <hr />
+
+      <h3 id="serverprotokolle">5. Serverprotokolle &amp; Application Insights</h3>
+      <p>Zur technischen Überwachung unserer Website verwenden wir <strong>Azure Application Insights</strong> ausschließlich für serverseitige Funktionen. Dabei werden <strong>keine personenbezogenen Daten oder IP-Adressen von Websitebesuchern</strong> erfasst oder gespeichert.</p>
+
+      <hr />
+
+      <h3 id="keine-cookies-oder-tracking">6. Keine Cookies oder Tracking</h3>
+      <p>Wir verwenden derzeit <strong>keine Cookies</strong> und keine Website-Analyse-Tools wie Google Analytics oder vergleichbare Drittanbieter. Ein Cookie-Banner ist daher nicht erforderlich.</p>
+
+      <hr />
+
+      <h3 id="rechte-der-betroffenen-personen">7. Rechte der betroffenen Personen</h3>
+      <p>Sie haben gemäß DSGVO folgende Rechte:</p>
+      <ul>
+        <li><strong>Auskunft</strong> über gespeicherte Daten (Art. 15 DSGVO)</li>
+        <li><strong>Berichtigung</strong> falscher Daten (Art. 16 DSGVO)</li>
+        <li><strong>Löschung</strong> Ihrer Daten (Art. 17 DSGVO)</li>
+        <li><strong>Einschränkung der Verarbeitung</strong> (Art. 18 DSGVO)</li>
+        <li><strong>Widerspruch gegen Verarbeitung</strong> (Art. 21 DSGVO)</li>
+      </ul>
+      <p>Richten Sie Ihre Anfrage bitte an <a href="mailto:kontakt@alpakasoelde.at" class="link">kontakt@alpakasoelde.at</a>. Wir behalten uns vor, einen Identitätsnachweis zu verlangen.</p>
+
+      <hr />
+
+      <h3 id="sicherheit">8. Sicherheit</h3>
+      <p>Unsere Website nutzt eine <strong>SSL-/TLS-Verschlüsselung</strong> (erkennbar am „https://“ in der Adresszeile). Die Datenübertragung erfolgt damit geschützt vor Zugriff durch Dritte.</p>
+
+      <hr />
+
+      <h3 id="aenderungen">9. Änderungen</h3>
+      <p>Wir behalten uns vor, diese Datenschutzerklärung bei technischen Änderungen oder gesetzlichen Vorgaben zu aktualisieren.</p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .service-page {
+    background-color: var(--seafoam-mist);
+    color: var(--slate-river);
+  }
+</style>
