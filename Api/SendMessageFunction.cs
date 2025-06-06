@@ -106,7 +106,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         var receinverEmailList = Environment.GetEnvironmentVariable("ReceiverEmailAddresses")!
             .Split(';')
             .Select(email => new EmailAddress(email.Trim()))
-            .ToArray(); 
+            .ToArray();
 
         string? emailConnection = Environment.GetEnvironmentVariable("EmailConnection");
         EmailClient emailClient = new(emailConnection);
@@ -157,14 +157,14 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         TableClient tableClient = new(connectionString, "messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
 
-        try
-        {
-            await SendEmail((name!, email!, messageContent!)).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending email");
-        }
+        // try
+        // {
+        // }
+        // catch (Exception ex)
+        // {
+        //     _logger.LogError(ex, "Error sending email");
+        // }
+        await SendEmail((name!, email!, messageContent!)).ConfigureAwait(false);
 
         var response = req.CreateResponse(HttpStatusCode.SeeOther);
         response.Headers.Add("Location", "/nachricht-gesendet");
