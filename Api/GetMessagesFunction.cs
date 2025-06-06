@@ -20,6 +20,7 @@ public class GetMessagesFunction(ILoggerFactory loggerFactory)
 
         var messages = tableClient
             .Query<MessageEntity>()
+            .OrderByDescending(m => m.Timestamp)
             .Select(m => new
             {
                 m.Name,
