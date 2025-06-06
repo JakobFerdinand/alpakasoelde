@@ -1,0 +1,42 @@
+---
+import "../styles/global.css";
+import AdminNavbar from "../components/AdminNavbar.astro";
+import Favicon from '../images/favicon.svg';
+import Logo from '../images/alpakasoelde-logo.svg';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href={Favicon.src} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title} | Alpakasölde</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400&display=swap" rel="stylesheet" />
+    <meta name="description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+    <meta name="keywords" content="Alpakas, Alpakahof, Alpakawanderung, Frauenstein, Österreich, Tiererlebnisse" />
+    <meta name="author" content="Alpakasölde" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <AdminNavbar />
+    <slot />
+  </body>
+</html>
+
+<style>
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+  }
+</style>
