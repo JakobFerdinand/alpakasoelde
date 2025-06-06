@@ -103,9 +103,14 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             """;
 
         string? senderEmail = Environment.GetEnvironmentVariable("EmailSenderAddress");
-        var receinverEmailList = Environment.GetEnvironmentVariable("ReceiverEmailAddresses")!
+        var receiverEmails = Environment.GetEnvironmentVariable("ReceiverEmailAddresses")!
             .Split(';')
             .Where(email => !string.IsNullOrWhiteSpace(email))
+            .ToArray();
+        _logger.LogInformation(
+            "Sending email from '{SenderEmail}' to {ReceiverEmailsCount} recipients: {ReceiverEmails}",
+            senderEmail, receiverEmails.Length, string.Join(", ", receiverEmails));
+        var receinverEmailList = receiverEmails
             .Select(email => new EmailAddress(email.Trim()))
             .ToArray();
 
