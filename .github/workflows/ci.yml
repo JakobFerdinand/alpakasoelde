@@ -9,6 +9,7 @@ on:
       - 'public/**'
       - 'Api/**'
       - '.github/workflows/ci.yml'
+      - 'staticwebapp.config.json'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -18,6 +19,7 @@ on:
       - 'public/**'
       - 'Api/**'
       - '.github/workflows/ci.yml'
+      - 'staticwebapp.config.json'
 
 permissions:
   contents: read
