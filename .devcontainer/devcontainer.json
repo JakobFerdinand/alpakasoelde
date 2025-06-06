@@ -9,7 +9,8 @@
 			"extensions": [
 				"astro-build.astro-vscode",
 				"github.vscode-github-actions",
-				"humao.rest-client"
+				"humao.rest-client",
+				"ms-azuretools.vscode-azurefunctions"
 			]
 		}
 	},
