@@ -105,6 +105,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
         string? senderEmail = Environment.GetEnvironmentVariable("EmailSenderAddress");
         var receinverEmailList = Environment.GetEnvironmentVariable("ReceiverEmailAddresses")!
             .Split(';')
+            .Where(email => !string.IsNullOrWhiteSpace(email))
             .Select(email => new EmailAddress(email.Trim()))
             .ToArray();
 
