@@ -1,17 +1,13 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import Slideshow from '../components/Slideshow.astro';
-import Amadeus from '../images/amadeus.JPG';
-import Ludwig from '../images/ludwig.JPG';
-import Johann from '../images/johann.JPG';
-import Richard from '../images/richard.JPG';
+import Layout from "../layouts/Layout.astro";
+import Slideshow from "../components/Slideshow.astro";
 
-const images = [
-  Amadeus,
-  Ludwig,
-  Johann,
-  Richard
-];
+import Wanderung1 from "../images/wanderung1.jpg";
+import Wanderung2 from "../images/wanderung2.jpg";
+import Wanderung3 from "../images/wanderung3.jpg";
+import Wanderung4 from "../images/wanderung4.jpg";
+
+const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
 ---
 
 <Layout title="Alpaka-Wanderungen">
@@ -35,15 +31,18 @@ const images = [
         Bei einer gemütlichen Runde über unsere Felder lernst du die Tiere
         kennen und kannst die Landschaft genießen.
       </p>
-        <ul class="details-list">
-          <li><strong>Preis:</strong> 30&nbsp;€ pro Person</li>
-          <li><strong>Dauer:</strong> ca. 2&nbsp;Stunden</li>
-          <li><strong>Hinweis:</strong> Hunde können leider nicht mitwandern</li>
-          <li><strong>Begleitung:</strong> Bei Kindern unter 14 Jahren ist pro Alpaka eine Begleitperson notwendig</li>
-        </ul>
-        <div style="text-align: center; margin-top: 3rem;">
-          <a href="/#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
-        </div>
+      <ul class="details-list">
+        <li><strong>Preis:</strong> 30&nbsp;€ pro Person</li>
+        <li><strong>Dauer:</strong> ca. 2&nbsp;Stunden</li>
+        <li><strong>Hinweis:</strong> Hunde können leider nicht mitwandern</li>
+        <li>
+          <strong>Begleitung:</strong> Bei Kindern unter 14 Jahren ist pro Alpaka
+          eine Begleitperson notwendig
+        </li>
+      </ul>
+      <div style="text-align: center; margin-top: 3rem;">
+        <a href="/#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
+      </div>
     </div>
   </section>
 
@@ -52,14 +51,24 @@ const images = [
       <h3>Ausflugstipps</h3>
       <p>
         Für eine Stärkung nach der Wanderung empfiehlt sich die
-        <a href="https://www.burgschaenke-frauenstein.at" class="link" target="_blank" rel="noopener noreferrer">Burgschenke Frauenstein</a>
+        <a
+          href="https://www.burgschaenke-frauenstein.at"
+          class="link"
+          target="_blank"
+          rel="noopener noreferrer">Burgschenke Frauenstein</a
+        >
         mit regionaler Küche und gemütlichem Gastgarten.
       </p>
       <p>
         Ganz in der Nähe liegt das
-        <a href="https://www.naturium-ering.at" class="link" target="_blank" rel="noopener noreferrer">Naturium Ering</a>.
-        Dort erhältst du spannende Einblicke in die Vogelwelt des Europareservats Unterer Inn
-        und kannst von Aussichtstürmen seltene Arten beobachten.
+        <a
+          href="https://www.naturium-ering.at"
+          class="link"
+          target="_blank"
+          rel="noopener noreferrer">Naturium Ering</a
+        >. Dort erhältst du spannende Einblicke in die Vogelwelt des
+        Europareservats Unterer Inn und kannst von Aussichtstürmen seltene Arten
+        beobachten.
       </p>
     </div>
   </section>
