@@ -7,9 +7,9 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"bradlc.vscode-tailwindcss",
+				"astro-build.astro-vscode",
 				"github.vscode-github-actions",
-				"astro-build.astro-vscode"
+				"humao.rest-client"
 			]
 		}
 	},
