@@ -5,13 +5,15 @@ The homepage of our alpaca farm.
 
 ## Color codes to use
 
-| Hex     | Name          |
-| ------- | ------------- |
-| #E7AA4F | Warm Honey    |
-| #FDF6EE | Vanilla Cream |
-| #A7B64F | Olive Leaf    |
-| #7399C0 | Dusty Sky     |
-| #E58150 | Sunset Coral  |
-| #97C8C4 | Seafoam Mist  |
-| #568468 | Forest Fern   |
-| #3D5464 | Slate River   |
+| Hex     | Name        |
+| ------- | ----------- |
+| #9abfba | Auwasser    |
+| #d7854b | Backstein   |
+| #e1b14a | Blütenhonig |
+| #8da5d3 | Himmelblau  |
+| #b9bc49 | Jungtrieb   |
+| #fbf7ed | Schurwolle  |
+| #1f1f1d | Schwarz     |
+| #4b5b73 | Taubenblau  |
+| #698a6e | Weidegrün   |
+| #ffffff | Weiss       |
