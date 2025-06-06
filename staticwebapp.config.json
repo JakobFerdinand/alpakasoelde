@@ -10,14 +10,18 @@
       "allowedRoles": ["admin"]
     },
     {
-      "route": "/api/get-messages",
-      "allowedRoles": ["admin"]
-    },
-    {
-      "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200,
-      "allowedRoles": ["anonymous", "authenticated"]
+        "route": "/api/get-messages",
+        "allowedRoles": ["admin"]
+      },
+      {
+        "route": "/api/get-old-message-count",
+        "allowedRoles": ["admin"]
+      },
+      {
+        "route": "/*",
+        "serve": "/index.html",
+        "statusCode": 200,
+        "allowedRoles": ["anonymous", "authenticated"]
     }
   ],
   "responseOverrides": {
