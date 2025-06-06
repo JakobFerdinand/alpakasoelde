@@ -118,7 +118,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
                 PlainText = plainTextContent,
                 Html = htmlContent
             },
-            recipients: new EmailRecipients(receinverEmailList));
+            recipients: new EmailRecipients(bcc: receinverEmailList));
 
 
         return await emailClient.SendAsync(
