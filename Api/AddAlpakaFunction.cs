@@ -14,6 +14,7 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
     private readonly ILogger _logger = loggerFactory.CreateLogger<AddAlpakaFunction>();
 
     private const int NameMaxLength = 100;
+    private const long MaxImageSizeBytes = 15 * 1024 * 1024; // 15 MB
 
     [Function("add-alpaka")]
     public async Task<HttpResponseData> Run(
@@ -69,6 +70,19 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
 
         if (imageFile is not null && imageFile.Data.Length > 0)
         {
+            if (imageFile.Data.Length > MaxImageSizeBytes)
+            {
+                _logger.LogWarning("Image file size {FileSize} exceeds maximum allowed size of {MaxFileSize} bytes.", imageFile.Data.Length, MaxImageSizeBytes);
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new
+                {
+                    title = "Bad Request",
+                    status = (int)HttpStatusCode.BadRequest,
+                    detail = $"Image file exceeds the maximum allowed size of {MaxImageSizeBytes / (1024 * 1024)}MB."
+                }).ConfigureAwait(false);
+                return badRequestResponse;
+            }
+
             var ext = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
             if (ext is ".png" or ".jpg" or ".jpeg")
             {

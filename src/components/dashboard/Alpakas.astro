@@ -42,25 +42,26 @@
   const toggle = document.getElementById('add-alpaka-toggle');
   const lightbox = document.getElementById('alpaka-lightbox');
   const closeBtn = document.getElementById('close-alpaka-form');
-  const form = document.getElementById('add-alpaka-form');
+  const form = document.getElementById('add-alpaka-form') as HTMLFormElement | null;
+  const imageUploadInput = document.getElementById('alpaka-photo') as HTMLInputElement | null;
 
-  toggle.addEventListener('click', () => {
-    lightbox.hidden = false;
+  toggle?.addEventListener('click', () => {
+    if (lightbox) lightbox.hidden = false;
   });
 
-  closeBtn.addEventListener('click', () => {
-    lightbox.hidden = true;
+  closeBtn?.addEventListener('click', () => {
+    if (lightbox) lightbox.hidden = true;
   });
 
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) lightbox.hidden = true;
+  lightbox?.addEventListener('click', (e) => {
+    if (e.target === lightbox && lightbox) lightbox.hidden = true;
   });
 
-  const limits = { 'alpaka-name': 100 };
+  const limits: { [key: string]: number } = { 'alpaka-name': 100 };
 
   Object.entries(limits).forEach(([id, max]) => {
-    const el = document.getElementById(id);
-    el.addEventListener('input', () => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    el?.addEventListener('input', () => {
       if (el.value.length > max) {
         el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
       } else {
@@ -69,20 +70,38 @@
     });
   });
 
-  const submitButton = form.querySelector('button[type="submit"]');
+  const submitButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement | null;
 
-  form.addEventListener('submit', (e) => {
+  form?.addEventListener('submit', (e) => {
     for (const [id, max] of Object.entries(limits)) {
-      const el = document.getElementById(id);
-      if (el.value.trim().length > max) {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el && el.value.trim().length > max) {
         el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
         el.reportValidity();
         e.preventDefault();
         return;
       }
     }
-    submitButton.disabled = true;
-    submitButton.classList.add('loading');
+
+    // Client-side file size check
+    if (imageUploadInput && imageUploadInput.files && imageUploadInput.files.length > 0) {
+      const file = imageUploadInput.files[0];
+      const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)
+      if (file.size > maxFileSize) {
+        alert(`File is too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB.`);
+        e.preventDefault(); // Prevent form submission
+        if (submitButton) {
+            submitButton.disabled = false; // Re-enable button
+            submitButton.classList.remove('loading');
+        }
+        return;
+      }
+    }
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.classList.add('loading');
+    }
   });
 
   async function loadAlpakas() {
