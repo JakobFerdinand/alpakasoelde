@@ -1,9 +1,12 @@
 using Azure.Data.Tables;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using System.Web;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace Api;
 
@@ -17,14 +20,13 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dashboard/alpakas")] HttpRequestData req)
     {
-        string? body = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+        IFormCollection form = await req.ReadFormAsync().ConfigureAwait(false);
 
-        _logger.LogInformation("Received alpaka data: {Body}", body);
+        string? name = form["name"].FirstOrDefault()?.Trim();
+        string? geburtsdatum = form["geburtsdatum"].FirstOrDefault()?.Trim();
+        IFormFile? imageFile = form.Files.GetFile("photo");
 
-        var parsedForm = HttpUtility.ParseQueryString(body);
-        string? name = parsedForm["name"]?.Trim();
-        string? geburtsdatum = parsedForm["geburtsdatum"]?.Trim();
-        _logger.LogInformation("Parsed form data - Name: '{Name}', Geburtsdatum: '{Geburtsdatum}'", name, geburtsdatum);
+        _logger.LogInformation("Parsed form data - Name: '{Name}', Geburtsdatum: '{Geburtsdatum}', HasImage: {HasImage}", name, geburtsdatum, imageFile is not null);
 
         var missingFields = new[]
             {
@@ -65,6 +67,21 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
         };
 
         string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
+
+        if (imageFile is not null && imageFile.Length > 0)
+        {
+            var ext = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            if (ext is ".png" or ".jpg" or ".jpeg")
+            {
+                BlobContainerClient containerClient = new(connectionString, "alpakas");
+                await containerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
+                string blobName = $"{Guid.NewGuid()}{ext}";
+                BlobClient blobClient = containerClient.GetBlobClient(blobName);
+                await blobClient.UploadAsync(imageFile.OpenReadStream(), new BlobHttpHeaders { ContentType = imageFile.ContentType }).ConfigureAwait(false);
+                entity.ImageUrl = blobClient.Uri.ToString();
+            }
+        }
+
         TableClient tableClient = new(connectionString, "alpakas");
         await tableClient.AddEntityAsync(entity).ConfigureAwait(false);
 

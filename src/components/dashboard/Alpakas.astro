@@ -19,7 +19,7 @@
   <div id="alpaka-lightbox" class="lightbox" hidden>
     <div class="lightbox-content">
       <button type="button" id="close-alpaka-form" class="close-btn" aria-label="Schließen">×</button>
-      <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/dashboard/alpakas">
+      <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/dashboard/alpakas" enctype="multipart/form-data">
         <div class="form-field">
           <label for="alpaka-name">Name*</label>
           <input id="alpaka-name" name="name" type="text" maxlength="100" required />
@@ -27,6 +27,10 @@
         <div class="form-field">
           <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
           <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
+        </div>
+        <div class="form-field">
+          <label for="alpaka-photo">Foto</label>
+          <input id="alpaka-photo" name="photo" type="file" accept=".png,.jpg,.jpeg" capture="environment" />
         </div>
         <button type="submit" class="btn">Neues Alpaka anlegen</button>
       </form>
