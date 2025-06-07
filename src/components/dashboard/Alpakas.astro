@@ -12,7 +12,11 @@
           <th>Alter</th>
         </tr>
       </thead>
-      <tbody id="alpaka-list"></tbody>
+      <tbody id="alpaka-list">
+        <tr>
+          <td colspan="3" class="alpaka-loading loading">Lade Daten...</td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
@@ -105,11 +109,14 @@
   });
 
   async function loadAlpakas() {
+    const list = document.getElementById('alpaka-list');
+    if (!list) return;
+    list.innerHTML =
+      '<tr><td colspan="3" class="alpaka-loading loading">Lade Daten...</td></tr>';
     try {
       const res = await fetch('/api/dashboard/alpakas');
       if (!res.ok) return;
       const alpacas = await res.json();
-      const list = document.getElementById('alpaka-list');
       list.innerHTML = ''; // Clear existing rows before adding new ones
 
       alpacas.forEach((alpaca) => {
@@ -223,6 +230,21 @@
   }
   .alpaka-item:not(:last-child) td {
     border-bottom: 1px solid var(--taubenblau);
+  }
+  .alpaka-loading {
+    text-align: center;
+    font-weight: 600;
+  }
+  .alpaka-loading.loading::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
   }
   .profile-photo {
     width: 2.5rem;
