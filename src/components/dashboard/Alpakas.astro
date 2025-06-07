@@ -1,19 +1,23 @@
-<div class="alpaka-header">
-  <h2>Alpakas</h2>
-  <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
-</div>
-<ul id="alpaka-list" class="alpaka-list"></ul>
-<form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" hidden>
-  <div class="form-field">
-    <label for="alpaka-name">Name*</label>
-    <input id="alpaka-name" name="name" type="text" required />
+<section class="dashboard-alpaka section">
+  <div class="container">
+    <div class="alpaka-header">
+      <h2>Alpakas</h2>
+      <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
+    </div>
+    <ul id="alpaka-list" class="alpaka-list"></ul>
+    <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" hidden>
+      <div class="form-field">
+        <label for="alpaka-name">Name*</label>
+        <input id="alpaka-name" name="name" type="text" required />
+      </div>
+      <div class="form-field">
+        <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
+        <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
+      </div>
+      <button type="submit" class="btn">Neues Alpaka anlegen</button>
+    </form>
   </div>
-  <div class="form-field">
-    <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
-    <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
-  </div>
-  <button type="submit" class="btn">Neues Alpaka anlegen</button>
-</form>
+</section>
 
 <script>
   const toggle = document.getElementById('add-alpaka-toggle');
@@ -56,6 +60,11 @@
 </script>
 
 <style>
+  .dashboard-alpaka {
+    background-color: var(--himmelblau);
+    color: var(--schurwolle);
+    text-align: center;
+  }
   .alpaka-header {
     display: flex;
     align-items: center;

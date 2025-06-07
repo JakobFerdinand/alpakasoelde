@@ -5,22 +5,7 @@ import Alpakas from '../../components/dashboard/Alpakas.astro';
 ---
 
 <DashboardLayout title="Dashboard">
-  <section class="dashboard-page section">
-    <div class="container">
-      <h2>Dashboard</h2>
-      <Alpakas />
-      <Stats />
-    </div>
-  </section>
+  <Alpakas />
+  <Stats />
 </DashboardLayout>
-
-<style>
-  .dashboard-page {
-    background-color: var(--auwasser);
-    color: var(--taubenblau);
-    text-align: center;
-  }
-
-  /* stats styles are defined in component */
-</style>
 
