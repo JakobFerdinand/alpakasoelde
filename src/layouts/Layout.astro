@@ -8,10 +8,10 @@ import '@fontsource/bricolage-grotesque/300.css';
 import '@fontsource/bricolage-grotesque/400.css';
 
 interface Props {
-	title: string;
+        title: string;
 }
 
-const { title } = Astro.props;
+const { title } = Astro.props as Props;
 ---
 
 <!doctype html>

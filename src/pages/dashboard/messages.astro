@@ -27,13 +27,20 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   </section>
 </DashboardLayout>
 
-<script>
-  async function loadMessages() {
+<script lang="ts">
+  interface Message {
+    Name: string;
+    Email: string;
+    Message: string;
+    Timestamp: string;
+  }
+
+  async function loadMessages(): Promise<void> {
     try {
       const res = await fetch('/api/dashboard/messages');
       if (!res.ok) return;
-      const msgs = await res.json();
-      const tbody = document.getElementById('message-table-body');
+      const msgs: Message[] = await res.json();
+      const tbody = document.getElementById('message-table-body') as HTMLTableSectionElement;
       tbody.innerHTML = '';
       msgs.forEach((msg) => {
         const tr = document.createElement('tr');

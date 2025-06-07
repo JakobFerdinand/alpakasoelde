@@ -34,11 +34,11 @@
   </div>
 </section>
 
-<script>
-  const toggle = document.getElementById('add-alpaka-toggle');
-  const lightbox = document.getElementById('alpaka-lightbox');
-  const closeBtn = document.getElementById('close-alpaka-form');
-  const form = document.getElementById('add-alpaka-form');
+<script lang="ts">
+  const toggle = document.getElementById('add-alpaka-toggle') as HTMLButtonElement;
+  const lightbox = document.getElementById('alpaka-lightbox') as HTMLDivElement;
+  const closeBtn = document.getElementById('close-alpaka-form') as HTMLButtonElement;
+  const form = document.getElementById('add-alpaka-form') as HTMLFormElement;
 
   toggle.addEventListener('click', () => {
     lightbox.hidden = false;
@@ -48,14 +48,14 @@
     lightbox.hidden = true;
   });
 
-  lightbox.addEventListener('click', (e) => {
+  lightbox.addEventListener('click', (e: MouseEvent) => {
     if (e.target === lightbox) lightbox.hidden = true;
   });
 
-  const limits = { 'alpaka-name': 100 };
+  const limits: Record<string, number> = { 'alpaka-name': 100 };
 
   Object.entries(limits).forEach(([id, max]) => {
-    const el = document.getElementById(id);
+    const el = document.getElementById(id) as HTMLInputElement;
     el.addEventListener('input', () => {
       if (el.value.length > max) {
         el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
@@ -65,11 +65,11 @@
     });
   });
 
-  const submitButton = form.querySelector('button[type="submit"]');
+  const submitButton = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
 
   form.addEventListener('submit', (e) => {
     for (const [id, max] of Object.entries(limits)) {
-      const el = document.getElementById(id);
+      const el = document.getElementById(id) as HTMLInputElement;
       if (el.value.trim().length > max) {
         el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
         el.reportValidity();
@@ -81,12 +81,18 @@
     submitButton.classList.add('loading');
   });
 
-  async function loadAlpakas() {
+  interface Alpaca {
+    Name: string;
+    Geburtsdatum: string;
+    ImageUrl?: string;
+  }
+
+  async function loadAlpakas(): Promise<void> {
     try {
       const res = await fetch('/api/dashboard/alpakas');
       if (!res.ok) return;
-      const alpacas = await res.json();
-      const list = document.getElementById('alpaka-list');
+      const alpacas: Alpaca[] = await res.json();
+      const list = document.getElementById('alpaka-list') as HTMLTableSectionElement;
       alpacas.forEach((alpaca) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
@@ -105,7 +111,7 @@
     }
   }
 
-  function calculateAge(dateStr) {
+  function calculateAge(dateStr: string): string {
     const birth = new Date(dateStr);
     const now = new Date();
     let years = now.getFullYear() - birth.getFullYear();

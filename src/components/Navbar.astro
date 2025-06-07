@@ -15,10 +15,10 @@ import Logo from "../images/AS_Symbolik_Schwarz.svg";
       <li><a href="/#kontakt">Kontakt</a></li>
     </ul>
   </div>
-  <script>
-    const toggle = document.querySelector('.nav-toggle');
-    const links = document.querySelector('.nav-links');
-    const linkItems = document.querySelectorAll('.nav-links a');
+  <script lang="ts">
+    const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle')!;
+    const links = document.querySelector<HTMLUListElement>('.nav-links')!;
+    const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
     toggle.addEventListener('click', () => {
       links.classList.toggle('open');
     });
