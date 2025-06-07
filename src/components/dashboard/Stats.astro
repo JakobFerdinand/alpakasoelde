@@ -1,6 +1,10 @@
-<div class="stats-card">
-  <p id="old-message-count" class="old-count loading">Lade Daten...</p>
-</div>
+<section class="dashboard-stats section">
+  <div class="container">
+    <div class="stats-card">
+      <p id="old-message-count" class="old-count loading">Lade Daten...</p>
+    </div>
+  </div>
+</section>
 
 <script>
   async function loadOldMessageCount() {
@@ -19,6 +23,11 @@
 </script>
 
 <style>
+  .dashboard-stats {
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+    text-align: center;
+  }
   .stats-card {
     display: flex;
     justify-content: center;
