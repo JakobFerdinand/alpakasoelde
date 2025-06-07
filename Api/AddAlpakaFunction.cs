@@ -1,12 +1,11 @@
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using HttpMultipartParser;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using System.IO;
-using Microsoft.AspNetCore.Http;
 
 namespace Api;
 
@@ -20,11 +19,11 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dashboard/alpakas")] HttpRequestData req)
     {
-        IFormCollection form = await req.ReadFormAsync().ConfigureAwait(false);
+        var parsedFormBocy = await MultipartFormDataParser.ParseAsync(req.Body);
 
-        string? name = form["name"].FirstOrDefault()?.Trim();
-        string? geburtsdatum = form["geburtsdatum"].FirstOrDefault()?.Trim();
-        IFormFile? imageFile = form.Files.GetFile("photo");
+        string? name = parsedFormBocy.GetParameterValue("name").Trim();
+        string? geburtsdatum = parsedFormBocy.GetParameterValue("geburtsdatum").Trim();
+        FilePart? imageFile = parsedFormBocy.Files.FirstOrDefault();
 
         _logger.LogInformation("Parsed form data - Name: '{Name}', Geburtsdatum: '{Geburtsdatum}', HasImage: {HasImage}", name, geburtsdatum, imageFile is not null);
 
@@ -68,7 +67,7 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
 
         string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
 
-        if (imageFile is not null && imageFile.Length > 0)
+        if (imageFile is not null && imageFile.Data.Length > 0)
         {
             var ext = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
             if (ext is ".png" or ".jpg" or ".jpeg")
@@ -77,8 +76,12 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
                 await containerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
                 string blobName = $"{Guid.NewGuid()}{ext}";
                 BlobClient blobClient = containerClient.GetBlobClient(blobName);
-                await blobClient.UploadAsync(imageFile.OpenReadStream(), new BlobHttpHeaders { ContentType = imageFile.ContentType }).ConfigureAwait(false);
+                var uploadResponse = await blobClient.UploadAsync(imageFile.Data, new BlobHttpHeaders { ContentType = imageFile.ContentType }).ConfigureAwait(false);
                 entity.ImageUrl = blobClient.Uri.ToString();
+            }
+            else
+            {
+                _logger.LogWarning("Unsupported image file type: {FileName} with extension {Extension}. Only .png, .jpg or .jpeg is supported.", imageFile.FileName, ext);
             }
         }
 
