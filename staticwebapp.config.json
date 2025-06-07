@@ -8,13 +8,15 @@
     {
       "route": "/dashboard/*",
       "allowedRoles": [
-        "admin"
+        "admin",
+        "collaborator"
       ]
     },
     {
       "route": "/api/dashboard/*",
       "allowedRoles": [
-        "admin"
+        "admin",
+        "collaborator"
       ]
     },
     {
