@@ -1,9 +1,11 @@
 using Azure.Data.Tables;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using HttpMultipartParser;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
-using System.Web;
 
 namespace Api;
 
@@ -12,19 +14,19 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
     private readonly ILogger _logger = loggerFactory.CreateLogger<AddAlpakaFunction>();
 
     private const int NameMaxLength = 100;
+    private const long MaxImageSizeBytes = 15 * 1024 * 1024; // 15 MB
 
     [Function("add-alpaka")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dashboard/alpakas")] HttpRequestData req)
     {
-        string? body = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+        var parsedFormBocy = await MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
 
-        _logger.LogInformation("Received alpaka data: {Body}", body);
+        string? name = parsedFormBocy.GetParameterValue("name").Trim();
+        string? geburtsdatum = parsedFormBocy.GetParameterValue("geburtsdatum").Trim();
+        FilePart? imageFile = parsedFormBocy.Files.FirstOrDefault();
 
-        var parsedForm = HttpUtility.ParseQueryString(body);
-        string? name = parsedForm["name"]?.Trim();
-        string? geburtsdatum = parsedForm["geburtsdatum"]?.Trim();
-        _logger.LogInformation("Parsed form data - Name: '{Name}', Geburtsdatum: '{Geburtsdatum}'", name, geburtsdatum);
+        _logger.LogInformation("Parsed form data - Name: '{Name}', Geburtsdatum: '{Geburtsdatum}', HasImage: {HasImage}", name, geburtsdatum, imageFile is not null);
 
         var missingFields = new[]
             {
@@ -65,6 +67,38 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
         };
 
         string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
+
+        if (imageFile is not null && imageFile.Data.Length > 0)
+        {
+            if (imageFile.Data.Length > MaxImageSizeBytes)
+            {
+                _logger.LogWarning("Image file size {FileSize} exceeds maximum allowed size of {MaxFileSize} bytes.", imageFile.Data.Length, MaxImageSizeBytes);
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new
+                {
+                    title = "Bad Request",
+                    status = (int)HttpStatusCode.BadRequest,
+                    detail = $"Image file exceeds the maximum allowed size of {MaxImageSizeBytes / (1024 * 1024)}MB."
+                }).ConfigureAwait(false);
+                return badRequestResponse;
+            }
+
+            var ext = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
+            if (ext is ".png" or ".jpg" or ".jpeg")
+            {
+                BlobContainerClient containerClient = new(connectionString, "alpakas");
+                await containerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
+                string blobName = $"{Guid.NewGuid()}{ext}";
+                BlobClient blobClient = containerClient.GetBlobClient(blobName);
+                var uploadResponse = await blobClient.UploadAsync(imageFile.Data, new BlobHttpHeaders { ContentType = imageFile.ContentType }).ConfigureAwait(false);
+                entity.ImageUrl = blobClient.Uri.ToString();
+            }
+            else
+            {
+                _logger.LogWarning("Unsupported image file type: {FileName} with extension {Extension}. Only .png, .jpg or .jpeg is supported.", imageFile.FileName, ext);
+            }
+        }
+
         TableClient tableClient = new(connectionString, "alpakas");
         await tableClient.AddEntityAsync(entity).ConfigureAwait(false);
 
