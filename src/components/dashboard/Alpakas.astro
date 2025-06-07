@@ -87,21 +87,47 @@
       if (!res.ok) return;
       const alpacas = await res.json();
       const list = document.getElementById('alpaka-list');
+      list.innerHTML = ''; // Clear existing rows before adding new ones
+
       alpacas.forEach((alpaca) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
+
         const age = calculateAge(alpaca.Geburtsdatum);
-        const avatar = alpaca.ImageUrl
-          ? `<img class="profile-photo" src="${alpaca.ImageUrl}" alt="${alpaca.Name}" />`
-          : `<div class="profile-placeholder">${alpaca.Name.charAt(0).toUpperCase()}</div>`;
-        row.innerHTML = `
-          <td>${avatar}</td>
-          <td class="alpaka-name">${alpaca.Name}</td>
-          <td class="alpaka-age">${age}</td>`;
+
+        // Avatar Cell
+        const avatarCell = document.createElement('td');
+        if (alpaca.ImageUrl) {
+          const img = document.createElement('img');
+          img.className = 'profile-photo'; // Uses global style
+          img.src = alpaca.ImageUrl;
+          img.alt = alpaca.Name;
+          avatarCell.appendChild(img);
+        } else {
+          const placeholder = document.createElement('div');
+          placeholder.className = 'profile-placeholder'; // Uses global style
+          placeholder.textContent = alpaca.Name.charAt(0).toUpperCase();
+          avatarCell.appendChild(placeholder);
+        }
+        row.appendChild(avatarCell);
+
+        // Name Cell
+        const nameCell = document.createElement('td');
+        nameCell.className = 'alpaka-name';
+        nameCell.textContent = alpaca.Name;
+        row.appendChild(nameCell);
+
+        // Age Cell
+        const ageCell = document.createElement('td');
+        ageCell.className = 'alpaka-age';
+        ageCell.textContent = age;
+        row.appendChild(ageCell);
+
         list.appendChild(row);
       });
-    } catch {
-      /* ignore */
+    } catch (error) {
+      console.error('Failed to load alpacas:', error);
+      /* ignore for user, but log for dev */
     }
   }
 
