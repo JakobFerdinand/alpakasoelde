@@ -1,47 +1,48 @@
 {
-    "auth": {
-        "identityProviders": {
-            "github": {}
-        }
-    },
-    "routes": [
-        {
-            "route": "/dashboard/*",
-            "allowedRoles": [
-                "user"
-            ]
-        },
-        {
-            "route": "/api/dashboard/*",
-            "allowedRoles": [
-                "user"
-            ]
-        },
-        {
-            "route": "/*",
-            "serve": "/index.html",
-            "statusCode": 200,
-            "allowedRoles": [
-                "anonymous",
-                "authenticated"
-            ]
-        }
-    ],
-    "responseOverrides": {
-        "404": {
-            "rewrite": "/404.html",
-            "statusCode": 404
-        },
-        "401": {
-            "statusCode": 302,
-            "redirect": "/.auth/login/github?post_login_redirect_uri=.referrer"
-        },
-        "403": {
-            "rewrite": "/403.html",
-            "statusCode": 403
-        }
-    },
-    "platform": {
-        "apiRuntime": "dotnet-isolated:9.0"
+  "auth": {
+    "identityProviders": {
+      "github": {}
     }
+  },
+  "routes": [
+    {
+      "route": "/dashboard/*",
+      "allowedRoles": ["admin"]
+    },
+      {
+        "route": "/api/dashboard/messages",
+        "allowedRoles": ["admin"]
+      },
+      {
+        "route": "/api/dashboard/alpakas",
+        "allowedRoles": ["admin"]
+      },
+      {
+        "route": "/api/dashboard/messages/count-old",
+        "allowedRoles": ["admin"]
+      },
+      {
+        "route": "/*",
+        "serve": "/index.html",
+        "statusCode": 200,
+        "allowedRoles": ["anonymous", "authenticated"]
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+        "rewrite": "/404.html",
+        "statusCode": 404
+    },
+    "401": {
+        "statusCode": 302,
+        "redirect": "/.auth/login/github?post_login_redirect_uri=.referrer"
+    },
+    "403": {
+        "rewrite": "/403.html",
+        "statusCode": 403
+    }
+  },
+  "platform": {
+    "apiRuntime": "dotnet-isolated:9.0"
+  }
 }
