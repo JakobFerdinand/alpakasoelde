@@ -13,7 +13,7 @@ public class GetMessagesFunction(ILoggerFactory loggerFactory)
 
     [Function("get-messages")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/get-messages")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages")] HttpRequestData req)
     {
         string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
         TableClient tableClient = new(connectionString, "messages");

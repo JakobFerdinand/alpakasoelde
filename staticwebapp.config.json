@@ -10,11 +10,11 @@
       "allowedRoles": ["admin"]
     },
     {
-        "route": "/api/dashboard/get-messages",
+        "route": "/api/dashboard/messages",
         "allowedRoles": ["admin"]
       },
       {
-        "route": "/api/dashboard/get-old-message-count",
+        "route": "/api/dashboard/messages/count-old",
         "allowedRoles": ["admin"]
       },
       {
