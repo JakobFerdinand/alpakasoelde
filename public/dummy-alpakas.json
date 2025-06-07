@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Amadeus",
+    "geburtsdatum": "2020-05-20",
+    "image": "https://placehold.co/80x80?text=A"
+  },
+  {
+    "name": "Ludwig",
+    "geburtsdatum": "2019-11-15",
+    "image": "https://placehold.co/80x80?text=L"
+  },
+  {
+    "name": "Johann",
+    "geburtsdatum": "2021-04-01",
+    "image": "https://placehold.co/80x80?text=J"
+  }
+]

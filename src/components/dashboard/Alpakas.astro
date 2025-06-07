@@ -2,6 +2,7 @@
   <h2>Alpakas</h2>
   <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
 </div>
+<ul id="alpaka-list" class="alpaka-list"></ul>
 <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" hidden>
   <div class="form-field">
     <label for="alpaka-name">Name*</label>
@@ -20,6 +21,38 @@
   toggle.addEventListener('click', () => {
     form.hidden = !form.hidden;
   });
+
+  async function loadAlpakas() {
+    try {
+      const res = await fetch('/dummy-alpakas.json');
+      if (!res.ok) return;
+      const alpacas = await res.json();
+      const list = document.getElementById('alpaka-list');
+      alpacas.forEach((alpaca) => {
+        const li = document.createElement('li');
+        li.className = 'alpaka-item';
+        const age = calculateAge(alpaca.geburtsdatum);
+        li.innerHTML = `<img class="profile-photo" src="${alpaca.image}" alt="${alpaca.name}" /> <span class="alpaka-name">${alpaca.name}</span> <span class="alpaka-age">${age}</span>`;
+        list.appendChild(li);
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function calculateAge(dateStr) {
+    const birth = new Date(dateStr);
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    return `${years} J ${months} M`;
+  }
+
+  loadAlpakas();
 </script>
 
 <style>
@@ -38,6 +71,23 @@
     height: 2rem;
     font-size: 1.5rem;
     cursor: pointer;
+  }
+  .alpaka-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+  }
+  .alpaka-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .profile-photo {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    object-fit: cover;
   }
   .alpaka-form {
     margin-top: 1rem;
