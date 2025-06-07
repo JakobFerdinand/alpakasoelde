@@ -25,5 +25,5 @@ pnpm-debug.log*
 
 
 # .net generated files
-Api/bin/
-Api/obj/
+src/api/bin/
+src/api/obj/
