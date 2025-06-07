@@ -2,8 +2,7 @@
 import "../styles/global.css";
 import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
-import Favicon from '../images/favicon.svg';
-import Logo from '../images/AS_Symbolik_Schwarz.svg';
+import Head from '../components/Head.astro';
 import '@fontsource/bricolage-grotesque/300.css';
 import '@fontsource/bricolage-grotesque/400.css';
 
@@ -16,53 +15,11 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="de">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-                <link rel="icon" type="image/svg+xml" href={Favicon.src} />
-                <meta name="generator" content={Astro.generator} />
-                <title>{title} | Alpakasölde</title>
-		
-                <!-- SEO Meta Tags -->
-                <meta name="description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
-                <meta name="keywords" content="Alpakas, Alpakahof, Alpakawanderung, Frauenstein, Österreich, Tiererlebnisse" />
-                <meta name="author" content="Alpakasölde" />
-                <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
-                <meta name="robots" content="index, follow" />
-		
-		<!-- Open Graph / Social Media -->
-                <meta property="og:type" content="website" />
-                <meta property="og:title" content={`${title} | Alpakasölde`} />
-                <meta property="og:description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
-                <meta property="og:site_name" content="Alpakasölde" />
-                <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).toString()} />
-                <meta property="og:image" content={new URL(Logo.src, Astro.site).toString()} />
-
-                <!-- Twitter Cards -->
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={`${title} | Alpakasölde`} />
-                <meta name="twitter:description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
-                <meta name="twitter:image" content={new URL(Logo.src, Astro.site).toString()} />
-		
-		<!-- Structured Data -->
-                <script type="application/ld+json">
-                        {
-                                "@context": "https://schema.org",
-                                "@type": "LocalBusiness",
-                                "name": "Alpakasölde",
-                                "description": "Kleiner Alpakahof in Frauenstein, Oberösterreich",
-                                "image": Favicon.src,
-                                "address": {
-                                        "@type": "PostalAddress",
-                                        "addressCountry": "AT",
-                                        "addressRegion": "Oberösterreich"
-                                },
-                                "areaServed": "Oberösterreich",
-                                "serviceType": ["Alpakawanderungen", "Tiererlebnisse"],
-                                "priceRange": "€€"
-                        }
-		</script>
-	</head>
+       <head>
+               <meta charset="UTF-8" />
+               <meta name="viewport" content="width=device-width" />
+               <Head title={title} />
+       </head>
         <body>
                 <Navbar />
                 <slot />

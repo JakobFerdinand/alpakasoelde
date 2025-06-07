@@ -1,0 +1,55 @@
+---
+import Favicon from "../images/favicon.svg";
+import Logo from "../images/AS_Symbolik_Schwarz.svg";
+
+interface Props {
+  title?: string;
+  robots?: string;
+}
+
+const { title = "Alpakas\u00f6lde", robots = "index, follow" } = Astro.props;
+---
+<link rel="icon" type="image/svg+xml" href={Favicon.src} />
+<meta name="generator" content={Astro.generator} />
+<title>{title} | Alpakas\u00f6lde</title>
+
+<!-- SEO Meta Tags -->
+<meta name="description" content="Kleiner Alpakahof in Frauenstein, Ober\u00f6sterreich. Alpakaerlebnisse und Wanderungen." />
+<meta name="keywords" content="Alpakas, Alpakahof, Alpakawanderung, Frauenstein, \u00d6sterreich, Tiererlebnisse" />
+<meta name="author" content="Alpakas\u00f6lde" />
+<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
+<meta name="robots" content={robots} />
+
+<!-- Open Graph / Social Media -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content={`${title} | Alpakas\u00f6lde`} />
+<meta property="og:description" content="Kleiner Alpakahof in Frauenstein, Ober\u00f6sterreich. Alpakaerlebnisse und Wanderungen." />
+<meta property="og:site_name" content="Alpakas\u00f6lde" />
+<meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).toString()} />
+<meta property="og:image" content={new URL(Logo.src, Astro.site).toString()} />
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={`${title} | Alpakas\u00f6lde`} />
+<meta name="twitter:description" content="Kleiner Alpakahof in Frauenstein, Ober\u00f6sterreich. Alpakaerlebnisse und Wanderungen." />
+<meta name="twitter:image" content={new URL(Logo.src, Astro.site).toString()} />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    "name": "Alpakas\u00f6lde",
+    "description": "Kleiner Alpakahof in Frauenstein, Ober\u00f6sterreich",
+    "image": Favicon.src,
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "AT",
+      "addressRegion": "Ober\u00f6sterreich"
+    },
+    "areaServed": "Ober\u00f6sterreich",
+    "serviceType": ["Alpakawanderungen", "Tiererlebnisse"],
+    "priceRange": "\u20ac\u20ac"
+  }
+</script>
+
