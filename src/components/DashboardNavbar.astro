@@ -9,29 +9,24 @@ import Logo from "../images/AS_Symbolik_Backstein.svg";
       <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
     </a>
     <a href="/" class="app-link">Zur App</a>
-    <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
-    <div class="nav-right">
-      <ul class="nav-links">
-        <li><a href="/dashboard/messages">Messages</a></li>
-      </ul>
-      <div class="user-info">
+    <ul class="nav-links">
+      <li><a href="/dashboard/messages">Messages</a></li>
+      <li class="user-info">
         <span class="user-name"></span>
         <img class="avatar" alt="" />
-      </div>
-    </div>
+      </li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
   </div>
   <script>
     const toggle = document.querySelector('.nav-toggle');
     const links = document.querySelector('.nav-links');
-    const user = document.querySelector('.user-info');
     toggle.addEventListener('click', () => {
       links.classList.toggle('open');
-      user.classList.toggle('open');
     });
     document.querySelectorAll('.nav-links a').forEach((item) => {
       item.addEventListener('click', () => {
         links.classList.remove('open');
-        user.classList.remove('open');
       });
     });
     async function loadUser() {
@@ -66,18 +61,13 @@ import Logo from "../images/AS_Symbolik_Backstein.svg";
     display: flex;
     align-items: center;
   }
-  .nav-right {
-    display: flex;
-    align-items: center;
-    margin-left: auto;
-    gap: 1rem;
-  }
   .nav-links {
     list-style: none;
     display: flex;
     gap: 1rem;
     margin: 0;
     padding: 0;
+    margin-left: auto;
   }
   .nav-links a {
     text-decoration: none;
@@ -119,25 +109,14 @@ import Logo from "../images/AS_Symbolik_Backstein.svg";
       left: 0;
       right: 0;
       padding: 1rem;
-    }
-    .user-info {
-      display: none;
-      flex-direction: column;
-      background-color: var(--schurwolle);
-      position: absolute;
-      top: 100%;
-      right: 0;
-      padding: 1rem;
-      align-items: flex-start;
+      margin-left: 0;
     }
     .nav-links.open {
       display: flex;
     }
-    .user-info.open {
-      display: flex;
-    }
     .nav-toggle {
       display: block;
+      margin-left: auto;
     }
   }
 </style>
