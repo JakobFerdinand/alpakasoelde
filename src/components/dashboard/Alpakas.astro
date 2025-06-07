@@ -1,2 +1,63 @@
-<h2>Alpakas</h2>
+<div class="alpaka-header">
+  <h2>Alpakas</h2>
+  <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
+</div>
+<form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" hidden>
+  <div class="form-field">
+    <label for="alpaka-name">Name*</label>
+    <input id="alpaka-name" name="name" type="text" required />
+  </div>
+  <div class="form-field">
+    <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
+    <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
+  </div>
+  <button type="submit" class="btn">Neues Alpaka anlegen</button>
+</form>
 
+<script>
+  const toggle = document.getElementById('add-alpaka-toggle');
+  const form = document.getElementById('add-alpaka-form');
+  toggle.addEventListener('click', () => {
+    form.hidden = !form.hidden;
+  });
+</script>
+
+<style>
+  .alpaka-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .add-btn {
+    margin-top: 0.5rem;
+    background-color: var(--bluetenhonig);
+    color: var(--schurwolle);
+    border: none;
+    border-radius: 0.375rem;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+  .alpaka-form {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .alpaka-form .form-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  .alpaka-form input {
+    padding: 0.5rem;
+    border: 1px solid var(--taubenblau);
+    border-radius: 0.25rem;
+  }
+  .alpaka-form input:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--bluetenhonig);
+  }
+</style>
