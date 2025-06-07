@@ -53,11 +53,11 @@
     </aside>
   </div>
   <script>
-    const form = document.getElementById('contact-form');
-    const limits = { name: 100, email: 254, message: 2000 };
+    const form = document.getElementById('contact-form') as HTMLFormElement;
+    const limits: { [key: string]: number } = { name: 100, email: 254, message: 2000 };
 
     Object.entries(limits).forEach(([id, max]) => {
-      const el = document.getElementById(id);
+      const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
       el.addEventListener('input', () => {
         if (el.value.length > max) {
           el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
@@ -67,11 +67,11 @@
       });
     });
 
-    const submitButton = form.querySelector('button[type="submit"]');
+    const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', (e: SubmitEvent) => {
       for (const [id, max] of Object.entries(limits)) {
-        const el = document.getElementById(id);
+        const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement;
         if (el.value.trim().length > max) {
           el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
           el.reportValidity();
