@@ -14,25 +14,71 @@
       </thead>
       <tbody id="alpaka-list"></tbody>
     </table>
-    <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" hidden>
-      <div class="form-field">
-        <label for="alpaka-name">Name*</label>
-        <input id="alpaka-name" name="name" type="text" required />
-      </div>
-      <div class="form-field">
-        <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
-        <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
-      </div>
-      <button type="submit" class="btn">Neues Alpaka anlegen</button>
-    </form>
+  </div>
+
+  <div id="alpaka-lightbox" class="lightbox" hidden>
+    <div class="lightbox-content">
+      <button type="button" id="close-alpaka-form" class="close-btn" aria-label="Schließen">×</button>
+      <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas">
+        <div class="form-field">
+          <label for="alpaka-name">Name*</label>
+          <input id="alpaka-name" name="name" type="text" maxlength="100" required />
+        </div>
+        <div class="form-field">
+          <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
+          <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
+        </div>
+        <button type="submit" class="btn">Neues Alpaka anlegen</button>
+      </form>
+    </div>
   </div>
 </section>
 
 <script>
   const toggle = document.getElementById('add-alpaka-toggle');
+  const lightbox = document.getElementById('alpaka-lightbox');
+  const closeBtn = document.getElementById('close-alpaka-form');
   const form = document.getElementById('add-alpaka-form');
+
   toggle.addEventListener('click', () => {
-    form.hidden = !form.hidden;
+    lightbox.hidden = false;
+  });
+
+  closeBtn.addEventListener('click', () => {
+    lightbox.hidden = true;
+  });
+
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) lightbox.hidden = true;
+  });
+
+  const limits = { 'alpaka-name': 100 };
+
+  Object.entries(limits).forEach(([id, max]) => {
+    const el = document.getElementById(id);
+    el.addEventListener('input', () => {
+      if (el.value.length > max) {
+        el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
+      } else {
+        el.setCustomValidity('');
+      }
+    });
+  });
+
+  const submitButton = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', (e) => {
+    for (const [id, max] of Object.entries(limits)) {
+      const el = document.getElementById(id);
+      if (el.value.trim().length > max) {
+        el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
+        el.reportValidity();
+        e.preventDefault();
+        return;
+      }
+    }
+    submitButton.disabled = true;
+    submitButton.classList.add('loading');
   });
 
   async function loadAlpakas() {
@@ -127,27 +173,106 @@
     border-radius: 50%;
     object-fit: cover;
   }
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 1000;
+  }
+
+  .lightbox:not([hidden]) {
+    display: flex;
+  }
+
+  .lightbox-content {
+    position: relative;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 25rem;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    color: var(--taubenblau);
+  }
+
   .alpaka-form {
-    margin-top: 1rem;
+    display: flex;
     flex-direction: column;
     gap: 1rem;
   }
-  .alpaka-form:not([hidden]) {
-    display: flex;
-  }
+
   .alpaka-form .form-field {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 0.25rem;
   }
+
   .alpaka-form input {
-    padding: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
     border: 1px solid var(--taubenblau);
     border-radius: 0.25rem;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    font-size: 1rem;
   }
+
   .alpaka-form input:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--bluetenhonig);
+  }
+
+  .alpaka-form button {
+    background-color: var(--bluetenhonig);
+    color: var(--schurwolle);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.375rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .alpaka-form button:hover {
+    background-color: var(--jungtrieb);
+  }
+
+  .alpaka-form button.loading::after,
+  .alpaka-form button:disabled::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+  }
+
+  .alpaka-form button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
