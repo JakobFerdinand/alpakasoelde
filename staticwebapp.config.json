@@ -9,8 +9,12 @@
       "route": "/dashboard/*",
       "allowedRoles": ["admin"]
     },
-    {
+      {
         "route": "/api/dashboard/messages",
+        "allowedRoles": ["admin"]
+      },
+      {
+        "route": "/api/dashboard/alpakas",
         "allowedRoles": ["admin"]
       },
       {
