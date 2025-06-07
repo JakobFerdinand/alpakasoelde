@@ -91,7 +91,10 @@
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
         const age = calculateAge(alpaca.geburtsdatum);
-        row.innerHTML = `\n          <td><img class="profile-photo" src="${alpaca.image}" alt="${alpaca.name}" /></td>\n          <td class="alpaka-name">${alpaca.name}</td>\n          <td class="alpaka-age">${age}</td>`;
+        row.innerHTML = `
+          <td><img class="profile-photo" src="${alpaca.image}" alt="${alpaca.name}" /></td>
+          <td class="alpaka-name">${alpaca.name}</td>
+          <td class="alpaka-age">${age}</td>`;
         list.appendChild(row);
       });
     } catch {
@@ -154,6 +157,7 @@
   .alpaka-table td {
     padding: 0.75rem 0.5rem;
     text-align: left;
+    transition: background-color 0.2s ease;
   }
   .alpaka-table th:first-child,
   .alpaka-table td:first-child {
@@ -161,10 +165,9 @@
     width: 4.5rem;
     padding-right: 1rem;
   }
-  .alpaka-item:hover td {
+  #alpaka-table tbody tr:hover > td {
     background-color: var(--auwasser);
     cursor: pointer;
-    transition: background-color 0.2s ease;
   }
   .alpaka-item:not(:last-child) td {
     border-bottom: 1px solid var(--taubenblau);
@@ -185,11 +188,9 @@
     padding: 1rem;
     z-index: 1000;
   }
-
   .lightbox:not([hidden]) {
     display: flex;
   }
-
   .lightbox-content {
     position: relative;
     background-color: var(--schurwolle);
@@ -200,7 +201,6 @@
     width: 100%;
     max-width: 25rem;
   }
-
   .close-btn {
     position: absolute;
     top: 0.5rem;
@@ -212,19 +212,16 @@
     cursor: pointer;
     color: var(--taubenblau);
   }
-
   .alpaka-form {
     display: flex;
     flex-direction: column;
     gap: 1rem;
   }
-
   .alpaka-form .form-field {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
   }
-
   .alpaka-form input {
     width: 100%;
     padding: 0.75rem 1rem;
@@ -234,12 +231,10 @@
     color: var(--taubenblau);
     font-size: 1rem;
   }
-
   .alpaka-form input:focus {
     outline: none;
     box-shadow: 0 0 0 2px var(--bluetenhonig);
   }
-
   .alpaka-form button {
     background-color: var(--bluetenhonig);
     color: var(--schurwolle);
@@ -249,11 +244,9 @@
     font-weight: 600;
     cursor: pointer;
   }
-
   .alpaka-form button:hover {
     background-color: var(--jungtrieb);
   }
-
   .alpaka-form button.loading::after,
   .alpaka-form button:disabled::after {
     content: "";
@@ -266,12 +259,10 @@
     border-right-color: transparent;
     animation: spin 0.75s linear infinite;
   }
-
   .alpaka-form button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
   }
-
   @keyframes spin {
     to {
       transform: rotate(360deg);
