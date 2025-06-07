@@ -4,7 +4,8 @@
       <h2>Alpakas</h2>
       <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
     </div>
-    <table id="alpaka-table" class="alpaka-table">
+    <p id="alpaka-loading" class="alpaka-loading loading">Lade Daten...</p>
+    <table id="alpaka-table" class="alpaka-table" hidden>
       <thead>
         <tr>
           <th></th>
@@ -39,6 +40,8 @@
   const lightbox = document.getElementById('alpaka-lightbox');
   const closeBtn = document.getElementById('close-alpaka-form');
   const form = document.getElementById('add-alpaka-form');
+  const table = document.getElementById('alpaka-table');
+  const loading = document.getElementById('alpaka-loading');
 
   toggle.addEventListener('click', () => {
     lightbox.hidden = false;
@@ -82,6 +85,8 @@
   });
 
   async function loadAlpakas() {
+    loading.hidden = false;
+    table.hidden = true;
     try {
       const res = await fetch('/api/dashboard/alpakas');
       if (!res.ok) return;
@@ -129,6 +134,8 @@
       console.error('Failed to load alpacas:', error);
       /* ignore for user, but log for dev */
     }
+    table.hidden = false;
+    loading.hidden = true;
   }
 
   function calculateAge(dateStr) {
@@ -167,6 +174,25 @@
     height: 2rem;
     font-size: 1.5rem;
     cursor: pointer;
+  }
+  .alpaka-loading {
+    margin: 1rem 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .alpaka-loading.loading::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
   }
   .alpaka-table {
     width: 100%;
