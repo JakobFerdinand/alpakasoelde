@@ -91,9 +91,11 @@
   }
   .alpaka-form {
     margin-top: 1rem;
-    display: flex;
     flex-direction: column;
     gap: 1rem;
+  }
+  .alpaka-form:not([hidden]) {
+    display: flex;
   }
   .alpaka-form .form-field {
     display: flex;
