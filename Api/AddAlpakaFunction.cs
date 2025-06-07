@@ -19,7 +19,7 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dashboard/alpakas")] HttpRequestData req)
     {
-        var parsedFormBocy = await MultipartFormDataParser.ParseAsync(req.Body);
+        var parsedFormBocy = await MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
 
         string? name = parsedFormBocy.GetParameterValue("name").Trim();
         string? geburtsdatum = parsedFormBocy.GetParameterValue("geburtsdatum").Trim();
