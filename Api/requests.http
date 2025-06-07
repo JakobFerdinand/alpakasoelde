@@ -11,4 +11,4 @@ name=TestName&email=test@example.com&message=Hello from .http file
 
 ###
 
-GET {{base}}/api/get-messages
+GET {{base}}/api/dashboard/get-messages

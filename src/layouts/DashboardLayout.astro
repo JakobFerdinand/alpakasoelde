@@ -1,6 +1,6 @@
 ---
 import "../styles/global.css";
-import AdminNavbar from "../components/AdminNavbar.astro";
+import DashboardNavbar from "../components/DashboardNavbar.astro";
 import Favicon from '../images/favicon.svg';
 
 interface Props {
@@ -27,7 +27,7 @@ const { title } = Astro.props;
     <meta name="robots" content="noindex" />
   </head>
   <body>
-    <AdminNavbar />
+    <DashboardNavbar />
     <slot />
   </body>
 </html>

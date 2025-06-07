@@ -1,9 +1,9 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
 ---
 
-<AdminLayout title="Admin Dashboard">
-  <section class="admin-page section">
+<DashboardLayout title="Dashboard">
+  <section class="dashboard-page section">
     <div class="container">
       <h2>Dashboard</h2>
       <div class="user-info">
@@ -11,15 +11,15 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <p id="greeting" class="greeting"></p>
       </div>
       <p id="old-message-count" class="old-count"></p>
-      <ul class="admin-links">
-        <li><a class="btn" href="/admin/messages">Nachrichten</a></li>
+      <ul class="dashboard-links">
+        <li><a class="btn" href="/dashboard/messages">Nachrichten</a></li>
       </ul>
     </div>
   </section>
-</AdminLayout>
+</DashboardLayout>
 
 <style>
-  .admin-page {
+  .dashboard-page {
     background-color: var(--auwasser);
     color: var(--taubenblau);
     text-align: center;
@@ -49,12 +49,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     font-weight: 600;
   }
 
-  .admin-links {
+  .dashboard-links {
     list-style: none;
     padding: 0;
   }
 
-  .admin-links li {
+  .dashboard-links li {
     margin-bottom: 1rem;
   }
 </style>
@@ -80,7 +80,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   async function loadOldMessageCount() {
     try {
-      const res = await fetch('/api/get-old-message-count');
+      const res = await fetch('/api/dashboard/get-old-message-count');
       if (!res.ok) return;
       const data = await res.json();
       document.getElementById('old-message-count').textContent =

@@ -12,7 +12,7 @@ public class GetOldMessageCountFunction(ILoggerFactory loggerFactory)
 
     [Function("get-old-message-count")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/get-old-message-count")] HttpRequestData req)
     {
         string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
         TableClient tableClient = new(connectionString, "messages");
