@@ -7,6 +7,7 @@ public sealed class AlpakaEntity : ITableEntity
 {
     public required string Name { get; set; }
     public required string Geburtsdatum { get; set; }
+    public string? ImageUrl { get; set; }
 
     public DateTimeOffset? Timestamp { get; set; }
     public ETag ETag { get; set; }

@@ -83,15 +83,15 @@
 
   async function loadAlpakas() {
     try {
-      const res = await fetch('/dummy-alpakas.json');
+      const res = await fetch('/api/dashboard/alpakas');
       if (!res.ok) return;
       const alpacas = await res.json();
       const list = document.getElementById('alpaka-list');
       alpacas.forEach((alpaca) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
-        const age = calculateAge(alpaca.geburtsdatum);
-        row.innerHTML = `\n          <td><img class="profile-photo" src="${alpaca.image}" alt="${alpaca.name}" /></td>\n          <td class="alpaka-name">${alpaca.name}</td>\n          <td class="alpaka-age">${age}</td>`;
+        const age = calculateAge(alpaca.Geburtsdatum);
+        row.innerHTML = `\n          <td><img class="profile-photo" src="${alpaca.ImageUrl}" alt="${alpaca.Name}" /></td>\n          <td class="alpaka-name">${alpaca.Name}</td>\n          <td class="alpaka-age">${age}</td>`;
         list.appendChild(row);
       });
     } catch {
