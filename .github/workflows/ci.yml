@@ -50,7 +50,7 @@ jobs:
       - name: Build Page
         run: npm run build
       
-      - name: Build And Deploy
+      - name: Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
