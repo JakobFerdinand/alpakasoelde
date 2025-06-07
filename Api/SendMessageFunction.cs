@@ -9,9 +9,10 @@ using System.Web;
 
 namespace Api;
 
-public class SendMessageFunction(ILoggerFactory loggerFactory)
+public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<SendMessageFunction>();
+    private readonly TableServiceClient _tableServiceClient = tableServiceClient;
 
     private const int NameMaxLength = 100;
     private const int EmailMaxLength = 254;
@@ -159,8 +160,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             Message = messageContent!
         };
 
-        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
-        TableClient tableClient = new(connectionString, "messages");
+        TableClient tableClient = _tableServiceClient.GetTableClient("messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
 
         await SendEmail((name!, email!, messageContent!)).ConfigureAwait(false);

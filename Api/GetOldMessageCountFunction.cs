@@ -6,16 +6,16 @@ using System.Net;
 
 namespace Api;
 
-public class GetOldMessageCountFunction(ILoggerFactory loggerFactory)
+public class GetOldMessageCountFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<GetOldMessageCountFunction>();
+    private readonly TableServiceClient _tableServiceClient = tableServiceClient;
 
     [Function("get-old-message-count")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages/count-old")] HttpRequestData req)
     {
-        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
-        TableClient tableClient = new(connectionString, "messages");
+        TableClient tableClient = _tableServiceClient.GetTableClient("messages");
 
         DateTimeOffset threshold = DateTimeOffset.UtcNow.AddMonths(-6);
         int count = tableClient.Query<MessageEntity>(m => m.Timestamp < threshold).Count();
