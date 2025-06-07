@@ -19,26 +19,26 @@ import Logo from "../images/AS_Symbolik_Backstein.svg";
     <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
   </div>
   <script>
-    const toggle = document.querySelector('.nav-toggle');
-    const links = document.querySelector('.nav-links');
+    const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
+    const links = document.querySelector('.nav-links') as HTMLUListElement;
     toggle.addEventListener('click', () => {
       links.classList.toggle('open');
     });
-    document.querySelectorAll('.nav-links a').forEach((item) => {
+    document.querySelectorAll<HTMLAnchorElement>('.nav-links a').forEach((item) => {
       item.addEventListener('click', () => {
         links.classList.remove('open');
       });
     });
-    async function loadUser() {
+    async function loadUser(): Promise<void> {
       try {
         const res = await fetch('/.auth/me');
         if (!res.ok) return;
         const data = await res.json();
         const principal = data.clientPrincipal;
         if (!principal) return;
-        const name = principal.userDetails || 'User';
-        document.querySelector('.user-name').textContent = name;
-        const avatar = document.querySelector('.avatar');
+        const name: string = principal.userDetails || 'User';
+        (document.querySelector('.user-name') as HTMLSpanElement).textContent = name;
+        const avatar = document.querySelector('.avatar') as HTMLImageElement;
         avatar.src = `https://github.com/${name}.png`;
         avatar.alt = name;
       } catch {

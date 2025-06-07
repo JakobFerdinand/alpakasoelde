@@ -16,9 +16,9 @@ import Logo from "../images/AS_Symbolik_Schwarz.svg";
     </ul>
   </div>
   <script>
-    const toggle = document.querySelector('.nav-toggle');
-    const links = document.querySelector('.nav-links');
-    const linkItems = document.querySelectorAll('.nav-links a');
+    const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
+    const links = document.querySelector('.nav-links') as HTMLUListElement;
+    const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
     toggle.addEventListener('click', () => {
       links.classList.toggle('open');
     });
