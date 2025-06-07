@@ -1,19 +1,18 @@
 ---
 import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import Stats from '../../components/Stats.astro';
+import DashboardAlpakas from '../../components/DashboardAlpakas.astro';
 ---
 
 <DashboardLayout title="Dashboard">
   <section class="dashboard-page section">
     <div class="container">
       <h2>Dashboard</h2>
-      <div class="user-info">
-        <img id="avatar" class="avatar" alt="" />
-        <p id="greeting" class="greeting"></p>
-      </div>
-      <p id="old-message-count" class="old-count"></p>
+      <Stats />
       <ul class="dashboard-links">
         <li><a class="btn" href="/dashboard/messages">Nachrichten</a></li>
       </ul>
+      <DashboardAlpakas />
     </div>
   </section>
 </DashboardLayout>
@@ -25,29 +24,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     text-align: center;
   }
 
-  .user-info {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-
-  .avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: none;
-  }
-
-  .greeting {
-    margin-top: 0.5rem;
-    font-weight: bold;
-  }
-
-  .old-count {
-    margin-bottom: 1rem;
-    font-weight: 600;
-  }
+  /* stats styles are defined in component */
 
   .dashboard-links {
     list-style: none;
@@ -59,36 +36,3 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   }
 </style>
 
-<script>
-  async function loadUser() {
-    try {
-      const res = await fetch('/.auth/me');
-      if (!res.ok) return;
-      const data = await res.json();
-      const user = data.clientPrincipal;
-      if (!user) return;
-      const name = user.userDetails || 'User';
-      document.getElementById('greeting').textContent = `Hallo ${name}!`;
-      const avatar = document.getElementById('avatar');
-      avatar.src = `https://github.com/${name}.png`;
-      avatar.alt = name;
-      avatar.style.display = 'block';
-    } catch {
-      /* ignore */
-    }
-  }
-
-  async function loadOldMessageCount() {
-    try {
-      const res = await fetch('/api/dashboard/messages/count-old');
-      if (!res.ok) return;
-      const data = await res.json();
-      document.getElementById('old-message-count').textContent =
-        `Nachrichten älter als 6 Monate: ${data.Count}`;
-    } catch {
-      /* ignore */
-    }
-  }
-  loadUser();
-  loadOldMessageCount();
-</script>
