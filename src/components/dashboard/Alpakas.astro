@@ -15,14 +15,17 @@
   <button type="submit" class="btn">Neues Alpaka anlegen</button>
 </form>
 
-<script>
-  const toggle = document.getElementById('add-alpaka-toggle');
-  const form = document.getElementById('add-alpaka-form');
-  toggle.addEventListener('click', () => {
-    form.hidden = !form.hidden;
-  });
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const toggle = document.getElementById('add-alpaka-toggle');
+      const form = document.getElementById('add-alpaka-form');
+      toggle.addEventListener('click', () => {
+        form.hidden = !form.hidden;
+      });
+      loadAlpakas();
+    });
 
-  async function loadAlpakas() {
+    async function loadAlpakas() {
     try {
       const res = await fetch('/dummy-alpakas.json');
       if (!res.ok) return;
@@ -52,7 +55,6 @@
     return `${years} J ${months} M`;
   }
 
-  loadAlpakas();
 </script>
 
 <style>
