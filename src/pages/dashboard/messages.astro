@@ -1,9 +1,9 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro';
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
 ---
 
-<AdminLayout title="Nachrichten">
-  <section class="admin-page section">
+<DashboardLayout title="Nachrichten">
+  <section class="dashboard-page section">
     <div class="container">
       <h2>Eingegangene Nachrichten</h2>
       <div class="table-wrapper">
@@ -25,12 +25,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
     </div>
   </section>
-</AdminLayout>
+</DashboardLayout>
 
 <script>
   async function loadMessages() {
     try {
-      const res = await fetch('/api/get-messages');
+      const res = await fetch('/api/dashboard/get-messages');
       if (!res.ok) return;
       const msgs = await res.json();
       const tbody = document.getElementById('message-table-body');
@@ -51,7 +51,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </script>
 
 <style>
-  .admin-page {
+  .dashboard-page {
     background-color: var(--auwasser);
     color: var(--taubenblau);
   }

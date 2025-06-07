@@ -6,15 +6,15 @@
   },
   "routes": [
     {
-      "route": "/admin/*",
+      "route": "/dashboard/*",
       "allowedRoles": ["admin"]
     },
     {
-        "route": "/api/get-messages",
+        "route": "/api/dashboard/get-messages",
         "allowedRoles": ["admin"]
       },
       {
-        "route": "/api/get-old-message-count",
+        "route": "/api/dashboard/get-old-message-count",
         "allowedRoles": ["admin"]
       },
       {
