@@ -8,11 +8,8 @@ import DashboardAlpakas from '../../components/DashboardAlpakas.astro';
   <section class="dashboard-page section">
     <div class="container">
       <h2>Dashboard</h2>
-      <Stats />
-      <ul class="dashboard-links">
-        <li><a class="btn" href="/dashboard/messages">Nachrichten</a></li>
-      </ul>
       <DashboardAlpakas />
+      <Stats />
     </div>
   </section>
 </DashboardLayout>
@@ -25,14 +22,5 @@ import DashboardAlpakas from '../../components/DashboardAlpakas.astro';
   }
 
   /* stats styles are defined in component */
-
-  .dashboard-links {
-    list-style: none;
-    padding: 0;
-  }
-
-  .dashboard-links li {
-    margin-bottom: 1rem;
-  }
 </style>
 
