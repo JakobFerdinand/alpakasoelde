@@ -102,8 +102,8 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             </html>
             """;
 
-        string? senderEmail = Environment.GetEnvironmentVariable("EmailSenderAddress");
-        var receiverEmails = Environment.GetEnvironmentVariable("ReceiverEmailAddresses")!
+        string? senderEmail = Environment.GetEnvironmentVariable(EnvironmentVariables.EmailSenderAddress);
+        var receiverEmails = Environment.GetEnvironmentVariable(EnvironmentVariables.ReceiverEmailAddresses)!
             .Split(';')
             .Where(email => !string.IsNullOrWhiteSpace(email))
             .ToArray();
@@ -114,7 +114,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             .Select(email => new EmailAddress(email.Trim()))
             .ToArray();
 
-        string? emailConnection = Environment.GetEnvironmentVariable("EmailConnection");
+        string? emailConnection = Environment.GetEnvironmentVariable(EnvironmentVariables.EmailConnection);
         EmailClient emailClient = new(emailConnection);
         EmailMessage emailMessage = new(
             senderAddress: senderEmail,
@@ -159,7 +159,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory)
             Message = messageContent!
         };
 
-        string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
+        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
         TableClient tableClient = new(connectionString, "messages");
         await tableClient.AddEntityAsync(messageEntity).ConfigureAwait(false);
 

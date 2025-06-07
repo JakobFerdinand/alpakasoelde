@@ -14,7 +14,7 @@ public class GetOldMessageCountFunction(ILoggerFactory loggerFactory)
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages/count-old")] HttpRequestData req)
     {
-        string? connectionString = Environment.GetEnvironmentVariable("MessageStorageConnection");
+        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
         TableClient tableClient = new(connectionString, "messages");
 
         DateTimeOffset threshold = DateTimeOffset.UtcNow.AddMonths(-6);
