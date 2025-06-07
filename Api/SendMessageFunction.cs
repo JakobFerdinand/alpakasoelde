@@ -9,10 +9,14 @@ using System.Web;
 
 namespace Api;
 
-public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
+public class SendMessageFunction(
+    ILoggerFactory loggerFactory,
+    TableServiceClient tableServiceClient,
+    EmailOptions emailOptions)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<SendMessageFunction>();
     private readonly TableServiceClient _tableServiceClient = tableServiceClient;
+    private readonly EmailOptions _emailOptions = emailOptions;
 
     private const int NameMaxLength = 100;
     private const int EmailMaxLength = 254;
@@ -103,11 +107,8 @@ public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClien
             </html>
             """;
 
-        string? senderEmail = Environment.GetEnvironmentVariable(EnvironmentVariables.EmailSenderAddress);
-        var receiverEmails = Environment.GetEnvironmentVariable(EnvironmentVariables.ReceiverEmailAddresses)!
-            .Split(';')
-            .Where(email => !string.IsNullOrWhiteSpace(email))
-            .ToArray();
+        string? senderEmail = _emailOptions.SenderAddress;
+        var receiverEmails = _emailOptions.ReceiverAddresses;
         _logger.LogInformation(
             "Sending email from '{SenderEmail}' to {ReceiverEmailsCount} recipients: {ReceiverEmails}",
             senderEmail, receiverEmails.Length, string.Join(", ", receiverEmails));
@@ -115,7 +116,7 @@ public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClien
             .Select(email => new EmailAddress(email.Trim()))
             .ToArray();
 
-        string? emailConnection = Environment.GetEnvironmentVariable(EnvironmentVariables.EmailConnection);
+        string? emailConnection = _emailOptions.ConnectionString;
         EmailClient emailClient = new(emailConnection);
         EmailMessage emailMessage = new(
             senderAddress: senderEmail,
