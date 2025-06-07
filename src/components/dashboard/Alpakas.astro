@@ -91,8 +91,11 @@
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
         const age = calculateAge(alpaca.Geburtsdatum);
+        const avatar = alpaca.ImageUrl
+          ? `<img class="profile-photo" src="${alpaca.ImageUrl}" alt="${alpaca.Name}" />`
+          : `<div class="profile-placeholder">${alpaca.Name.charAt(0).toUpperCase()}</div>`;
         row.innerHTML = `
-          <td><img class="profile-photo" src="${alpaca.ImageUrl}" alt="${alpaca.Name}" /></td>
+          <td>${avatar}</td>
           <td class="alpaka-name">${alpaca.Name}</td>
           <td class="alpaka-age">${age}</td>`;
         list.appendChild(row);
@@ -177,6 +180,17 @@
     height: 2.5rem;
     border-radius: 50%;
     object-fit: cover;
+  }
+  .profile-placeholder {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--himmelblau);
+    color: var(--schurwolle);
+    font-weight: 600;
   }
   .lightbox {
     position: fixed;
