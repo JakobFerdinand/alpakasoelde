@@ -1,0 +1,26 @@
+<div class="stats">
+  <p id="old-message-count" class="old-count"></p>
+</div>
+
+<script>
+  async function loadOldMessageCount() {
+    try {
+      const res = await fetch('/api/dashboard/messages/count-old');
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById('old-message-count').textContent =
+        `Nachrichten älter als 6 Monate: ${data.Count}`;
+    } catch {
+      /* ignore */
+    }
+  }
+  loadOldMessageCount();
+</script>
+
+<style>
+  .old-count {
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+</style>
+
