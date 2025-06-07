@@ -4,7 +4,16 @@
       <h2>Alpakas</h2>
       <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
     </div>
-    <ul id="alpaka-list" class="alpaka-list"></ul>
+    <table id="alpaka-table" class="alpaka-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Alter</th>
+        </tr>
+      </thead>
+      <tbody id="alpaka-list"></tbody>
+    </table>
     <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" hidden>
       <div class="form-field">
         <label for="alpaka-name">Name*</label>
@@ -33,11 +42,11 @@
       const alpacas = await res.json();
       const list = document.getElementById('alpaka-list');
       alpacas.forEach((alpaca) => {
-        const li = document.createElement('li');
-        li.className = 'alpaka-item';
+        const row = document.createElement('tr');
+        row.className = 'alpaka-item';
         const age = calculateAge(alpaca.geburtsdatum);
-        li.innerHTML = `<img class="profile-photo" src="${alpaca.image}" alt="${alpaca.name}" /> <span class="alpaka-name">${alpaca.name}</span> <span class="alpaka-age">${age}</span>`;
-        list.appendChild(li);
+        row.innerHTML = `\n          <td><img class="profile-photo" src="${alpaca.image}" alt="${alpaca.name}" /></td>\n          <td class="alpaka-name">${alpaca.name}</td>\n          <td class="alpaka-age">${age}</td>`;
+        list.appendChild(row);
       });
     } catch {
       /* ignore */
@@ -81,20 +90,33 @@
     font-size: 1.5rem;
     cursor: pointer;
   }
-  .alpaka-list {
-    list-style: none;
-    padding: 0;
+  .alpaka-table {
+    width: 100%;
+    border-collapse: collapse;
     margin: 1rem 0;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    border-radius: 0.5rem;
+    overflow: hidden;
   }
-  .alpaka-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 0.5rem;
+  .alpaka-table th {
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+    text-align: left;
+  }
+  .alpaka-table th,
+  .alpaka-table td {
+    padding: 0.75rem 0.5rem;
+  }
+  .alpaka-item:hover {
+    background-color: var(--auwasser);
+  }
+  .alpaka-item:not(:last-child) td {
+    border-bottom: 1px solid var(--taubenblau);
   }
   .profile-photo {
-    width: 3rem;
-    height: 3rem;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 50%;
     object-fit: cover;
   }
