@@ -12,19 +12,7 @@
       ]
     },
     {
-      "route": "/api/dashboard/messages",
-      "allowedRoles": [
-        "admin"
-      ]
-    },
-    {
-      "route": "/api/dashboard/alpakas",
-      "allowedRoles": [
-        "admin"
-      ]
-    },
-    {
-      "route": "/api/dashboard/messages/count-old",
+      "route": "/api/dashboard/*",
       "allowedRoles": [
         "admin"
       ]
