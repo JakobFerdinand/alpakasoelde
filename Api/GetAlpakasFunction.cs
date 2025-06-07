@@ -6,16 +6,16 @@ using System.Net;
 
 namespace Api;
 
-public class GetAlpakasFunction(ILoggerFactory loggerFactory)
+public class GetAlpakasFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<GetAlpakasFunction>();
+    private readonly TableServiceClient _tableServiceClient = tableServiceClient;
 
     [Function("get-alpakas")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/alpakas")] HttpRequestData req)
     {
-        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
-        TableClient tableClient = new(connectionString, "alpakas");
+        TableClient tableClient = _tableServiceClient.GetTableClient("alpakas");
 
         var alpakas = tableClient
             .Query<AlpakaEntity>()

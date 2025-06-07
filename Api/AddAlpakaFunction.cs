@@ -9,9 +9,14 @@ using System.Net;
 
 namespace Api;
 
-public class AddAlpakaFunction(ILoggerFactory loggerFactory)
+public class AddAlpakaFunction(
+    ILoggerFactory loggerFactory,
+    TableServiceClient tableServiceClient,
+    BlobServiceClient blobServiceClient)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<AddAlpakaFunction>();
+    private readonly TableServiceClient _tableServiceClient = tableServiceClient;
+    private readonly BlobServiceClient _blobServiceClient = blobServiceClient;
 
     private const int NameMaxLength = 100;
     private const long MaxImageSizeBytes = 15 * 1024 * 1024; // 15 MB
@@ -66,8 +71,7 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
             Geburtsdatum = geburtsdatum!
         };
 
-        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
-
+        
         if (imageFile is not null && imageFile.Data.Length > 0)
         {
             if (imageFile.Data.Length > MaxImageSizeBytes)
@@ -86,7 +90,7 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
             var ext = Path.GetExtension(imageFile.FileName).ToLowerInvariant();
             if (ext is ".png" or ".jpg" or ".jpeg")
             {
-                BlobContainerClient containerClient = new(connectionString, "alpakas");
+                BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient("alpakas");
                 await containerClient.CreateIfNotExistsAsync().ConfigureAwait(false);
                 string blobName = $"{Guid.NewGuid()}{ext}";
                 BlobClient blobClient = containerClient.GetBlobClient(blobName);
@@ -99,7 +103,7 @@ public class AddAlpakaFunction(ILoggerFactory loggerFactory)
             }
         }
 
-        TableClient tableClient = new(connectionString, "alpakas");
+        TableClient tableClient = _tableServiceClient.GetTableClient("alpakas");
         await tableClient.AddEntityAsync(entity).ConfigureAwait(false);
 
         var response = req.CreateResponse(HttpStatusCode.SeeOther);

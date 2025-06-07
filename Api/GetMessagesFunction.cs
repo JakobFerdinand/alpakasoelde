@@ -7,16 +7,16 @@ using System.Net;
 
 namespace Api;
 
-public class GetMessagesFunction(ILoggerFactory loggerFactory)
+public class GetMessagesFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<GetMessagesFunction>();
+    private readonly TableServiceClient _tableServiceClient = tableServiceClient;
 
     [Function("get-messages")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages")] HttpRequestData req)
     {
-        string? connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection);
-        TableClient tableClient = new(connectionString, "messages");
+        TableClient tableClient = _tableServiceClient.GetTableClient("messages");
 
         var messages = tableClient
             .Query<MessageEntity>()
