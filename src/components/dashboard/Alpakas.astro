@@ -4,6 +4,7 @@
       <h2>Alpakas</h2>
       <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
     </div>
+    <p id="alpaka-loading" class="alpaka-loading loading">Lade Daten...</p>
     <table id="alpaka-table" class="alpaka-table">
       <thead>
         <tr>
@@ -39,6 +40,7 @@
   const lightbox = document.getElementById('alpaka-lightbox');
   const closeBtn = document.getElementById('close-alpaka-form');
   const form = document.getElementById('add-alpaka-form');
+  const loadingEl = document.getElementById('alpaka-loading');
 
   toggle.addEventListener('click', () => {
     lightbox.hidden = false;
@@ -102,6 +104,8 @@
       });
     } catch {
       /* ignore */
+    } finally {
+      loadingEl.hidden = true;
     }
   }
 
@@ -276,6 +280,25 @@
   .alpaka-form button:disabled {
     opacity: 0.7;
     cursor: not-allowed;
+  }
+
+  .alpaka-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+  }
+
+  .alpaka-loading.loading::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
   }
   @keyframes spin {
     to {
