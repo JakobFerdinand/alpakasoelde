@@ -1,26 +1,64 @@
 <div class="stats">
-  <p id="old-message-count" class="old-count"></p>
+  <div id="stats-card" class="stats-card loading">
+    <p id="old-message-count" class="old-count">Lade Daten...</p>
+  </div>
 </div>
 
 <script>
   async function loadOldMessageCount() {
+    const card = document.getElementById('stats-card');
+    const text = document.getElementById('old-message-count');
     try {
       const res = await fetch('/api/dashboard/messages/count-old');
       if (!res.ok) return;
       const data = await res.json();
-      document.getElementById('old-message-count').textContent =
-        `Nachrichten älter als 6 Monate: ${data.Count}`;
+      text.textContent = `Nachrichten älter als 6 Monate: ${data.Count}`;
     } catch {
-      /* ignore */
+      text.textContent = 'Fehler beim Laden';
+    } finally {
+      card.classList.remove('loading');
     }
   }
   loadOldMessageCount();
 </script>
 
 <style>
+  .stats {
+    display: flex;
+    justify-content: center;
+  }
+
+  .stats-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--schurwolle);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
   .old-count {
-    margin-bottom: 1rem;
+    margin: 0;
     font-weight: 600;
+  }
+
+  .stats-card.loading::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
   }
 </style>
 
