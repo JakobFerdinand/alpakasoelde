@@ -5,12 +5,12 @@
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.preDeployTask": "publish (functions)",
     "[json]": {
-        "editor.tabSize": 4,
+        "editor.tabSize": 2,
         "editor.detectIndentation": false,
         "editor.insertSpaces": true
     },
     "[jsonc]": {
-        "editor.tabSize": 4,
+        "editor.tabSize": 2,
         "editor.detectIndentation": false,
         "editor.insertSpaces": true
     }
