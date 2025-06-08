@@ -61,30 +61,44 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    border-radius: 0.5rem; /* Added to ensure container respects table's border radius */
+    margin: 1rem 0; /* Added for consistency */
   }
 
   .message-table {
     width: 100%;
-    min-width: 40rem;
+    min-width: 40rem; /* Kept for responsiveness */
     border-collapse: collapse;
-  }
-
-  .message-table th,
-  .message-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid var(--taubenblau);
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    border-radius: 0.5rem;
+    overflow: hidden;
     text-align: left;
   }
 
   .message-table th {
-    background: var(--himmelblau);
+    padding: 0.75rem 0.5rem;
+    background-color: var(--weidegruen);
     color: var(--schurwolle);
-    position: sticky;
-    top: 0;
+    text-align: left;
+    position: sticky; /* Kept for usability */
+    top: 0; /* Kept for usability */
+    z-index: 1; /* Ensure header is above content when sticky */
   }
 
-  .message-table tbody tr:nth-child(odd) {
-    background-color: var(--schurwolle);
+  .message-table td {
+    padding: 0.75rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--taubenblau);
+    transition: background-color 0.2s ease;
+  }
+
+  .message-table tbody tr:last-child td {
+    border-bottom: none; /* Remove border from last row for cleaner look with border-radius */
+  }
+
+  .message-table tbody tr:hover > td {
+    background-color: var(--auwasser);
   }
 
   .message-cell {
