@@ -119,9 +119,13 @@
       const alpacas = await res.json();
       list.innerHTML = ''; // Clear existing rows before adding new ones
 
-      alpacas.forEach((alpaca: { Geburtsdatum: string; ImageUrl: string | null; Name: string; }) => {
+      alpacas.forEach((alpaca: { Id: string; Geburtsdatum: string; ImageUrl: string | null; Name: string; }) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
+        row.dataset.id = alpaca.Id;
+        row.addEventListener('click', () => {
+          window.location.href = `/dashboard/alpakas/${alpaca.Id}`;
+        });
 
         const age = calculateAge(alpaca.Geburtsdatum);
 

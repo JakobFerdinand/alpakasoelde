@@ -1,0 +1,88 @@
+---
+import DashboardLayout from '../../../layouts/DashboardLayout.astro';
+const { id } = Astro.params;
+---
+
+<DashboardLayout title="Alpaka Details">
+  <section class="alpaka-detail-page section">
+    <div class="container">
+      <div id="alpaka-detail" class="alpaka-detail loading">Lade Daten...</div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<script>
+  const id = "${id}";
+  async function loadAlpaka() {
+    try {
+      const res = await fetch(`/api/dashboard/alpakas/${id}`);
+      if (!res.ok) {
+        document.getElementById('alpaka-detail').textContent = 'Fehler beim Laden';
+        return;
+      }
+      const alpaka = await res.json();
+      const detail = document.getElementById('alpaka-detail');
+      if (detail) {
+        const age = calculateAge(alpaka.Geburtsdatum);
+        detail.classList.remove('loading');
+        detail.innerHTML = `
+          ${alpaka.ImageUrl ? `<img class="alpaka-photo" src="${alpaka.ImageUrl}" alt="${alpaka.Name}" />` : ''}
+          <h2>${alpaka.Name}</h2>
+          <p>Geburtsdatum: ${new Date(alpaka.Geburtsdatum).toLocaleDateString('de-AT')}</p>
+          <p>Alter: ${age}</p>
+        `;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function calculateAge(geburtsdatum) {
+    const birth = new Date(geburtsdatum);
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    return `${years} J ${months} M`;
+  }
+
+  loadAlpaka();
+</script>
+
+<style>
+  .alpaka-detail {
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    padding: 2rem;
+    border-radius: 0.5rem;
+    text-align: center;
+  }
+  .alpaka-photo {
+    max-width: 20rem;
+    width: 100%;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .loading {
+    font-weight: 600;
+  }
+  .loading::after {
+    content: '';
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+  }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>
