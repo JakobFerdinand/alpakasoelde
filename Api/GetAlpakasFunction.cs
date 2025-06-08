@@ -47,9 +47,13 @@ public class GetAlpakasFunction(
                     };
                     sasBuilder.SetPermissions(BlobSasPermissions.Read);
 
+                    var storageAccountName = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountName)
+                        ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_NAME' is not set.");
+                    var storageAccountKey = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountKey) 
+                        ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_KEY' is not set.");
                     StorageSharedKeyCredential credential = new(
-                        Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountName)!,
-                        Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountKey)!
+                        storageAccountName,
+                        storageAccountKey
                     );
                     var sasToken = sasBuilder.ToSasQueryParameters(credential).ToString();
                     sasUrl = $"{blob.Uri}?{sasToken}";
