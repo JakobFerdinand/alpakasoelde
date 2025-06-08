@@ -1,6 +1,6 @@
 namespace WebsiteApi;
 
-public static class EnvironmentVariables
+internal static class EnvironmentVariables
 {
     public const string StorageConnection = "StorageConnection";
     public const string EmailSenderAddress = "EmailSenderAddress";
