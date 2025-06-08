@@ -7,7 +7,7 @@ on:
     paths:
       - 'src/website/**'
       - 'src/website-api/**'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/build-and-deploy-website.yml'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
@@ -15,7 +15,7 @@ on:
     paths:
       - 'src/website/**'
       - 'src/website-api/**'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/build-and-deploy-website.yml'
 
 permissions:
   contents: read
