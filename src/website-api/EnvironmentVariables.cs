@@ -1,5 +1,4 @@
-
-namespace Api;
+namespace WebsiteApi;
 
 public static class EnvironmentVariables
 {

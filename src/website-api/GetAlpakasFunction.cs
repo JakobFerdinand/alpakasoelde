@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.IO;
 
-namespace Api;
+namespace WebsiteApi;
 
 public class GetAlpakasFunction(
     ILoggerFactory loggerFactory,

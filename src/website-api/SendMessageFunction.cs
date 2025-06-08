@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Web;
 
-namespace Api;
+namespace WebsiteApi;
 
 public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {

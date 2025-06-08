@@ -4,7 +4,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace Api;
+namespace WebsiteApi;
 
 public class GetOldMessageCountFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {

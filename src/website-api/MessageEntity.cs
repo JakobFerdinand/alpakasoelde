@@ -1,7 +1,7 @@
-namespace Api;
-
 using Azure;
 using Azure.Data.Tables;
+
+namespace WebsiteApi;
 
 public sealed class MessageEntity : ITableEntity
 {
