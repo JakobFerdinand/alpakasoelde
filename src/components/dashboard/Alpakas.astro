@@ -129,13 +129,13 @@
         const avatarCell = document.createElement('td');
         if (alpaca.ImageUrl) {
           const img = document.createElement('img');
-          img.className = 'profile-photo'; // Uses global style
+          img.className = 'dashboard-alpaka-profile-photo'; 
           img.src = alpaca.ImageUrl;
           img.alt = alpaca.Name;
           avatarCell.appendChild(img);
         } else {
           const placeholder = document.createElement('div');
-          placeholder.className = 'profile-placeholder'; // Uses global style
+          placeholder.className = 'dashboard-alpaka-profile-placeholder'; // Uses global style
           placeholder.textContent = alpaca.Name.charAt(0).toUpperCase();
           avatarCell.appendChild(placeholder);
         }
@@ -245,13 +245,13 @@
     border-right-color: transparent;
     animation: spin 0.75s linear infinite;
   }
-  .profile-photo {
-    width: 2.5rem;
-    height: 2.5rem;
+  :global(.dashboard-alpaka-profile-photo) {
+    width: 2.5rem; /* Reduced from 3.5rem */
+    height: 2.5rem; /* Reduced from 3.5rem */
     border-radius: 50%;
     object-fit: cover;
   }
-  .profile-placeholder {
+  :global(.dashboard-alpaka-profile-placeholder) {
     width: 2.5rem;
     height: 2.5rem;
     border-radius: 50%;
