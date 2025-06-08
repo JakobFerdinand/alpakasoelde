@@ -1,6 +1,13 @@
 ---
 import DashboardLayout from '../../../layouts/DashboardLayout.astro';
-const { id } = Astro.params;
+const { id } = Astro.params; 
+// This 'id' is used by Astro to interpolate into the client script below.
+
+export async function getStaticPaths() {
+  // Return an empty array because the alpaka IDs are not known at build time.
+  // The page will be rendered on the client side using the ID from the URL.
+  return [];
+}
 ---
 
 <DashboardLayout title="Alpaka Details">
@@ -12,12 +19,16 @@ const { id } = Astro.params;
 </DashboardLayout>
 
 <script>
+  import { calculateAge } from '../../../utils/dateUtils';
   const id = "${id}";
   async function loadAlpaka() {
     try {
       const res = await fetch(`/api/dashboard/alpakas/${id}`);
       if (!res.ok) {
-        document.getElementById('alpaka-detail').textContent = 'Fehler beim Laden';
+        const detail = document.getElementById('alpaka-detail');
+        if (detail) {
+          detail.textContent = 'Fehler beim Laden';
+        }
         return;
       }
       const alpaka = await res.json();
@@ -35,18 +46,6 @@ const { id } = Astro.params;
     } catch (e) {
       console.error(e);
     }
-  }
-
-  function calculateAge(geburtsdatum) {
-    const birth = new Date(geburtsdatum);
-    const now = new Date();
-    let years = now.getFullYear() - birth.getFullYear();
-    let months = now.getMonth() - birth.getMonth();
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-    return `${years} J ${months} M`;
   }
 
   loadAlpaka();

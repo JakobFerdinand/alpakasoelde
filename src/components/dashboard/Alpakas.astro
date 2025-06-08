@@ -43,6 +43,7 @@
 </section>
 
 <script>
+  import { calculateAge } from '../../utils/dateUtils';
   const toggle = document.getElementById('add-alpaka-toggle');
   const lightbox = document.getElementById('alpaka-lightbox');
   const closeBtn = document.getElementById('close-alpaka-form');
@@ -162,18 +163,6 @@
     } catch (error) {
       console.error('Failed to load alpacas:', error);
     }
-  }
-
-  function calculateAge(geburtsdatum: string | number | Date) {
-    const birth = new Date(geburtsdatum);
-    const now = new Date();
-    let years = now.getFullYear() - birth.getFullYear();
-    let months = now.getMonth() - birth.getMonth();
-    if (months < 0) {
-      years--;
-      months += 12;
-    }
-    return `${years} J ${months} M`;
   }
 
   loadAlpakas();
