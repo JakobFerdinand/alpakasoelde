@@ -1,25 +1,21 @@
-name: CI
+name: Build and Deploy Website
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'public/**'
-      - 'Api/**'
+      - 'src/website/**'
+      - 'src/website-api/**'
       - '.github/workflows/ci.yml'
-      - 'staticwebapp.config.json'
   pull_request:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'public/**'
-      - 'Api/**'
+      - 'src/website/**'
+      - 'src/website-api/**'
       - '.github/workflows/ci.yml'
-      - 'staticwebapp.config.json'
 
 permissions:
   contents: read
@@ -45,10 +41,11 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Build Functions
-        run: dotnet publish Api/Api.csproj -c Release -o api_output
+        run: dotnet publish src/website-api/website-api.csproj -c Release -o website-api_output
 
       - name: Build Page
         run: npm run build
+        working-directory: ./src/website
       
       - name: Deploy
         id: builddeploy
@@ -59,8 +56,8 @@ jobs:
           action: "upload"
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "./dist" # App source code path
-          api_location: "./api_output" # Published API path
+          app_location: "./src/website/dist" # App source code path
+          api_location: "./website-api_output" # Published API path
           output_location: "." # Built app content directory
           config_file_location: "/"
           skip_api_build: true
