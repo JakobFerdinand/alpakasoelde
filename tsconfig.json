@@ -1,5 +1,24 @@
 {
   "extends": "astro/tsconfigs/strict",
-  "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "include": [
+    ".astro/types.d.ts",
+    "**/*"
+  ],
+  "exclude": [
+    "dist"
+  ],
+  "compilerOptions": {
+    "jsx": "preserve",
+    "jsxImportSource": "astro",
+    "types": [
+      "astro/client",
+      "astro/astro-jsx",
+      "astro/astro-jsx-runtime"
+    ],
+    "plugins": [
+      {
+        "name": "astro/ts-plugin"
+      }
+    ]
+  }
 }

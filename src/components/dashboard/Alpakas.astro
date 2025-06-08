@@ -119,7 +119,7 @@
       const alpacas = await res.json();
       list.innerHTML = ''; // Clear existing rows before adding new ones
 
-      alpacas.forEach((alpaca) => {
+      alpacas.forEach((alpaca: { Geburtsdatum: string; ImageUrl: string | null; Name: string; }) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
 
@@ -157,12 +157,11 @@
       });
     } catch (error) {
       console.error('Failed to load alpacas:', error);
-      /* ignore for user, but log for dev */
     }
   }
 
-  function calculateAge(dateStr) {
-    const birth = new Date(dateStr);
+  function calculateAge(geburtsdatum: string | number | Date) {
+    const birth = new Date(geburtsdatum);
     const now = new Date();
     let years = now.getFullYear() - birth.getFullYear();
     let months = now.getMonth() - birth.getMonth();

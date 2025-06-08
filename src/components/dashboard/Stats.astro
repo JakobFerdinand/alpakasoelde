@@ -13,8 +13,10 @@
       if (!res.ok) return;
       const data = await res.json();
       const el = document.getElementById('old-message-count');
-      el.textContent = `Nachrichten älter als 6 Monate: ${data.Count}`;
-      el.classList.remove('loading');
+      if (el) {
+        el.textContent = `Nachrichten älter als 6 Monate: ${data.Count}`;
+        el.classList.remove('loading');
+      }
     } catch {
       /* ignore */
     }
