@@ -32,33 +32,12 @@ public class GetAlpakaFunction(
             Response<AlpakaEntity> result = await tableClient.GetEntityAsync<AlpakaEntity>("AlpakaPartition", id).ConfigureAwait(false);
             AlpakaEntity alpaka = result.Value;
 
-            string? sasUrl = null;
-            if (!string.IsNullOrWhiteSpace(alpaka.ImageUrl))
-            {
-                string blobName = Path.GetFileName(new Uri(alpaka.ImageUrl).AbsolutePath);
-                BlobClient blob = container.GetBlobClient(blobName);
+            var storageAccountName = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountName)
+                ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_NAME' is not set.");
+            var storageAccountKey = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountKey)
+                ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_KEY' is not set.");
 
-                var expiresOn = DateTimeOffset.UtcNow.AddMinutes(30);
-                var sasBuilder = new BlobSasBuilder
-                {
-                    BlobContainerName = container.Name,
-                    BlobName = blobName,
-                    Resource = "b",
-                    ExpiresOn = expiresOn
-                };
-                sasBuilder.SetPermissions(BlobSasPermissions.Read);
-
-                var storageAccountName = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountName)
-                    ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_NAME' is not set.");
-                var storageAccountKey = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountKey)
-                    ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_KEY' is not set.");
-                StorageSharedKeyCredential credential = new(
-                    storageAccountName,
-                    storageAccountKey
-                );
-                var sasToken = sasBuilder.ToSasQueryParameters(credential).ToString();
-                sasUrl = $"{blob.Uri}?{sasToken}";
-            }
+            string? sasUrl = SasTokenHelper.GenerateSasUrl(container, alpaka.ImageUrl, storageAccountName, storageAccountKey);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(new
