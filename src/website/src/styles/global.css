@@ -59,3 +59,19 @@ h1, h2, h3, h4, h5, h6 {
   text-decoration: underline;
   color: inherit;
 }
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  background-color: var(--weiss);
+  color: var(--taubenblau);
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
