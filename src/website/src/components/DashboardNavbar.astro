@@ -9,24 +9,27 @@ import Logo from "../images/AS_Symbolik_Backstein.svg";
       <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
     </a>
     <a href="/" class="app-link">Zur App</a>
-    <ul class="nav-links">
+    <ul id="dashboard-navigation" class="nav-links">
       <li><a href="/dashboard/messages">Messages</a></li>
       <li class="user-info">
         <span class="user-name"></span>
         <img class="avatar" alt="" />
       </li>
     </ul>
-    <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
+    <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="dashboard-navigation" aria-expanded="false">☰</button>
   </div>
   <script>
     const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
     const links = document.querySelector('.nav-links') as HTMLUListElement;
     toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
       links.classList.toggle('open');
     });
     document.querySelectorAll<HTMLAnchorElement>('.nav-links a').forEach((item) => {
       item.addEventListener('click', () => {
         links.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
       });
     });
     async function loadUser(): Promise<void> {

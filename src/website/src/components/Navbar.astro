@@ -7,8 +7,8 @@ import Logo from "../images/AS_Symbolik_Schwarz.svg";
     <a href="/" class="logo">
       <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
     </a>
-    <button class="nav-toggle" aria-label="Menü öffnen">☰</button>
-    <ul class="nav-links">
+    <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="primary-navigation" aria-expanded="false">☰</button>
+    <ul id="primary-navigation" class="nav-links">
       <li><a href="/#leistungen">Leistungen</a></li>
       <li><a href="/#alpakas">Alpakas</a></li>
       <li><a href="/#ueber-uns">Über uns</a></li>
@@ -20,11 +20,14 @@ import Logo from "../images/AS_Symbolik_Schwarz.svg";
     const links = document.querySelector('.nav-links') as HTMLUListElement;
     const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
     toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      toggle.setAttribute('aria-expanded', String(!expanded));
       links.classList.toggle('open');
     });
     linkItems.forEach((item) => {
       item.addEventListener('click', () => {
         links.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
       });
     });
   </script>
