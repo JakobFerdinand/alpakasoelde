@@ -59,7 +59,14 @@ import Antonio from '../images/alpakas/antonio.jpeg';
 
   @media (min-width: 768px) {
     .alpaca-grid {
-      grid-template-columns: repeat(3, 1fr);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      justify-content: center;
+    }
+
+    .alpaca-item {
+      flex: 0 0 calc(33.333% - 2rem);
     }
   }
 </style>
