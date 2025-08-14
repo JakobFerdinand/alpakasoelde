@@ -13,27 +13,27 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     <div class="alpaca-item">
       <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo" />
       <h3>Amadeus</h3>
-      <p>Der ruhige Anführer der Herde, benannt nach Mozart.</p>
+      <p class="description">Der ruhige Anführer der Herde,<wbr> benannt nach Mozart.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo" />
       <h3>Ludwig</h3>
-      <p>Lebhaft und neugierig, wie Beethovens Musik.</p>
+      <p class="description">Lebhaft und neugierig,<wbr> wie Beethovens Musik.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo" />
       <h3>Johann</h3>
-      <p>Harmonisch und ausgeglichen, unser kleiner Bach.</p>
+      <p class="description">Harmonisch und ausgeglichen,<wbr> unser kleiner Bach.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo" />
       <h3>Richard</h3>
-      <p>Stolz und majestätisch, wie Wagners Opern.</p>
+      <p class="description">Stolz und majestätisch,<wbr> wie Wagners Opern.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo" />
       <h3>Antonio</h3>
-      <p>Spritzig und freundlich, inspiriert von Vivaldi.</p>
+      <p class="description">Spritzig und freundlich,<wbr> inspiriert von Vivaldi.</p>
     </div>
   </div>
 </section>
@@ -47,6 +47,10 @@ import Antonio from '../images/alpakas/antonio.jpeg';
   .alpaca-item {
     padding: 1rem;
     text-align: center;
+  }
+
+  .description {
+    white-space: nowrap;
   }
 
   .alpaca-photo {
