@@ -13,27 +13,27 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     <div class="alpaca-item">
       <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo" />
       <h3>Amadeus</h3>
-      <p>Der ruhige Anführer der Herde, benannt nach Mozart.</p>
+      <p class="alpaca-description"><span class="description-start">Der ruhige Anführer der Herde, </span>benannt nach Mozart.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo" />
       <h3>Ludwig</h3>
-      <p>Lebhaft und neugierig, wie Beethovens Musik.</p>
+      <p class="alpaca-description"><span class="description-start">Lebhaft und neugierig, </span>wie Beethovens Musik.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo" />
       <h3>Johann</h3>
-      <p>Harmonisch und ausgeglichen, unser kleiner Bach.</p>
+      <p class="alpaca-description"><span class="description-start">Harmonisch und ausgeglichen, </span>unser kleiner Bach.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo" />
       <h3>Richard</h3>
-      <p>Stolz und majestätisch, wie Wagners Opern.</p>
+      <p class="alpaca-description"><span class="description-start">Stolz und majestätisch, </span>wie Wagners Opern.</p>
     </div>
     <div class="alpaca-item">
       <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo" />
       <h3>Antonio</h3>
-      <p>Spritzig und freundlich, inspiriert von Vivaldi.</p>
+      <p class="alpaca-description"><span class="description-start">Spritzig und freundlich, </span>inspiriert von Vivaldi.</p>
     </div>
   </div>
 </section>
@@ -47,6 +47,16 @@ import Antonio from '../images/alpakas/antonio.jpeg';
   .alpaca-item {
     padding: 1rem;
     text-align: center;
+  }
+
+  .alpaca-description {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .alpaca-description .description-start {
+    white-space: nowrap;
   }
 
   .alpaca-photo {
