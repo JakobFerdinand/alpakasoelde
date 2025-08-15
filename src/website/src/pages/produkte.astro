@@ -1,5 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import Slideshow from "../components/Slideshow.astro";
+
+import Karten from "../images/produkte/Karten.HEIC";
+import Polster from "../images/produkte/Polster.HEIC";
+import Polster2 from "../images/produkte/Polster2.HEIC";
+import Wollpellets from "../images/produkte/Wollpellets.HEIC";
+
+const images = [Karten, Polster, Polster2, Wollpellets];
 ---
 
 <Layout title="Produkte">
@@ -8,6 +16,9 @@ import Layout from '../layouts/Layout.astro';
       <h2>Produkte</h2>
       <p>Entdecke Wolle, Accessoires und viele weitere Produkte rund ums Alpaka.</p>
     </div>
+  </section>
+  <section class="section">
+    <Slideshow images={images} />
   </section>
 </Layout>
 
