@@ -11,7 +11,12 @@ const { images } = Astro.props as Props;
 <ul class="slideshow" id="slideshow">
   {images.map((src, i) => (
     <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
-      <Image src={src} alt="Alpaka auf der Alpakasölde Farm" />
+      <Image
+        src={typeof src === 'string' ? src : src.src}
+        alt="Alpaka auf der Alpakasölde Farm"
+        width={800}
+        height={600}
+      />
     </li>
   ))}
 </ul>
