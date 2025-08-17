@@ -5,6 +5,6 @@ import { defineConfig } from 'astro/config';
 export default defineConfig({
   site: 'https://alpakasoelde.at',
   vite: {
-    assetsInclude: ['**/*.HEIC', '**/*.heic']
+    assetsInclude: ['**/*.HEIC', '**/*.heic', '**/*.*']
   }
 });
