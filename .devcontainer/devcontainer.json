@@ -10,7 +10,8 @@
 				"astro-build.astro-vscode",
 				"github.vscode-github-actions",
 				"humao.rest-client",
-				"ms-azuretools.vscode-azurefunctions"
+				"ms-azuretools.vscode-azurefunctions",
+				"PKief.material-icon-theme"
 			]
 		}
 	},
