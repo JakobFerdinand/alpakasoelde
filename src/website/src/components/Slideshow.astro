@@ -8,19 +8,28 @@ interface Props {
 const { images } = Astro.props as Props;
 ---
 
-<div class="carousel">
-  {images.map((src, i) => (
-    <div class="card">
-      <Image
-        src={src}
+<div class="slideshow">
+  <div class="carousel">
+    {images.map((src, i) => (
+      <div class="card">
+        <Image
+          src={src}
         alt="Alpaka auf der Alpakasölde Farm"
         class="image"
       />
     </div>
   ))}
-</ul>
+  </div>
+</div>
 
 <style>
+  .slideshow {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 3rem;
+  }
+
   .carousel {
     width: 100%;
     overflow-x: auto;
@@ -46,7 +55,7 @@ const { images } = Astro.props as Props;
   .carousel::scroll-button(right), .carousel::scroll-button(left) {
     content: "→";
     border: none;
-    background-color: var(--taubenblau);
+    background-color: var(--bluetenhonig);
     font-family: Consolas;
     font-size: 3rem;
     color: var(--schurwolle);
@@ -75,21 +84,22 @@ const { images } = Astro.props as Props;
   .card {
     scroll-snap-align: start;
     flex: 0 0 20em;
-    aspect-ratio: 5 / 4;
+    aspect-ratio: 1 / 1;
     text-align: center;
     align-content: center;
+    border-radius: .5em;
   }
 
   .card::scroll-marker {
     content: '';
     height: 1em;
     width: 1em;
-    background-color: var(--taubenblau);
+    background-color: var(--himmelblau);
     border-radius: 50%;
   }
 
   .card::scroll-marker:target-current {
-    background-color: var(--himmelblau);
+    background-color: var(--bluetenhonig);
   }
 
   .image {
