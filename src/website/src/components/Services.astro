@@ -42,6 +42,12 @@
     border-radius: 0.5rem;
     text-decoration: none;
     transition: background-color 0.2s, color 0.2s;
+    opacity: 0;
+  }
+
+  .service-item.show {
+    opacity: 1;
+    transition: opacity 0.5s ease-in;
   }
 
   .service-item::after {
@@ -74,3 +80,17 @@
     }
   }
 </style>
+
+<script>
+        const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                        if (entry.isIntersecting) {
+                                entry.target.classList.add("show");
+                        } else {
+                                entry.target.classList.remove("show");
+                        }
+                });
+        }, {});
+        const sections = document.querySelectorAll(".service-item");
+        sections.forEach((section) => observer.observe(section));
+</script>
