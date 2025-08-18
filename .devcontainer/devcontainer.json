@@ -20,7 +20,9 @@
 	"features": {
 		"ghcr.io/devcontainers/features/node:1": {
 			"version": "20"
-		}
+		},
+    "ghcr.io/devcontainers/features/dotnet:2": {},
+    "ghcr.io/GeorgOfenbeck/features/lazygit-linuxbinary:1": {}
 	}
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
