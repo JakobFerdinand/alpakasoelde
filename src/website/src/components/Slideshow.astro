@@ -8,66 +8,99 @@ interface Props {
 const { images } = Astro.props as Props;
 ---
 
-<ul class="slideshow" id="slideshow">
+<div class="carousel">
   {images.map((src, i) => (
-    <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
+    <div class="card">
       <Image
         src={src}
         alt="Alpaka auf der Alpakasölde Farm"
-        width={800}
-        height={600}
+        class="image"
       />
-    </li>
+    </div>
   ))}
 </ul>
 
-<script>
-  const slides = Array.from(document.querySelectorAll('[image-slide]'));
-  let index = 0;
-  setInterval(() => {
-    slides[index].classList.add('hidden');
-    index = (index + 1) % slides.length;
-    slides[index].classList.remove('hidden');
-  }, 4000);
-</script>
-
 <style>
-  .slideshow {
-    position: relative;
+  .carousel {
     width: 100%;
-    overflow: hidden;
-    height: 24rem;
+    overflow-x: auto;
+    margin: 3em auto;
+    display: flex;
+    gap: 1em;
+    scroll-behavior: smooth;
+    anchor-name: --carousel;
+    scroll-snap-type: x mandatory;
+    scroll-marker-group: after;
   }
 
-  @media (min-width: 768px) {
-    .slideshow {
-      height: 32rem;
-    }
-  }
-
-  .slide {
-    position: absolute;
-    inset: 0;
+  .carousel::scroll-marker-group {
     display: flex;
     justify-content: center;
-    align-items: center;
-    transition: opacity 1s;
-    background-color: var(--schurwolle);
+    gap: .5em;
   }
 
-  .slide.hidden {
-    opacity: 0;
+  .carousel::-webkit-scrollbar {
+    display: none;
   }
 
-  .slide.visible {
-    opacity: 1;
+  .carousel::scroll-button(right), .carousel::scroll-button(left) {
+    content: "→";
+    border: none;
+    background-color: var(--taubenblau);
+    font-family: Consolas;
+    font-size: 3rem;
+    color: var(--schurwolle);
+    height: 60px;
+    width: 60px;
+    border-radius: 50%;
+    padding-bottom: .1em;
+    cursor: pointer;
+    position: fixed;
+    position-anchor: --carousel;
+    position-area: right center;
+    translate: -50%;
   }
 
-  .slide img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
+  .carousel::scroll-button(left) {
+    content: "←";
+    position-area: left center;
+    translate: 50%;
+  }
+
+  .carousel::scroll-button(right):disabled, .carousel::scroll-button(left):disabled {
+    opacity: 0.5;
+    cursor: auto;
+  }
+
+  .card {
+    scroll-snap-align: start;
+    flex: 0 0 20em;
+    aspect-ratio: 5 / 4;
+    text-align: center;
+    align-content: center;
+  }
+
+  .card::scroll-marker {
+    content: '';
+    height: 1em;
+    width: 1em;
+    background-color: var(--taubenblau);
+    border-radius: 50%;
+  }
+
+  .card::scroll-marker:target-current {
+    background-color: var(--himmelblau);
+  }
+
+  .image {
+    width: 100%;
+    height: 100%;
     object-fit: contain;
+  }
+
+  @media (max-width: 500px) {
+    .card {
+      flex: 0 0 100%;
+    }
   }
 </style>
