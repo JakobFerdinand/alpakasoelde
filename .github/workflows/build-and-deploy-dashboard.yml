@@ -43,6 +43,7 @@ jobs:
         with:
           node-version: ${{ env.node-version }}
           cache: "pnpm"
+          cache-dependency-path: src/dashboard/pnpm-lock.yaml
 
       - name: Install dependencies
         run: pnpm install
