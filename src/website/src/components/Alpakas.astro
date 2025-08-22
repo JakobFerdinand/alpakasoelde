@@ -106,6 +106,8 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     .alpaca-row { 
       flex-direction: row; 
       align-items: stretch; 
+      --alpaca-h: clamp(20rem, 32vw, 28rem); /* shared height */
+      height: var(--alpaca-h);
     }
     .alpaca-row.reverse { 
       flex-direction: row-reverse; 
@@ -113,12 +115,16 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     .alpaca-image-wrapper, .alpaca-content { 
       width: 50%; /* each side takes half the container */
       flex: 1 1 50%;
+      height: 100%;
     }
+    .alpaca-image-wrapper { display: flex; }
+    .alpaca-photo { height: 100%; }
     .alpaca-content { 
       display: flex; 
       flex-direction: column; 
       justify-content: center; 
       padding: 0 2rem; 
+      height: 100%;
     }
   }
 </style>
