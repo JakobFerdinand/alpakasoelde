@@ -4,6 +4,9 @@
     "azureFunctions.projectRuntime": "~4",
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.preDeployTask": "publish (functions)",
+    "[astro]": {
+      "editor.tabSize": 2
+    },
     "[json]": {
         "editor.tabSize": 2,
         "editor.detectIndentation": false,
