@@ -8,71 +8,153 @@ import Antonio from '../images/alpakas/antonio.jpeg';
 ---
 
 <section id="alpakas" class="alpacas section">
-  <h2>Unsere Alpakas</h2>
-  <div class="alpaca-grid container">
-    <div class="alpaca-item">
-      <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo" />
-      <h3>Amadeus</h3>
-      <p>Der ruhige Anführer der Herde, benannt nach Mozart.</p>
+  <div class="alpaca-rows container">
+    <div class="alpaca-row">
+      <div class="alpaca-image-wrapper">
+        <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo amadeus" />
+      </div>
+      <div class="alpaca-content">
+        <h3>Amadeus</h3>
+        <p>Der ruhige Anführer der Herde, benannt nach Mozart.</p>
+      </div>
     </div>
-    <div class="alpaca-item">
-      <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo" />
-      <h3>Ludwig</h3>
-      <p>Lebhaft und neugierig, wie Beethovens Musik.</p>
+    <div class="alpaca-row reverse">
+      <div class="alpaca-image-wrapper">
+        <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo ludwig" />
+      </div>
+      <div class="alpaca-content">
+        <h3>Ludwig</h3>
+        <p>Lebhaft und neugierig, wie Beethovens Musik.</p>
+      </div>
     </div>
-    <div class="alpaca-item">
-      <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo" />
-      <h3>Johann</h3>
-      <p>Harmonisch und ausgeglichen, unser kleiner Bach.</p>
+    <div class="alpaca-row">
+      <div class="alpaca-image-wrapper">
+        <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo" />
+      </div>
+      <div class="alpaca-content">
+        <h3>Johann</h3>
+        <p>Harmonisch und ausgeglichen, unser kleiner Bach.</p>
+      </div>
     </div>
-    <div class="alpaca-item">
-      <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo" />
-      <h3>Richard</h3>
-      <p>Stolz und majestätisch, wie Wagners Opern.</p>
+    <div class="alpaca-row reverse">
+      <div class="alpaca-image-wrapper">
+        <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo richard" />
+      </div>
+      <div class="alpaca-content">
+        <h3>Richard</h3>
+        <p>Stolz und majestätisch, wie Wagners Opern.</p>
+      </div>
     </div>
-    <div class="alpaca-item">
-      <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo" />
-      <h3>Antonio</h3>
-      <p>Spritzig und freundlich, inspiriert von Vivaldi.</p>
+    <div class="alpaca-row">
+      <div class="alpaca-image-wrapper">
+        <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo antonio" />
+      </div>
+      <div class="alpaca-content">
+        <h3>Antonio</h3>
+        <p>Spritzig und freundlich, inspiriert von Vivaldi.</p>
+      </div>
     </div>
   </div>
 </section>
 
 <style>
-  .alpaca-grid {
-    display: grid;
-    gap: 2rem;
+  .alpaca-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
   }
 
-  .alpaca-item {
-    padding: 1rem;
-    text-align: center;
+  .alpaca-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     opacity: 0;
   }
-  
-  .alpaca-item.show {
-    opacity: 1;
+
+  .alpaca-row.show { 
+    opacity: 1; 
     transition: opacity 0.5s ease-in;
   }
 
+  .alpaca-image-wrapper, .alpaca-content { width: 100%; }
+
   .alpaca-photo {
-    width: 8rem;
-    height: 8rem;
+    width: 100%;
+    height: 23rem; /* bigger & responsive */
     object-fit: cover;
-    border-radius: 50%;
-    margin-bottom: 0.75rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  @media (min-width: 768px) {
-    .alpaca-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      justify-content: center;
+  .alpaca-photo.amadeus {
+    object-position: 10% 30%;
+  }
+  .alpaca-photo.ludwig {
+    object-position: 0% 20%;
+  }
+  .alpaca-photo.richard {
+    object-position: 0% 20%;
+  }
+  .alpaca-photo.antonio {
+    object-position: 0% 20%;
+  }
+
+  .alpaca-content {
+    padding: 0 2rem;
+  }
+  .alpaca-content h3 { 
+    font-size: 4rem; 
+    margin: 0 0 0.75rem; 
+    font-weight: 400; 
+  }
+  .alpaca-row .alpaca-content { 
+    text-align: left; 
+  }
+  .alpaca-row.reverse .alpaca-content { 
+    text-align: right; 
+  }
+  .alpaca-content p { 
+    font-size: 1.125rem; 
+    line-height: 1.5; 
+    margin: 0; 
+  }
+
+  @media (min-width: 992px) { /* desktop alternating layout */
+    .alpaca-rows {
+      gap: 0;
+    }
+    .alpaca-row { 
+      flex-direction: row; 
+      align-items: stretch; 
+      --alpaca-h: 25rem; /* shared height */
+      height: var(--alpaca-h);
+    }
+    .alpaca-row.reverse { 
+      flex-direction: row-reverse; 
+    }
+    .alpaca-image-wrapper, .alpaca-content { 
+      width: 50%; /* each side takes half the container */
+      flex: 1 1 50%;
+      height: 100%;
+    }
+    .alpaca-image-wrapper { display: flex; }
+    .alpaca-photo { height: 100%; }
+    .alpaca-photo.ludwig {
+      object-position: 0% 10%;
+    }
+    .alpaca-photo.richard {
+      object-position: 0% 10%;
+    }
+    .alpaca-photo.antonio {
+      object-position: 0% 10%;
     }
 
-    .alpaca-item {
-      flex: 0 0 calc(33.333% - 2rem);
+    .alpaca-content { 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+      height: 100%;
+      padding: 0 3rem;
     }
   }
 </style>
@@ -87,6 +169,6 @@ import Antonio from '../images/alpakas/antonio.jpeg';
                         }
                 });
         }, {});
-        const sections = document.querySelectorAll(".alpaca-item");
+  const sections = document.querySelectorAll(".alpaca-row");
         sections.forEach((section) => observer.observe(section));
 </script>
