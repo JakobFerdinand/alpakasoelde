@@ -19,15 +19,37 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
     const links = document.querySelector('.nav-links') as HTMLUListElement;
     const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
+    const logo = document.querySelector('.navbar .logo') as HTMLAnchorElement;
+    let addedLogoClass = false;
+
     toggle.addEventListener('click', () => {
       const expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
       links.classList.toggle('open');
+
+      const menuOpened = !expanded;
+      if (menuOpened) {
+        if (logo && !logo.classList.contains('show')) {
+          logo.classList.add('show');
+          addedLogoClass = true;
+        }
+      } else {
+        if (addedLogoClass && logo) {
+          logo.classList.remove('show');
+          addedLogoClass = false;
+        }
+      }
     });
+
     linkItems.forEach((item) => {
       item.addEventListener('click', () => {
         links.classList.remove('open');
         toggle.setAttribute('aria-expanded', 'false');
+
+        if (addedLogoClass && logo) {
+          logo.classList.remove('show');
+          addedLogoClass = false;
+        }
       });
     });
   </script>
