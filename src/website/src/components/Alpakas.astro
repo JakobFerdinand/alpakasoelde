@@ -8,7 +8,6 @@ import Antonio from '../images/alpakas/antonio.jpeg';
 ---
 
 <section id="alpakas" class="alpacas section">
-  <h2>Unsere Alpakas</h2>
   <div class="alpaca-rows container">
     <div class="alpaca-row">
       <div class="alpaca-image-wrapper">
@@ -62,6 +61,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
   .alpaca-rows {
     display: flex;
     flex-direction: column;
+    gap: 4rem;
   }
 
   .alpaca-row {
@@ -86,15 +86,16 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  .alpaca-content {
-    text-align: left;
-    max-width: 40rem;
-  }
-
   .alpaca-content h3 { 
-    font-size: 2rem; 
+    font-size: 4rem; 
     margin: 0 0 0.75rem; 
     font-weight: 400; 
+  }
+  .alpaca-row .alpaca-content { 
+    text-align: right; 
+  }
+  .alpaca-row.reverse .alpaca-content { 
+    text-align: left; 
   }
   .alpaca-content p { 
     font-size: 1.125rem; 
@@ -103,6 +104,9 @@ import Antonio from '../images/alpakas/antonio.jpeg';
   }
 
   @media (min-width: 992px) { /* desktop alternating layout */
+    .alpaca-rows {
+      gap: 0;
+    }
     .alpaca-row { 
       flex-direction: row; 
       align-items: stretch; 
@@ -123,7 +127,6 @@ import Antonio from '../images/alpakas/antonio.jpeg';
       display: flex; 
       flex-direction: column; 
       justify-content: center; 
-      padding: 0 2rem; 
       height: 100%;
     }
   }
