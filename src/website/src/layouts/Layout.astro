@@ -38,3 +38,22 @@ const { title } = Astro.props;
         }
 </style>
 
+<script>
+        document.addEventListener("DOMContentLoaded", () => {
+                const navLogo = document.querySelector(".navbar .logo")
+                const heroLogo = document.querySelector(".hero-image");
+                if (!navLogo || !heroLogo)
+                        return;
+
+                const observer = new IntersectionObserver((entries) => {
+                        entries.forEach((entry) => {
+                                if (entry.isIntersecting) {
+                                        navLogo?.classList.add("show");
+                                } else {
+                                        navLogo?.classList.remove("show");
+                                }
+                        });
+                }, {});
+                observer.observe(heroLogo);
+        });
+</script>
