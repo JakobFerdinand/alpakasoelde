@@ -48,6 +48,17 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     justify-content: space-between;
   }
 
+  .navbar .container .logo {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .3s ease;
+  }
+  .navbar .container .logo.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+
   .nav-links {
     list-style: none;
     display: flex;
