@@ -11,7 +11,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
   <div class="alpaca-rows container">
     <div class="alpaca-row">
       <div class="alpaca-image-wrapper">
-        <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo" />
+        <Image src={Amadeus} alt="Alpaka Amadeus" class="alpaca-photo amadeus" />
       </div>
       <div class="alpaca-content">
         <h3>Amadeus</h3>
@@ -20,7 +20,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     </div>
     <div class="alpaca-row reverse">
       <div class="alpaca-image-wrapper">
-        <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo" />
+        <Image src={Ludwig} alt="Alpaka Ludwig" class="alpaca-photo ludwig" />
       </div>
       <div class="alpaca-content">
         <h3>Ludwig</h3>
@@ -38,7 +38,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     </div>
     <div class="alpaca-row reverse">
       <div class="alpaca-image-wrapper">
-        <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo" />
+        <Image src={Richard} alt="Alpaka Richard" class="alpaca-photo richard" />
       </div>
       <div class="alpaca-content">
         <h3>Richard</h3>
@@ -47,7 +47,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     </div>
     <div class="alpaca-row">
       <div class="alpaca-image-wrapper">
-        <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo" />
+        <Image src={Antonio} alt="Alpaka Antonio" class="alpaca-photo antonio" />
       </div>
       <div class="alpaca-content">
         <h3>Antonio</h3>
@@ -80,10 +80,23 @@ import Antonio from '../images/alpakas/antonio.jpeg';
 
   .alpaca-photo {
     width: 100%;
-    height: clamp(20rem, 32vw, 28rem); /* bigger & responsive */
+    height: 23rem; /* bigger & responsive */
     object-fit: cover;
     box-shadow: 0 4px 10px rgba(0,0,0,0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .alpaca-photo.amadeus {
+    object-position: 10% 30%;
+  }
+  .alpaca-photo.ludwig {
+    object-position: 0% 20%;
+  }
+  .alpaca-photo.richard {
+    object-position: 0% 20%;
+  }
+  .alpaca-photo.antonio {
+    object-position: 0% 20%;
   }
 
   .alpaca-content {
@@ -113,7 +126,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     .alpaca-row { 
       flex-direction: row; 
       align-items: stretch; 
-      --alpaca-h: clamp(20rem, 32vw, 28rem); /* shared height */
+      --alpaca-h: 25rem; /* shared height */
       height: var(--alpaca-h);
     }
     .alpaca-row.reverse { 
@@ -126,6 +139,16 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     }
     .alpaca-image-wrapper { display: flex; }
     .alpaca-photo { height: 100%; }
+    .alpaca-photo.ludwig {
+      object-position: 0% 10%;
+    }
+    .alpaca-photo.richard {
+      object-position: 0% 10%;
+    }
+    .alpaca-photo.antonio {
+      object-position: 0% 10%;
+    }
+
     .alpaca-content { 
       display: flex; 
       flex-direction: column; 
