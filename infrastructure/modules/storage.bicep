@@ -1,11 +1,9 @@
-targetScope = 'resourceGroup'
-
-@description('Name of the storage account to create')
-param storageAccountName string = 'alpakasoelde'
+param storageAccountName string
+param location string
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
   name: storageAccountName
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Standard_LRS'
   }
@@ -19,9 +17,14 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' = {
 
 resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2022-09-01' = {
   name: '${storageAccount.name}/default'
-  dependsOn: [
-    storageAccount
-  ]
+}
+
+resource messagesTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2022-09-01' = {
+  name: '${tableService.name}/messages'
+}
+
+resource alpakasTable 'Microsoft.Storage/storageAccounts/tableServices/tables@2022-09-01' = {
+  name: '${tableService.name}/alpakas'
 }
 
 output storageAccountName string = storageAccount.name

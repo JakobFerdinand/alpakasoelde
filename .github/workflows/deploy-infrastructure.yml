@@ -1,4 +1,4 @@
-name: Deploy Table Storage
+name: Deploy Infrastructure
 
 on:
   workflow_dispatch:
@@ -19,4 +19,4 @@ jobs:
             az deployment group create \
               --subscription 8c599ae4-ed4f-43ba-9754-0a380ea6f0e1 \
               --resource-group RG-Alpakasoelde \
-              --template-file infrastructure/table-storage.bicep
+              --template-file infrastructure/main.bicep
