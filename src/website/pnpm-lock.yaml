@@ -12,8 +12,8 @@ importers:
         specifier: ^1.10.4
         version: 1.10.4
       '@fontsource/bricolage-grotesque':
-        specifier: ^5.0.18
-        version: 5.2.8
+        specifier: ^5.2.9
+        version: 5.2.9
       astro:
         specifier: ^5.13.5
         version: 5.13.5(@types/node@24.3.0)(rollup@4.50.0)(typescript@5.9.2)(yaml@2.8.1)
@@ -268,8 +268,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource/bricolage-grotesque@5.2.8':
-    resolution: {integrity: sha512-DVCqsxTGDIL/CdDgw1tiAFmtt6OKrgUx9IbzUcMu4EMrrdq7W2/AMM2hgksVy9F0mKGfao76IVL+4gxk4T4LTw==}
+  '@fontsource/bricolage-grotesque@5.2.9':
+    resolution: {integrity: sha512-yEWRdV6l6dCfC1/sRH2trJ5XpmpFfZoAOHUdl0pLJsY99hLd5WIyCBaH/GifuTxkPmf4dXEN7ZkzVY0Eek6DtQ==}
 
   '@img/sharp-darwin-arm64@0.33.5':
     resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
@@ -2034,7 +2034,7 @@ snapshots:
   '@esbuild/win32-x64@0.25.9':
     optional: true
 
-  '@fontsource/bricolage-grotesque@5.2.8': {}
+  '@fontsource/bricolage-grotesque@5.2.9': {}
 
   '@img/sharp-darwin-arm64@0.33.5':
     optionalDependencies:
