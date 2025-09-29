@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.4",
-    "@fontsource/bricolage-grotesque": "^5.2.9",
+    "@fontsource/bricolage-grotesque": "^5.2.10",
     "astro": "^5.13.10"
   },
   "devDependencies": {
