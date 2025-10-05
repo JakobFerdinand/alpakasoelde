@@ -12,8 +12,8 @@ importers:
         specifier: ^1.10.4
         version: 1.10.4
       '@fontsource/bricolage-grotesque':
-        specifier: ^5.2.9
-        version: 5.2.9
+        specifier: ^5.2.10
+        version: 5.2.10
       astro:
         specifier: ^5.13.10
         version: 5.13.10(@types/node@24.5.2)(rollup@4.52.0)(typescript@5.9.2)(yaml@2.8.1)
@@ -271,8 +271,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@fontsource/bricolage-grotesque@5.2.9':
-    resolution: {integrity: sha512-yEWRdV6l6dCfC1/sRH2trJ5XpmpFfZoAOHUdl0pLJsY99hLd5WIyCBaH/GifuTxkPmf4dXEN7ZkzVY0Eek6DtQ==}
+  '@fontsource/bricolage-grotesque@5.2.10':
+    resolution: {integrity: sha512-V2xS+1P7C8IrSypXLUx/bLtX/LsTlYtV2k2CsU+S/0t8qepZ2hvKSlyJIx7Ub/iY8Bbnj+IjAuUF9nvFz+BbIg==}
 
   '@img/colour@1.0.0':
     resolution: {integrity: sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==}
@@ -2052,7 +2052,7 @@ snapshots:
   '@esbuild/win32-x64@0.25.10':
     optional: true
 
-  '@fontsource/bricolage-grotesque@5.2.9': {}
+  '@fontsource/bricolage-grotesque@5.2.10': {}
 
   '@img/colour@1.0.0':
     optional: true
