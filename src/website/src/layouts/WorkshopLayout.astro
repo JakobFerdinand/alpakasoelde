@@ -1,0 +1,36 @@
+---
+import "../styles/global.css";
+import Footer from "../components/Footer.astro";
+import Head from "../components/Head.astro";
+import '@fontsource/bricolage-grotesque/300.css';
+import '@fontsource/bricolage-grotesque/400.css';
+
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <Head title={title} />
+  </head>
+  <body class="event-page-body">
+    <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+  }
+</style>

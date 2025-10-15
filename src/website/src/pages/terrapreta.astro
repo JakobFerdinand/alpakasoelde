@@ -1,0 +1,166 @@
+---
+import WorkshopLayout from "../layouts/WorkshopLayout.astro";
+---
+
+<WorkshopLayout title="Terra Preta Workshop">
+  <section class="hero">
+    <div class="container hero__content">
+      <p class="hero__eyebrow">Workshop-Einladung</p>
+      <h1>Terra Preta Workshop</h1>
+      <p class="hero__lead">
+        Tauche mit uns in die Welt der Pflanzenkohle ein und entdecke, wie du
+        aus Holzresten eine fruchtbare Grundlage für deinen Garten schaffst.
+      </p>
+    </div>
+  </section>
+
+  <section class="details">
+    <div class="container details__grid">
+      <article class="details__card">
+        <h2>Das erwartet dich</h2>
+        <p>
+          Gemeinsam mit Manfred Wegenschimmel lernst du, Holzkohle sicher
+          herzustellen und zu Terra Preta zu veredeln. Schritt für Schritt
+          zeigen wir dir, wie du mit einfachen Mitteln einen lebendigen Boden
+          aufbaust.
+        </p>
+      </article>
+
+      <article class="details__card details__card--data">
+        <h3>Workshop-Infos</h3>
+        <ul>
+          <li><strong>Wann:</strong> 22. November 2025</li>
+          <li>
+            <strong>Wo:</strong> Alpakasölde, Frauenstein 12, 4962 Mining
+          </li>
+          <li><strong>Geleitet von:</strong> Manfred Wegenschimmel</li>
+          <li>
+            <strong>Abmeldung:</strong>
+            <a class="details__link" href="tel:+436766258629">0676/6258629</a>
+          </li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section class="about">
+    <div class="container about__content">
+      <h2>Was ist Terra Preta?</h2>
+      <p>
+        Terra Preta ist eine besonders fruchtbare Erde, die durch die Kombination
+        von Pflanzenkohle, Kompost und organischem Material entsteht. Die poröse
+        Holzkohle speichert Wasser und Nährstoffe, bietet Mikroorganismen einen
+        geschützten Lebensraum und sorgt so für langfristige Bodenfruchtbarkeit.
+      </p>
+      <p>
+        Im Workshop erlebst du, wie du natürliche Ressourcen effizient nutzt und
+        deinen Boden dauerhaft belebst – ideal für nachhaltige Gärten und
+        Gemüsebeete.
+      </p>
+    </div>
+  </section>
+</WorkshopLayout>
+
+<style>
+  :global(body.event-page-body) {
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+  }
+
+  :global(body.event-page-body) a {
+    color: inherit;
+  }
+
+  .hero {
+    padding: 6rem 0 4rem;
+  }
+
+  .hero__content {
+    text-align: center;
+    max-width: 640px;
+  }
+
+  .hero__eyebrow {
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    margin-bottom: 1rem;
+    color: var(--schurwolle);
+  }
+
+  .hero__lead {
+    font-size: 1.15rem;
+    line-height: 1.8;
+  }
+
+  .details {
+    padding: 0 0 4rem;
+  }
+
+  .details__grid {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .details__card {
+    background-color: rgba(251, 247, 237, 0.12);
+    border: 1px solid rgba(251, 247, 237, 0.35);
+    border-radius: 1.5rem;
+    padding: 2.25rem;
+    backdrop-filter: blur(6px);
+  }
+
+  .details__card h2,
+  .details__card h3 {
+    color: var(--schurwolle);
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .details__card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .details__card strong {
+    font-weight: 600;
+  }
+
+  .details__link {
+    text-decoration: underline;
+    text-decoration-color: rgba(251, 247, 237, 0.7);
+  }
+
+  .about {
+    padding: 4rem 0 6rem;
+  }
+
+  .about__content {
+    max-width: 720px;
+  }
+
+  .about h2 {
+    color: var(--schurwolle);
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .about p {
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (min-width: 768px) {
+    .details__grid {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+</style>
