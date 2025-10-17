@@ -23,7 +23,7 @@ public class AddAlpakaFunction(
 
     [Function("add-alpaka")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dashboard/alpakas")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "alpakas")] HttpRequestData req)
     {
         var parsedFormBocy = await MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
 
