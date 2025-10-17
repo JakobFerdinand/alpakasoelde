@@ -3,15 +3,15 @@
 ## Project Structure & Module Organization
 - `src/website`: Astro marketing site with pages in `src/pages`, shared UI in `src/components`, and static assets under `public/`.
 - `src/dashboard`: Internal Astro dashboard; place screens in `src/pages` and reusable pieces in `src/components`.
-- `src/api`: .NET 9 isolated Azure Functions for data ingestion and storage, co-locating triggers with their entity models.
-- `src/website-api`: Public-facing Azure Functions that mirror the patterns from `src/api`.
+- `src/dashboard-api`: .NET 9 isolated Azure Functions for data ingestion and storage, co-locating triggers with their entity models.
+- `src/website-api`: Public-facing Azure Functions that mirror the patterns from `src/dashboard-api`.
 - `infrastructure/table-storage.bicep`: Bicep template that provisions the shared Azure Table Storage resources.
 
 ## Build, Test, and Development Commands
 - `cd src/website && npm install && npm run dev` — launches the marketing site with hot reload.
 - `cd src/website && npm run build` — runs `astro check` and builds to `dist/`.
 - `cd src/dashboard && npm install && npm run dev` — starts the internal dashboard; run `npm run build` before shipping changes.
-- `dotnet build src/api/api.csproj` then `cd src/api && func start` — compile and serve the API locally (Azure Functions Core Tools required).
+- `dotnet build src/dashboard-api/dashboard-api.csproj` then `cd src/dashboard-api && func start` — compile and serve the dashboard API locally (Azure Functions Core Tools required).
 - `dotnet build src/website-api/website-api.csproj` then `cd src/website-api && func start` — same workflow for the public API facade.
 
 ## Coding Style & Naming Conventions

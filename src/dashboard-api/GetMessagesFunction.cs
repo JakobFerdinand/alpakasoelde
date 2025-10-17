@@ -5,7 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace Api;
+namespace DashboardApi;
 
 public class GetMessagesFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {

@@ -1,4 +1,4 @@
-namespace Api;
+namespace DashboardApi;
 
 internal static class EnvironmentVariables
 {

@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/api/**'
+      - 'src/dashboard-api/**'
       - 'src/dashboard/**'
       - '.github/workflows/build-and-deploy-dashboard.yml'
   pull_request:
@@ -13,7 +13,7 @@ on:
     branches:
       - main
     paths:
-      - 'src/api/**'
+      - 'src/dashboard-api/**'
       - 'src/dashboard/**'
       - '.github/workflows/build-and-deploy-dashboard.yml'
 
@@ -42,7 +42,7 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Build Functions
-        run: dotnet publish src/api/api.csproj -c Release -o api_output
+        run: dotnet publish src/dashboard-api/dashboard-api.csproj -c Release -o api_output
 
       - name: Build Page
         run: npm run build
