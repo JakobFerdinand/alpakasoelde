@@ -1,36 +1,46 @@
-# Rsbuild project
+# Astro Starter Kit: Basics
 
-## Setup
-
-Install the dependencies:
-
-```bash
-pnpm install
+```sh
+npm create astro@latest -- --template basics
 ```
 
-## Get started
+> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
 
-Start the dev server, and the app will be available at [http://localhost:3000](http://localhost:3000).
+## 🚀 Project Structure
 
-```bash
-pnpm dev
+Inside of your Astro project, you'll see the following folders and files:
+
+```text
+/
+├── public/
+│   └── favicon.svg
+├── src
+│   ├── assets
+│   │   └── astro.svg
+│   ├── components
+│   │   └── Welcome.astro
+│   ├── layouts
+│   │   └── Layout.astro
+│   └── pages
+│       └── index.astro
+└── package.json
 ```
 
-Build the app for production:
+To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
 
-```bash
-pnpm build
-```
+## 🧞 Commands
 
-Preview the production build locally:
+All commands are run from the root of the project, from a terminal:
 
-```bash
-pnpm preview
-```
+| Command                   | Action                                           |
+| :------------------------ | :----------------------------------------------- |
+| `npm install`             | Installs dependencies                            |
+| `npm run dev`             | Starts local dev server at `localhost:4321`      |
+| `npm run build`           | Build your production site to `./dist/`          |
+| `npm run preview`         | Preview your build locally, before deploying     |
+| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
+| `npm run astro -- --help` | Get help using the Astro CLI                     |
 
-## Learn more
+## 👀 Want to learn more?
 
-To learn more about Rsbuild, check out the following resources:
-
-- [Rsbuild documentation](https://rsbuild.rs) - explore Rsbuild features and APIs.
-- [Rsbuild GitHub repository](https://github.com/web-infra-dev/rsbuild) - your feedback and contributions are welcome!
+Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).

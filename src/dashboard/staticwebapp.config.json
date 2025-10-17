@@ -10,7 +10,8 @@
       "serve": "/index.html",
       "statusCode": 200,
       "allowedRoles": [
-        "authenticated"
+        "admin",
+        "collaborator"
       ]
     }
   ],

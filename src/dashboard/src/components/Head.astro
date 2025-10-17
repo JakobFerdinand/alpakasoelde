@@ -1,0 +1,33 @@
+---
+import Favicon from '../images/favicon.svg';
+import Logo from '../images/AS_Symbolik_Schwarz.svg';
+
+interface Props {
+  title?: string;
+  robots?: string;
+}
+
+const { title = 'Alpakasölde Dashboard', robots = 'noindex, nofollow' } = Astro.props;
+const siteUrl = Astro.site ?? Astro.url.origin;
+const canonical = new URL(Astro.url.pathname, siteUrl).toString();
+const imageUrl = new URL(Logo.src, siteUrl).toString();
+---
+<link rel="icon" type="image/svg+xml" href={Favicon.src} />
+<meta name="generator" content={Astro.generator} />
+<title>{title} | Alpakasölde</title>
+
+<meta name="description" content="Internes Dashboard für die Verwaltung von Alpakasölde." />
+<meta name="robots" content={robots} />
+<link rel="canonical" href={canonical} />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content={`${title} | Alpakasölde Dashboard`} />
+<meta property="og:description" content="Internes Dashboard für die Verwaltung von Alpakasölde." />
+<meta property="og:site_name" content="Alpakasölde Dashboard" />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={imageUrl} />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={`${title} | Alpakasölde Dashboard`} />
+<meta name="twitter:description" content="Internes Dashboard für die Verwaltung von Alpakasölde." />
+<meta name="twitter:image" content={imageUrl} />

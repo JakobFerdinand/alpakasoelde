@@ -1,0 +1,6 @@
+@base=https://dashboard.alpakasoelde.at
+@devbase=http://localhost:7071
+
+###
+
+GET {{base}}/api/dashboard/messages

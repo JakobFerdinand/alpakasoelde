@@ -6,20 +6,6 @@
   },
   "routes": [
     {
-      "route": "/dashboard/*",
-      "allowedRoles": [
-        "admin",
-        "collaborator"
-      ]
-    },
-    {
-      "route": "/api/dashboard/*",
-      "allowedRoles": [
-        "admin",
-        "collaborator"
-      ]
-    },
-    {
       "route": "/*",
       "serve": "/index.html",
       "statusCode": 200,

@@ -1,16 +1,17 @@
 ---
-import { Image } from "astro:assets";
-import Logo from "../images/AS_Symbolik_Backstein.svg";
+import { Image } from 'astro:assets';
+import Logo from '../images/AS_Symbolik_Backstein.svg';
 ---
 
 <nav class="navbar">
   <div class="container">
-    <a href="/dashboard" class="logo">
+    <a href="/" class="logo" aria-label="Dashboard Startseite">
       <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
     </a>
-    <a href="/" class="app-link">Zur App</a>
+    <a href="https://alpakasoelde.at" class="app-link">Zur App</a>
     <ul id="dashboard-navigation" class="nav-links">
-      <li><a href="/dashboard/messages">Messages</a></li>
+      <li><a href="/">Übersicht</a></li>
+      <li><a href="/messages">Nachrichten</a></li>
       <li class="user-info">
         <span class="user-name"></span>
         <img class="avatar" alt="" />
