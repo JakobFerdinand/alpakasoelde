@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace WebsiteApi;
+namespace Api;
 
 public sealed class AlpakaEntity : ITableEntity
 {

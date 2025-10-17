@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace WebsiteApi;
+namespace Api;
 
 public class AddAlpakaFunction(
     ILoggerFactory loggerFactory,
@@ -71,7 +71,7 @@ public class AddAlpakaFunction(
             Geburtsdatum = geburtsdatum!
         };
 
-        
+
         if (imageFile is not null && imageFile.Data.Length > 0)
         {
             if (imageFile.Data.Length > MaxImageSizeBytes)
