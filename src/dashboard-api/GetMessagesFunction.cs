@@ -14,7 +14,7 @@ public class GetMessagesFunction(ILoggerFactory loggerFactory, TableServiceClien
 
     [Function("get-messages")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages")] HttpRequestData req)
     {
         TableClient tableClient = _tableServiceClient.GetTableClient("messages");
 

@@ -23,7 +23,7 @@
   <div id="alpaka-lightbox" class="lightbox" hidden>
     <div class="lightbox-content">
       <button type="button" id="close-alpaka-form" class="close-btn" aria-label="Schließen">×</button>
-      <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/dashboard/alpakas" enctype="multipart/form-data">
+      <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" enctype="multipart/form-data">
         <div class="form-field">
           <label for="alpaka-name">Name*</label>
           <input id="alpaka-name" name="name" type="text" maxlength="100" required />
@@ -134,7 +134,7 @@
     list.innerHTML =
       '<tr><td colspan="3" class="alpaka-loading loading">Lade Daten...</td></tr>';
     try {
-      const res = await fetch('/api/dashboard/alpakas');
+      const res = await fetch('/api/alpakas');
       if (!res.ok) return;
       const alpacas = await res.json();
       list.innerHTML = ''; // Clear existing rows before adding new ones

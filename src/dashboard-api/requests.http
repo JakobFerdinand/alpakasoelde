@@ -3,7 +3,7 @@
 
 ###
 
-GET {{base}}/api/dashboard/messages
+GET {{base}}/api/messages
 
 ###
 
