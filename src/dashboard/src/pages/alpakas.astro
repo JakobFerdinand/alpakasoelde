@@ -145,7 +145,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     min-height: 12rem;
   }
 
-  .alpaka-photo {
+  :global(.alpaka-photo) {
     width: 120px;
     height: 120px;
     border-radius: 50%;
@@ -153,7 +153,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     margin-bottom: 1.5rem;
   }
 
-  .alpaka-photo.placeholder {
+  :global(.alpaka-photo.placeholder) {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -169,17 +169,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     font-size: 2rem;
   }
 
-  .alpaka-meta {
+  :global(.alpaka-meta) {
     margin: 0.25rem 0;
     font-weight: 500;
   }
 
-  .loading-text {
+  :global(.loading-text) {
     margin: 0;
     font-weight: 600;
   }
 
-  .error {
+  :global(.error) {
     margin: 0;
     color: var(--backstein);
     font-weight: 600;
