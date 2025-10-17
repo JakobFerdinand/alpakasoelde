@@ -13,13 +13,6 @@
         "admin",
         "collaborator"
       ]
-    },
-    {
-      "route": "/api/dashboard/*",
-      "allowedRoles": [
-        "admin",
-        "collaborator"
-      ]
     }
   ],
   "responseOverrides": {
