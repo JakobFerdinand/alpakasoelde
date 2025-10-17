@@ -1,4 +1,5 @@
 using Azure.Data.Tables;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -8,6 +9,7 @@ var host = new HostBuilder()
     {
         string? connectionString = Environment.GetEnvironmentVariable(WebsiteApi.EnvironmentVariables.StorageConnection);
         services.AddSingleton(_ => new TableServiceClient(connectionString));
+        services.AddSingleton(_ => new BlobServiceClient(connectionString));
     })
     .Build();
 

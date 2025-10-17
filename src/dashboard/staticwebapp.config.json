@@ -10,8 +10,15 @@
       "serve": "/index.html",
       "statusCode": 200,
       "allowedRoles": [
-        "anonymous",
-        "authenticated"
+        "admin",
+        "collaborator"
+      ]
+    },
+    {
+      "route": "/api/dashboard/*",
+      "allowedRoles": [
+        "admin",
+        "collaborator"
       ]
     }
   ],

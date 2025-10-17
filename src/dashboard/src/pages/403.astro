@@ -1,0 +1,28 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="403 Kein Zutritt">
+  <section class="dashboard-page section">
+    <div class="container">
+      <h2>403 Kein Zutritt</h2>
+      <p class="hint">Hier kommen nur Dashboard-Alpakas vorbei. Du scheinst keines zu sein!</p>
+      <p style="text-align:center;margin-top:2rem;">
+        <a href="https://alpakasoelde.at" class="btn">Zurück zur App</a>
+      </p>
+    </div>
+  </section>
+</DashboardLayout>
+
+<style>
+  .dashboard-page {
+    background-color: var(--backstein);
+    color: var(--schurwolle);
+    text-align: center;
+  }
+
+  .hint {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+</style>
