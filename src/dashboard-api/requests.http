@@ -4,3 +4,9 @@
 ###
 
 GET {{base}}/api/dashboard/messages
+
+###
+
+@alpakaId=REPLACE-WITH-ALPAKA-ID
+
+GET {{devbase}}/api/alpakas/{{alpakaId}}

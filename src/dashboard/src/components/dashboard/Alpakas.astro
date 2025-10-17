@@ -124,6 +124,10 @@
     }
   });
 
+  const navigateToAlpaka = (id: string) => {
+    window.location.href = `/alpakas?id=${encodeURIComponent(id)}`;
+  };
+
   async function loadAlpakas() {
     const list = document.getElementById('alpaka-list');
     if (!list) return;
@@ -135,9 +139,20 @@
       const alpacas = await res.json();
       list.innerHTML = ''; // Clear existing rows before adding new ones
 
-      alpacas.forEach((alpaca: { Geburtsdatum: string; ImageUrl: string | null; Name: string; }) => {
+      alpacas.forEach((alpaca: { Id: string; Geburtsdatum: string; ImageUrl: string | null; Name: string; }) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
+        row.dataset.alpakaId = alpaca.Id;
+        row.tabIndex = 0;
+        row.setAttribute('role', 'link');
+        row.setAttribute('aria-label', `Details für ${alpaca.Name} anzeigen`);
+        row.addEventListener('click', () => navigateToAlpaka(alpaca.Id));
+        row.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            navigateToAlpaka(alpaca.Id);
+          }
+        });
 
         const age = calculateAge(alpaca.Geburtsdatum);
 
@@ -323,10 +338,17 @@
 
   .alpaka-item {
     transition: background-color 0.3s ease;
+    cursor: pointer;
   }
 
-  .alpaka-item:hover {
+  .alpaka-item:hover,
+  .alpaka-item:focus-visible {
     background-color: var(--auwasser);
+  }
+
+  .alpaka-item:focus-visible {
+    outline: 2px solid var(--weidegruen);
+    outline-offset: -2px;
   }
 
   .loading::after {

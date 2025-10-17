@@ -1,0 +1,187 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+---
+
+<DashboardLayout title="Alpaka Detail">
+  <section class="alpaka-detail section">
+    <div class="container">
+      <a class="back-link" href="/">← Zurück zur Übersicht</a>
+      <div id="alpaka-detail-card" class="alpaka-detail-card loading">
+        <p class="loading-text">Lade Alpaka...</p>
+      </div>
+    </div>
+  </section>
+</DashboardLayout>
+
+<script>
+  const detailCard = document.getElementById('alpaka-detail-card');
+  const searchParams = new URLSearchParams(window.location.search);
+  const alpakaId = searchParams.get('id');
+
+  const renderError = (message) => {
+    if (!detailCard) return;
+    detailCard.classList.remove('loading');
+    detailCard.innerHTML = '';
+    const errorMessage = document.createElement('p');
+    errorMessage.className = 'error';
+    errorMessage.textContent = message;
+    detailCard.appendChild(errorMessage);
+  };
+
+  const calculateAge = (dateString) => {
+    const birthDate = new Date(dateString);
+    const today = new Date();
+    if (Number.isNaN(birthDate.valueOf())) {
+      return 'Unbekannt';
+    }
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age < 0 ? 'Unbekannt' : `${age} Jahr${age === 1 ? '' : 'e'}`;
+  };
+
+  const formatDate = (dateString) => {
+    const birthDate = new Date(dateString);
+    if (Number.isNaN(birthDate.valueOf())) {
+      return 'Unbekannt';
+    }
+    return birthDate.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const renderAlpaka = (alpaka) => {
+    if (!detailCard) return;
+    detailCard.classList.remove('loading');
+    detailCard.innerHTML = '';
+
+    if (alpaka.ImageUrl) {
+      const photo = document.createElement('img');
+      photo.className = 'alpaka-photo';
+      photo.src = alpaka.ImageUrl;
+      photo.alt = alpaka.Name;
+      detailCard.appendChild(photo);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.className = 'alpaka-photo placeholder';
+      placeholder.textContent = alpaka.Name.charAt(0).toUpperCase();
+      detailCard.appendChild(placeholder);
+    }
+
+    const heading = document.createElement('h2');
+    heading.textContent = alpaka.Name;
+    detailCard.appendChild(heading);
+
+    const age = document.createElement('p');
+    age.className = 'alpaka-meta';
+    age.textContent = `Alter: ${calculateAge(alpaka.Geburtsdatum)}`;
+    detailCard.appendChild(age);
+
+    const birthDate = document.createElement('p');
+    birthDate.className = 'alpaka-meta';
+    birthDate.textContent = `Geburtsdatum: ${formatDate(alpaka.Geburtsdatum)}`;
+    detailCard.appendChild(birthDate);
+  };
+
+  const loadAlpaka = async (id) => {
+    if (!detailCard) return;
+    try {
+      const response = await fetch(`/api/alpakas/${encodeURIComponent(id)}`);
+      if (response.status === 404) {
+        renderError('Alpaka nicht gefunden.');
+        return;
+      }
+      if (!response.ok) {
+        throw new Error(`Failed to load alpaka ${id}`);
+      }
+      const alpaka = await response.json();
+      renderAlpaka(alpaka);
+    } catch (error) {
+      console.error(error);
+      renderError('Alpaka konnte nicht geladen werden.');
+    }
+  };
+
+  if (!alpakaId) {
+    renderError('Es wurde kein Alpaka angegeben.');
+  } else {
+    loadAlpaka(alpakaId);
+  }
+</script>
+
+<style>
+  .alpaka-detail {
+    background-color: var(--himmelblau);
+    color: var(--schurwolle);
+  }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    color: inherit;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  .alpaka-detail-card {
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    max-width: 32rem;
+  }
+
+  .alpaka-detail-card.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 12rem;
+  }
+
+  .alpaka-photo {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 1.5rem;
+  }
+
+  .alpaka-photo.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+    font-size: 2.5rem;
+    font-weight: 700;
+  }
+
+  .alpaka-detail-card h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+
+  .alpaka-meta {
+    margin: 0.25rem 0;
+    font-weight: 500;
+  }
+
+  .loading-text {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .error {
+    margin: 0;
+    color: var(--backstein);
+    font-weight: 600;
+  }
+</style>
