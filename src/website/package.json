@@ -11,7 +11,7 @@
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.4",
     "@fontsource/bricolage-grotesque": "^5.2.10",
-    "astro": "^5.14.4"
+    "astro": "^5.14.7"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.5",
