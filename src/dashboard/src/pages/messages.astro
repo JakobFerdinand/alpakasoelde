@@ -27,24 +27,31 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   </section>
 </DashboardLayout>
 
-<script>
-  async function loadMessages() {
+<script lang="ts">
+  interface MessageRecord {
+    Timestamp: string;
+    Name: string;
+    Email: string;
+    Message: string;
+  }
+
+  async function loadMessages(): Promise<void> {
     try {
       const res = await fetch('/api/messages');
       if (!res.ok) return;
-      const msgs = await res.json();
+      const msgs = (await res.json()) as MessageRecord[];
       const tbody = document.getElementById('message-table-body');
-      if (tbody) {
-        tbody.innerHTML = '';
-        msgs.forEach((msg: { Timestamp: string; Name: string; Email: string; Message: string }) => {
-          const tr = document.createElement('tr');
-          const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
-            timeZone: 'Europe/Vienna'
-          });
-          tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
-          tbody.appendChild(tr);
+      if (!(tbody instanceof HTMLTableSectionElement)) return;
+
+      tbody.innerHTML = '';
+      msgs.forEach((msg) => {
+        const tr = document.createElement('tr');
+        const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
+          timeZone: 'Europe/Vienna'
         });
-      }
+        tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
+        tbody.appendChild(tr);
+      });
     } catch (e) {
       console.error(e);
     }

@@ -13,12 +13,18 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   </section>
 </DashboardLayout>
 
-<script>
-  const detailCard = document.getElementById('alpaka-detail-card');
+<script lang="ts">
+  interface AlpakaDetail {
+    Name: string;
+    Geburtsdatum: string;
+    ImageUrl?: string | null;
+  }
+
+  const detailCard = document.getElementById('alpaka-detail-card') as HTMLElement | null;
   const searchParams = new URLSearchParams(window.location.search);
   const alpakaId = searchParams.get('id');
 
-  const renderError = (message) => {
+  const renderError = (message: string): void => {
     if (!detailCard) return;
     detailCard.classList.remove('loading');
     detailCard.innerHTML = '';
@@ -28,7 +34,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     detailCard.appendChild(errorMessage);
   };
 
-  const calculateAge = (dateString) => {
+  const calculateAge = (dateString: string): string => {
     const birthDate = new Date(dateString);
     const today = new Date();
     if (Number.isNaN(birthDate.valueOf())) {
@@ -42,7 +48,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return age < 0 ? 'Unbekannt' : `${age} Jahr${age === 1 ? '' : 'e'}`;
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     const birthDate = new Date(dateString);
     if (Number.isNaN(birthDate.valueOf())) {
       return 'Unbekannt';
@@ -50,7 +56,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return birthDate.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  const renderAlpaka = (alpaka) => {
+  const renderAlpaka = (alpaka: AlpakaDetail): void => {
     if (!detailCard) return;
     detailCard.classList.remove('loading');
     detailCard.innerHTML = '';
@@ -83,7 +89,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     detailCard.appendChild(birthDate);
   };
 
-  const loadAlpaka = async (id) => {
+  const loadAlpaka = async (id: string): Promise<void> => {
     if (!detailCard) return;
     try {
       const response = await fetch(`/api/alpakas/${encodeURIComponent(id)}`);
@@ -94,7 +100,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       if (!response.ok) {
         throw new Error(`Failed to load alpaka ${id}`);
       }
-      const alpaka = await response.json();
+      const alpaka = (await response.json()) as AlpakaDetail;
       renderAlpaka(alpaka);
     } catch (error) {
       console.error(error);

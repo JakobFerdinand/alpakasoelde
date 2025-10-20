@@ -6,14 +6,18 @@
   </div>
 </section>
 
-<script>
-  async function loadOldMessageCount() {
+<script lang="ts">
+  interface MessageCountResponse {
+    Count: number;
+  }
+
+  async function loadOldMessageCount(): Promise<void> {
     try {
       const res = await fetch('/api/messages/count-old');
       if (!res.ok) return;
-      const data = await res.json();
+      const data = (await res.json()) as MessageCountResponse;
       const el = document.getElementById('old-message-count');
-      if (el) {
+      if (el instanceof HTMLElement) {
         el.textContent = `Nachrichten älter als 6 Monate: ${data.Count}`;
         el.classList.remove('loading');
       }
