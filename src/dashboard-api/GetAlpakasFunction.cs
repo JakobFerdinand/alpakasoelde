@@ -21,7 +21,7 @@ public class GetAlpakasFunction(
 
     [Function("get-alpakas")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/alpakas")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas")] HttpRequestData req)
     {
         TableClient tableClient = _tableServiceClient.GetTableClient("alpakas");
         BlobContainerClient container = _blobServiceClient.GetBlobContainerClient("alpakas");
