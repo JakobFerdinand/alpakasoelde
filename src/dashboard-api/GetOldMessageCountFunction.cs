@@ -4,7 +4,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace WebsiteApi;
+namespace DashboardApi;
 
 public class GetOldMessageCountFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {
@@ -13,7 +13,7 @@ public class GetOldMessageCountFunction(ILoggerFactory loggerFactory, TableServi
 
     [Function("get-old-message-count")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages/count-old")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages/count-old")] HttpRequestData req)
     {
         TableClient tableClient = _tableServiceClient.GetTableClient("messages");
 

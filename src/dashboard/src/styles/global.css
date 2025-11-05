@@ -1,0 +1,82 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bluetenhonig: #e1b14a;
+  --schurwolle: #fbf7ed;
+  --jungtrieb: #b9bc49;
+  --himmelblau: #8da5d3;
+  --backstein: #d7854b;
+  --auwasser: #9abfba;
+  --weidegruen: #698a6e;
+  --taubenblau: #4b5b73;
+  --schwarz: #1f1f1d;
+  --weiss: #ffffff;
+}
+
+body {
+  background-color: var(--schurwolle);
+  color: var(--taubenblau);
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 300;
+  margin: 0;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 1rem;
+}
+
+.section {
+  padding: 4rem 0;
+}
+
+.section h2 {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400;
+}
+
+.btn {
+  background-color: var(--bluetenhonig);
+  color: var(--schurwolle);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link {
+  text-decoration: underline;
+  color: inherit;
+}
+
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: auto;
+  background-color: var(--weiss);
+  color: var(--taubenblau);
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}

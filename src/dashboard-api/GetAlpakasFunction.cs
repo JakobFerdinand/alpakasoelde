@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.IO;
 
-namespace WebsiteApi;
+namespace DashboardApi;
 
 public class GetAlpakasFunction(
     ILoggerFactory loggerFactory,
@@ -21,7 +21,7 @@ public class GetAlpakasFunction(
 
     [Function("get-alpakas")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/alpakas")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas")] HttpRequestData req)
     {
         TableClient tableClient = _tableServiceClient.GetTableClient("alpakas");
         BlobContainerClient container = _blobServiceClient.GetBlobContainerClient("alpakas");
@@ -49,7 +49,7 @@ public class GetAlpakasFunction(
 
                     var storageAccountName = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountName)
                         ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_NAME' is not set.");
-                    var storageAccountKey = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountKey) 
+                    var storageAccountKey = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageAccountKey)
                         ?? throw new InvalidOperationException("Environment variable 'AZURE_STORAGE_ACCOUNT_KEY' is not set.");
                     StorageSharedKeyCredential credential = new(
                         storageAccountName,

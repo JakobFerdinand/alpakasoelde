@@ -9,7 +9,7 @@
 <script>
   async function loadOldMessageCount() {
     try {
-      const res = await fetch('/api/dashboard/messages/count-old');
+      const res = await fetch('/api/messages/count-old');
       if (!res.ok) return;
       const data = await res.json();
       const el = document.getElementById('old-message-count');
@@ -69,4 +69,3 @@
     }
   }
 </style>
-

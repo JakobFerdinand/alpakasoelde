@@ -5,7 +5,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace WebsiteApi;
+namespace DashboardApi;
 
 public class GetMessagesFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {
@@ -14,7 +14,7 @@ public class GetMessagesFunction(ILoggerFactory loggerFactory, TableServiceClien
 
     [Function("get-messages")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dashboard/messages")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages")] HttpRequestData req)
     {
         TableClient tableClient = _tableServiceClient.GetTableClient("messages");
 

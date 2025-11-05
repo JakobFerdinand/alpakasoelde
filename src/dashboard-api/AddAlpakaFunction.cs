@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace WebsiteApi;
+namespace DashboardApi;
 
 public class AddAlpakaFunction(
     ILoggerFactory loggerFactory,
@@ -23,7 +23,7 @@ public class AddAlpakaFunction(
 
     [Function("add-alpaka")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dashboard/alpakas")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "alpakas")] HttpRequestData req)
     {
         var parsedFormBocy = await MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
 
@@ -71,7 +71,7 @@ public class AddAlpakaFunction(
             Geburtsdatum = geburtsdatum!
         };
 
-        
+
         if (imageFile is not null && imageFile.Data.Length > 0)
         {
             if (imageFile.Data.Length > MaxImageSizeBytes)

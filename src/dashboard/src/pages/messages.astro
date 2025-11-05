@@ -1,5 +1,5 @@
 ---
-import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
 <DashboardLayout title="Nachrichten">
@@ -30,16 +30,16 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
 <script>
   async function loadMessages() {
     try {
-      const res = await fetch('/api/dashboard/messages');
+      const res = await fetch('/api/messages');
       if (!res.ok) return;
       const msgs = await res.json();
       const tbody = document.getElementById('message-table-body');
       if (tbody) {
         tbody.innerHTML = '';
-        msgs.forEach((msg: { Timestamp: string; Name: string; Email: string; Message: string; }) => {
+        msgs.forEach((msg: { Timestamp: string; Name: string; Email: string; Message: string }) => {
           const tr = document.createElement('tr');
           const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
-            timeZone: 'Europe/Vienna',
+            timeZone: 'Europe/Vienna'
           });
           tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
           tbody.appendChild(tr);
@@ -61,13 +61,13 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    border-radius: 0.5rem; /* Added to ensure container respects table's border radius */
-    margin: 1rem 0; /* Added for consistency */
+    border-radius: 0.5rem;
+    margin: 1rem 0;
   }
 
   .message-table {
     width: 100%;
-    min-width: 40rem; /* Kept for responsiveness */
+    min-width: 40rem;
     border-collapse: collapse;
     background-color: var(--schurwolle);
     color: var(--taubenblau);
@@ -81,9 +81,9 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
     background-color: var(--weidegruen);
     color: var(--schurwolle);
     text-align: left;
-    position: sticky; /* Kept for usability */
-    top: 0; /* Kept for usability */
-    z-index: 1; /* Ensure header is above content when sticky */
+    position: sticky;
+    top: 0;
+    z-index: 1;
   }
 
   .message-table td {
@@ -94,7 +94,7 @@ import DashboardLayout from '../../layouts/DashboardLayout.astro';
   }
 
   .message-table tbody tr:last-child td {
-    border-bottom: none; /* Remove border from last row for cleaner look with border-radius */
+    border-bottom: none;
   }
 
   .message-table tbody tr:hover > td {

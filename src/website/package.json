@@ -1,5 +1,5 @@
 {
-  "name": "alpakasoelde-site",
+  "name": "alpakasoelde",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,12 +9,12 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.4",
-    "@fontsource/bricolage-grotesque": "^5.0.18",
-    "astro": "^5.12.9"
+    "@astrojs/ts-plugin": "^1.10.5",
+    "@fontsource/bricolage-grotesque": "^5.2.10",
+    "astro": "^5.15.3"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
-    "typescript": "^5.9.2"
+    "@astrojs/check": "^0.9.5",
+    "typescript": "^5.9.3"
   }
 }

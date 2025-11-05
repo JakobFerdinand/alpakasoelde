@@ -1,6 +1,6 @@
 ---
-import "../styles/global.css";
-import DashboardNavbar from "../components/DashboardNavbar.astro";
+import '../styles/global.css';
+import DashboardNavbar from '../components/DashboardNavbar.astro';
 import Head from '../components/Head.astro';
 
 interface Props {
@@ -14,10 +14,13 @@ const { title } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <Head title={title} robots="noindex" />
+    <Head title={title} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@300;400&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
