@@ -42,14 +42,21 @@
   </div>
 </section>
 
-<script>
-  const toggle = document.getElementById('add-alpaka-toggle');
-  const lightbox = document.getElementById('alpaka-lightbox');
-  const closeBtn = document.getElementById('close-alpaka-form');
+<script lang="ts">
+  interface Alpaka {
+    Id: string;
+    Geburtsdatum: string;
+    ImageUrl: string | null;
+    Name: string;
+  }
+
+  const toggle = document.getElementById('add-alpaka-toggle') as HTMLButtonElement | null;
+  const lightbox = document.getElementById('alpaka-lightbox') as HTMLElement | null;
+  const closeBtn = document.getElementById('close-alpaka-form') as HTMLButtonElement | null;
   const form = document.getElementById('add-alpaka-form') as HTMLFormElement | null;
   const imageUploadInput = document.getElementById('alpaka-photo') as HTMLInputElement | null;
 
-  const setLightboxVisibility = (visible) => {
+  const setLightboxVisibility = (visible: boolean): void => {
     if (!lightbox) return;
     lightbox.hidden = !visible;
     lightbox.classList.toggle('is-visible', visible);
@@ -71,13 +78,13 @@
     setLightboxVisibility(false);
   });
 
-  lightbox?.addEventListener('click', (e) => {
-    if (e.target === lightbox) {
+  lightbox?.addEventListener('click', (event: MouseEvent) => {
+    if (event.target instanceof HTMLElement && event.target === lightbox) {
       setLightboxVisibility(false);
     }
   });
 
-  const limits: { [key: string]: number } = { 'alpaka-name': 100 };
+  const limits: Record<string, number> = { 'alpaka-name': 100 };
 
   Object.entries(limits).forEach(([id, max]) => {
     const el = document.getElementById(id) as HTMLInputElement | null;
@@ -90,56 +97,55 @@
     });
   });
 
-  const submitButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+  const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]') ?? null;
 
-  form?.addEventListener('submit', (e) => {
+  form?.addEventListener('submit', (event: SubmitEvent) => {
     for (const [id, max] of Object.entries(limits)) {
       const el = document.getElementById(id) as HTMLInputElement | null;
       if (el && el.value.trim().length > max) {
         el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
         el.reportValidity();
-        e.preventDefault();
+        event.preventDefault();
         return;
       }
     }
 
-    // Client-side file size check
-    if (imageUploadInput && imageUploadInput.files && imageUploadInput.files.length > 0) {
+    if (imageUploadInput?.files?.length) {
       const file = imageUploadInput.files[0];
       const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)
       if (file.size > maxFileSize) {
         alert(`File is too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB.`);
-        e.preventDefault(); // Prevent form submission
+        event.preventDefault();
         if (submitButton) {
-            submitButton.disabled = false; // Re-enable button
-            submitButton.classList.remove('loading');
+          submitButton.disabled = false;
+          submitButton.classList.remove('loading');
         }
         return;
       }
     }
 
     if (submitButton) {
-        submitButton.disabled = true;
-        submitButton.classList.add('loading');
+      submitButton.disabled = true;
+      submitButton.classList.add('loading');
     }
   });
 
-  const navigateToAlpaka = (id: string) => {
+  const navigateToAlpaka = (id: string): void => {
     window.location.href = `/alpakas?id=${encodeURIComponent(id)}`;
   };
 
-  async function loadAlpakas() {
+  async function loadAlpakas(): Promise<void> {
     const list = document.getElementById('alpaka-list');
-    if (!list) return;
+    if (!(list instanceof HTMLTableSectionElement)) return;
     list.innerHTML =
       '<tr><td colspan="3" class="alpaka-loading loading">Lade Daten...</td></tr>';
     try {
       const res = await fetch('/api/alpakas');
       if (!res.ok) return;
-      const alpacas = await res.json();
-      list.innerHTML = ''; // Clear existing rows before adding new ones
+      const alpacas = (await res.json()) as Alpaka[];
+      list.innerHTML = '';
 
-      alpacas.forEach((alpaca: { Id: string; Geburtsdatum: string; ImageUrl: string | null; Name: string; }) => {
+      alpacas.forEach((alpaca) => {
         const row = document.createElement('tr');
         row.className = 'alpaka-item';
         row.dataset.alpakaId = alpaca.Id;
@@ -147,7 +153,7 @@
         row.setAttribute('role', 'link');
         row.setAttribute('aria-label', `Details für ${alpaca.Name} anzeigen`);
         row.addEventListener('click', () => navigateToAlpaka(alpaca.Id));
-        row.addEventListener('keydown', (event) => {
+        row.addEventListener('keydown', (event: KeyboardEvent) => {
           if (event.key === 'Enter' || event.key === ' ') {
             event.preventDefault();
             navigateToAlpaka(alpaca.Id);
@@ -156,29 +162,26 @@
 
         const age = calculateAge(alpaca.Geburtsdatum);
 
-        // Avatar Cell
         const avatarCell = document.createElement('td');
         if (alpaca.ImageUrl) {
           const img = document.createElement('img');
-          img.className = 'dashboard-alpaka-profile-photo'; 
+          img.className = 'dashboard-alpaka-profile-photo';
           img.src = alpaca.ImageUrl;
           img.alt = alpaca.Name;
           avatarCell.appendChild(img);
         } else {
           const placeholder = document.createElement('div');
-          placeholder.className = 'dashboard-alpaka-profile-placeholder'; // Uses global style
+          placeholder.className = 'dashboard-alpaka-profile-placeholder';
           placeholder.textContent = alpaca.Name.charAt(0).toUpperCase();
           avatarCell.appendChild(placeholder);
         }
         row.appendChild(avatarCell);
 
-        // Name Cell
         const nameCell = document.createElement('td');
         nameCell.className = 'alpaka-name';
         nameCell.textContent = alpaca.Name;
         row.appendChild(nameCell);
 
-        // Age Cell
         const ageCell = document.createElement('td');
         ageCell.className = 'alpaka-age';
         ageCell.textContent = age;
@@ -195,8 +198,8 @@
     const birthDate = new Date(dateString);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
       age--;
     }
     if (Number.isNaN(age) || age < 0) {
@@ -207,8 +210,7 @@
 
   loadAlpakas();
 
-  // Lightbox keyboard accessibility
-  document.addEventListener('keydown', (event) => {
+  document.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'Escape' && lightbox && !lightbox.hidden) {
       setLightboxVisibility(false);
     }

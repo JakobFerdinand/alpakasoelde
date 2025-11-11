@@ -19,32 +19,49 @@ import Logo from '../images/AS_Symbolik_Backstein.svg';
     </ul>
     <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="dashboard-navigation" aria-expanded="false">☰</button>
   </div>
-  <script>
-    const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
-    const links = document.querySelector('.nav-links') as HTMLUListElement;
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!expanded));
-      links.classList.toggle('open');
-    });
+  <script lang="ts">
+    const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+    const links = document.querySelector<HTMLUListElement>('.nav-links');
+
+    if (toggle && links) {
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        links.classList.toggle('open');
+      });
+    }
+
     document.querySelectorAll<HTMLAnchorElement>('.nav-links a').forEach((item) => {
       item.addEventListener('click', () => {
-        links.classList.remove('open');
-        toggle.setAttribute('aria-expanded', 'false');
+        links?.classList.remove('open');
+        toggle?.setAttribute('aria-expanded', 'false');
       });
     });
+
+    type AuthResponse = {
+      clientPrincipal?: {
+        userDetails?: string | null;
+      } | null;
+    };
+
     async function loadUser(): Promise<void> {
       try {
         const res = await fetch('/.auth/me');
         if (!res.ok) return;
-        const data = await res.json();
+        const data = (await res.json()) as AuthResponse;
         const principal = data.clientPrincipal;
         if (!principal) return;
-        const name: string = principal.userDetails || 'User';
-        (document.querySelector('.user-name') as HTMLSpanElement).textContent = name;
-        const avatar = document.querySelector('.avatar') as HTMLImageElement;
-        avatar.src = `https://github.com/${name}.png`;
-        avatar.alt = name;
+
+        const name = principal.userDetails ?? 'User';
+        const nameElement = document.querySelector<HTMLSpanElement>('.user-name');
+        if (nameElement) {
+          nameElement.textContent = name;
+        }
+        const avatar = document.querySelector<HTMLImageElement>('.avatar');
+        if (avatar) {
+          avatar.src = `https://github.com/${name}.png`;
+          avatar.alt = name;
+        }
       } catch {
         /* ignore */
       }
