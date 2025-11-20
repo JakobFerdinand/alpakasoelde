@@ -15,40 +15,62 @@ const { title } = Astro.props;
 
 <!doctype html>
 <html lang="de">
-       <head>
-               <meta charset="UTF-8" />
-               <meta name="viewport" content="width=device-width" />
-               <Head title={title} />
-       </head>
-        <body>
-                <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
-                <Navbar />
-                <main id="main-content">
-                        <slot />
-                </main>
-                <Footer />
-        </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <Head title={title} />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+    <Navbar />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+  </body>
 </html>
 
 <style>
-        html,
-        body {
-                margin: 0;
-                width: 100%;
-        }
+  html,
+  body {
+    margin: 0;
+    width: 100%;
+  }
 </style>
 
 <script is:inline>
-        const navLogo = document.querySelector('.navbar .logo');
-        const heroSection = document.querySelector('.hero');
-        if (navLogo && heroSection) {
-                const observer = new IntersectionObserver(([entry]) => {
-                        if (entry.isIntersecting) {
-                                navLogo.classList.remove('show'); // hero visible → keep nav logo hidden
-                        } else {
-                                navLogo.classList.add('show'); // hero gone → show nav logo
-                        }
-                }, { threshold: 0, rootMargin: '-80px 0px 0px 0px' });
-                observer.observe(heroSection);
+  const navbar = document.querySelector('.navbar');
+  const navLogo = navbar?.querySelector('.logo');
+  const heroSection = document.querySelector('.hero');
+
+  const setTransparentNav = () => {
+    navbar?.classList.add('is-transparent');
+    navLogo?.classList.remove('show');
+  };
+
+  const setSolidNav = () => {
+    navbar?.classList.remove('is-transparent');
+    navLogo?.classList.add('show');
+  };
+
+  if (navbar && navLogo && heroSection) {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTransparentNav();
+        } else {
+          setSolidNav();
         }
+      },
+      { threshold: 0, rootMargin: '80px 0px 0px 0px' },
+    );
+
+    observer.observe(heroSection);
+
+    const rect = heroSection.getBoundingClientRect();
+    const heroVisible = rect.bottom > 80 && rect.top < window.innerHeight;
+    heroVisible ? setTransparentNav() : setSolidNav();
+  } else if (navbar && navLogo) {
+    setSolidNav();
+  }
 </script>

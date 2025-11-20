@@ -42,6 +42,16 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     z-index: 1000;
     background-color: var(--schurwolle);
     padding: 0.5rem 0;
+    backdrop-filter: blur(0px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease,
+      backdrop-filter 0.3s ease;
+  }
+
+  .navbar.is-transparent {
+    background-color: rgba(251, 247, 237, 0.18);
+    backdrop-filter: blur(10px);
+    box-shadow: none;
   }
 
   .navbar .container {
