@@ -13,6 +13,7 @@ import heroImage from "../images/hero.jpg";
 
 <style>
   .hero {
+    margin-top: calc(-1 * var(--nav-height, 80px));
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -27,7 +28,7 @@ import heroImage from "../images/hero.jpg";
     background-position: center;
     background-repeat: no-repeat;
     color: var(--schurwolle);
-    padding: 5rem 1rem;
+    padding: calc(5rem + var(--nav-height, 80px)) 1rem 5rem;
   }
 
   .hero img {
