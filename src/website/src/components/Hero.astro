@@ -1,9 +1,10 @@
 ---
 import { Image } from "astro:assets";
-import Logo from "../images/AS_Gesamt_untereinander_Taubenblau.svg";
+import Logo from "../images/AS_Gesamt_untereinander_Schurwolle.svg";
+import heroImage from "../images/hero.jpg";
 ---
 
-<section class="hero">
+<section class="hero" style={`--hero-bg-image: url(${heroImage.src})`}>
   <Image src={Logo} alt="Alpakasölde Logo" class="hero-image" />
   <h1 class="sr-only">Alpakasölde</h1>
   <p>Erlebe unvergessliche Momente mit unseren Alpakas in Frauenstein.</p>
@@ -17,7 +18,14 @@ import Logo from "../images/AS_Gesamt_untereinander_Taubenblau.svg";
     align-items: center;
     justify-content: center;
     text-align: center;
-    background-color: var(--himmelblau);
+    background-image: linear-gradient(
+        rgba(0, 0, 0, 0.35),
+        rgba(0, 0, 0, 0.35)
+      ),
+      var(--hero-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: var(--schurwolle);
     padding: 5rem 1rem;
   }
