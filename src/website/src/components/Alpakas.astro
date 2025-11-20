@@ -4,7 +4,7 @@ import Amadeus from '../images/alpakas/amadeus.jpg';
 import Ludwig from '../images/alpakas/ludwig.jpg';
 import Johann from '../images/alpakas/johann.jpg';
 import Richard from '../images/alpakas/richard.jpg';
-import Antonio from '../images/alpakas/antonio.jpeg';
+import Antonio from '../images/alpakas/antonio.jpg';
 ---
 
 <section id="alpakas" class="alpacas section">
@@ -29,7 +29,7 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     </div>
     <div class="alpaca-row">
       <div class="alpaca-image-wrapper">
-        <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo" />
+        <Image src={Johann} alt="Alpaka Johann" class="alpaca-photo johann" />
       </div>
       <div class="alpaca-content">
         <h3>Johann</h3>
@@ -90,10 +90,10 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     object-position: 10% 30%;
   }
   .alpaca-photo.ludwig {
-    object-position: 0% 20%;
+    object-position: 0% 80%;
   }
   .alpaca-photo.richard {
-    object-position: 0% 20%;
+    object-position: 0% 60%;
   }
   .alpaca-photo.antonio {
     object-position: 0% 20%;
@@ -139,14 +139,20 @@ import Antonio from '../images/alpakas/antonio.jpeg';
     }
     .alpaca-image-wrapper { display: flex; }
     .alpaca-photo { height: 100%; }
+    .alpaca-photo.amadeus {
+      object-position: 0% 50%;
+    }
     .alpaca-photo.ludwig {
-      object-position: 0% 10%;
+      object-position: 0% 70%;
+    }
+    .alpaca-photo.johann {
+      object-position: 0% 50%;
     }
     .alpaca-photo.richard {
-      object-position: 0% 10%;
+      object-position: 0% 60%;
     }
     .alpaca-photo.antonio {
-      object-position: 0% 10%;
+      object-position: 0% 40%;
     }
 
     .alpaca-content { 
