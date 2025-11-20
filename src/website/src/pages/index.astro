@@ -5,12 +5,21 @@ import Services from '../components/Services.astro';
 import Alpakas from '../components/Alpakas.astro';
 import About from '../components/About.astro';
 import Contact from '../components/Contact.astro';
+import ImpressionBreak from '../components/ImpressionBreak.astro';
+import Impression1 from '../images/impressions/impression_1.jpg';
+import Impression117 from '../images/impressions/impression_117.jpg';
+import Impression64 from '../images/impressions/impression_64.jpg';
+import Impression54 from '../images/impressions/impression_54.jpg';
 ---
 
 <Layout title="Willkommen">
   <Hero />
   <Services />
+  <ImpressionBreak image={Impression64} alt="Alpakas auf der Weide" />
   <Alpakas />
+  <ImpressionBreak image={Impression54} alt="Katze Rosi kurz vorm Sprung" />
   <About />
+  <ImpressionBreak image={Impression117} alt="Alpaka Stall im Abendlicht" />
   <Contact />
+  <ImpressionBreak image={Impression1} alt="Huhn Whitney" />
 </Layout>
