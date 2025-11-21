@@ -33,11 +33,38 @@ test.describe('Contact form validation', () => {
     await page.getByLabel('Name*').fill('Maria Muster');
     await page.getByLabel('E-Mail*').fill('maria@example.com');
     await page.getByLabel('Nachricht*').fill('Hallo, ich interessiere mich für eine Alpaka-Wanderung.');
+    await page.getByLabel('Ich akzeptiere die Datenschutzerklärung*').check();
 
     const submitButton = page.getByRole('button', { name: 'Senden' });
     await expect(submitButton).toBeEnabled();
 
     await submitButton.click();
+    await expect(submitButton).toBeDisabled();
+  });
+
+  test('only enables submit when consent and valid inputs are provided', async ({ page }) => {
+    await page.goto('/#kontakt');
+
+    const submitButton = page.getByRole('button', { name: 'Senden' });
+    const nameInput = page.getByLabel('Name*');
+    const emailInput = page.getByLabel('E-Mail*');
+    const messageInput = page.getByLabel('Nachricht*');
+    const consentCheckbox = page.getByLabel('Ich akzeptiere die Datenschutzerklärung*');
+
+    await expect(submitButton).toBeDisabled();
+
+    await nameInput.fill('Hans Muster');
+    await emailInput.fill('invalid-email');
+    await messageInput.fill('Bitte um Rückruf.');
+    await expect(submitButton).toBeDisabled();
+
+    await emailInput.fill('hans@example.com');
+    await expect(submitButton).toBeDisabled();
+
+    await consentCheckbox.check();
+    await expect(submitButton).toBeEnabled();
+
+    await consentCheckbox.uncheck();
     await expect(submitButton).toBeDisabled();
   });
 });
