@@ -1,4 +1,5 @@
 ---
+import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from "../layouts/Layout.astro";
 import Slideshow from "../components/Slideshow.astro";
 
@@ -6,7 +7,10 @@ import Wanderung1 from "../images/wanderungen/wanderung1.jpg";
 import Wanderung2 from "../images/wanderungen/wanderung2.jpg";
 import Wanderung3 from "../images/wanderungen/wanderung3.jpg";
 import Wanderung4 from "../images/wanderungen/wanderung4.jpg";
+
 import heroImage from "../images/impressions/impression_64.jpg";
+
+import impression_72 from "../images/impressions/impression_72.jpg";
 
 const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
 ---
@@ -74,6 +78,14 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
       </p>
     </div>
   </section>
+
+
+  <ImpressionBreak
+    image={impression_72}
+    alt="Katze Rosi kurz vorm Sprung"
+    backgroundPosition="center 40%"
+  />
+
 </Layout>
 
 <style>
