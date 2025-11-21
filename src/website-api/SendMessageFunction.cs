@@ -22,7 +22,8 @@ public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClien
         HttpRequestData req,
         string? name,
         string? email,
-        string? messageContent)
+        string? messageContent,
+        bool privacyAccepted)
     {
         if (new[]
                 {
@@ -73,6 +74,21 @@ public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClien
                 title = "Bad Request",
                 status = (int)HttpStatusCode.BadRequest,
                 detail = string.Join(" ", errors)
+            }).ConfigureAwait(false);
+
+            return badRequestResponse;
+        }
+
+        if (!privacyAccepted)
+        {
+            _logger.LogWarning("Form submission rejected because privacy policy was not acknowledged.");
+
+            var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badRequestResponse.WriteAsJsonAsync(new
+            {
+                title = "Bad Request",
+                status = (int)HttpStatusCode.BadRequest,
+                detail = "Bitte bestätige, dass du die Datenschutzerklärung gelesen hast."
             }).ConfigureAwait(false);
 
             return badRequestResponse;
@@ -145,9 +161,14 @@ public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClien
         string? name = parsedForm["name"]?.Trim();
         string? email = parsedForm["email"]?.Trim();
         string? messageContent = parsedForm["message"]?.Trim();
-        _logger.LogInformation("Parsed form data - Name: '{Name}', Email: '{Email}', Message: '{Message}'", name, email, messageContent);
+        bool privacyAccepted = parsedForm["privacyConsent"]?.Trim().ToLowerInvariant() switch
+        {
+            "on" or "true" or "1" => true,
+            _ => false
+        };
+        _logger.LogInformation("Parsed form data - Name: '{Name}', Email: '{Email}', Message: '{Message}', PrivacyAccepted: {PrivacyAccepted}", name, email, messageContent, privacyAccepted);
 
-        HttpResponseData? validationResult = await ValidateFormData(req, name, email, messageContent);
+        HttpResponseData? validationResult = await ValidateFormData(req, name, email, messageContent, privacyAccepted);
         if (validationResult is not null)
         {
             return validationResult;
@@ -157,7 +178,8 @@ public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClien
         {
             Name = name!,
             Email = email!,
-            Message = messageContent!
+            Message = messageContent!,
+            PrivacyPolicyAccepted = privacyAccepted
         };
 
         TableClient tableClient = _tableServiceClient.GetTableClient("messages");

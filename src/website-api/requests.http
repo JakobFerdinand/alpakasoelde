@@ -7,7 +7,7 @@
 POST {{base}}/api/send-message
 Content-Type: application/x-www-form-urlencoded
 
-name=TestName&email=test@example.com&message=Hello from .http file
+name=TestName&email=test@example.com&message=Hello from .http file&privacyConsent=true
 
 ###
 

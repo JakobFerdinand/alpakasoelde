@@ -13,7 +13,9 @@
     "types": [
       "astro/client",
       "astro/astro-jsx",
-      "astro/astro-jsx-runtime"
+      "astro/astro-jsx-runtime",
+      "@playwright/test",
+      "@types/node"
     ],
     "plugins": [
       {

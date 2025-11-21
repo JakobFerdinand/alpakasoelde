@@ -14,7 +14,17 @@
         <label for="message">Nachricht*</label>
         <textarea id="message" name="message" required placeholder="Deine Nachricht" maxlength="2000"></textarea>
       </div>
-      <button type="submit" class="btn">Senden</button>
+      <div class="form-field checkbox-field">
+        <input id="privacy-consent" type="checkbox" name="privacyConsent" required />
+        <label for="privacy-consent" class="checkbox-label">
+          Ich habe die
+          <a href="/datenschutzerklaerung">Datenschutzerklärung</a>
+          gelesen und verstanden
+          <span class="required-mark" aria-hidden="true">*</span>
+          <span class="sr-only">Pflichtfeld</span>
+        </label>
+      </div>
+      <button type="submit" class="btn" disabled>Senden</button>
     </form>
 
     <aside class="contact-address">
@@ -69,6 +79,14 @@
     });
 
     const submitButton = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+    const privacyCheckbox = document.getElementById('privacy-consent') as HTMLInputElement;
+
+    const updateSubmitState = () => {
+      submitButton.disabled = !privacyCheckbox.checked;
+    };
+
+    privacyCheckbox.addEventListener('change', updateSubmitState);
+    updateSubmitState();
 
     form.addEventListener('submit', (e: SubmitEvent) => {
       for (const [id, max] of Object.entries(limits)) {
@@ -127,9 +145,51 @@
     gap: 0.25rem;
   }
 
+  .checkbox-field {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .checkbox-field input {
+    width: 1rem;
+    margin: 0;
+  }
+
+  .checkbox-field label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+    color: var(--taubenblau);
+  }
+
+  .checkbox-field a {
+    color: var(--taubenblau);
+    font-weight: 600;
+  }
+
+  .required-mark {
+    color: var(--bluetenhonig);
+    font-weight: 700;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .contact input,
   .contact textarea {
-    width: 100%;
     padding: 0.75rem 1rem;
     border: 1px solid var(--taubenblau);
     border-radius: 0.25rem;
@@ -139,6 +199,7 @@
   }
 
   .contact textarea {
+	width: 100%;
     height: 8rem;
     resize: vertical;
   }
@@ -163,8 +224,7 @@
     background-color: var(--jungtrieb);
   }
 
-  .contact button.loading::after,
-  .contact button:disabled::after {
+  .contact button.loading::after {
     content: "";
     display: inline-block;
     width: 1em;

@@ -3,6 +3,7 @@
 }
 
 :root {
+  --nav-height: 80px;
   --bluetenhonig: #e1b14a;
   --schurwolle: #fbf7ed;
   --jungtrieb: #b9bc49;
@@ -21,6 +22,11 @@ body {
   font-family: "Bricolage Grotesque", sans-serif;
   font-weight: 300;
   margin: 0;
+  overflow-x: hidden;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 .container {

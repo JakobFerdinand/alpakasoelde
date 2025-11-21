@@ -27,3 +27,5 @@ pnpm-debug.log*
 # .net generated files
 bin/
 obj/
+
+test-results/

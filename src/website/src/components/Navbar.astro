@@ -1,11 +1,18 @@
 ---
 import { Image } from "astro:assets";
 import Logo from "../images/AS_Symbolik_Taubenblau.svg";
+import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
 ---
 <nav class="navbar">
   <div class="container">
     <a href="/" class="logo">
-      <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
+      <Image class="logo-img logo-img--solid" src={Logo} alt="Alpakasölde Logo" />
+      <Image
+        class="logo-img logo-img--transparent"
+        src={LogoSchurwolle}
+        alt=""
+        aria-hidden="true"
+      />
     </a>
     <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="primary-navigation" aria-expanded="false">☰</button>
     <ul id="primary-navigation" class="nav-links">
@@ -19,12 +26,10 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
     const links = document.querySelector('.nav-links') as HTMLUListElement;
     const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
-    const navlogo = document.querySelector('.navbar .logo');
     toggle.addEventListener('click', () => {
       const expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
       links.classList.toggle('open');
-      navlogo?.classList.toggle('show-nav-icon');
     });
     linkItems.forEach((item) => {
       item.addEventListener('click', () => {
@@ -40,28 +45,79 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     position: sticky;
     top: 0;
     z-index: 1000;
+    color: var(--taubenblau);
     background-color: var(--schurwolle);
+    min-height: var(--nav-height);
     padding: 0.5rem 0;
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: background-color 0.5s ease, box-shadow 0.5s ease,
+      backdrop-filter 0.5s ease;
+  }
+
+  .navbar.is-transparent {
+    background-color: rgba(251, 247, 237, 0.01);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    color: var(--schurwolle);
+  }
+
+  .navbar.is-transparent::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.35) 0%,
+      rgba(0, 0, 0, 0.18) 45%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    pointer-events: none;
+    z-index: 1;
   }
 
   .navbar .container {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    z-index: 2;
   }
 
   .navbar .container .logo {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+  }
+
+  .logo-img--solid {
+    opacity: 1;
+  }
+
+  .logo-img--transparent {
     opacity: 0;
-    visibility: hidden;
-    transition: opacity .3s ease;
   }
-  .navbar .container .logo.show {
-    opacity: 1;
-    visibility: visible;
+
+  .navbar.is-transparent .logo-img--solid {
+    opacity: 0;
   }
-  .navbar .container .logo.show-nav-icon {
+
+  .navbar.is-transparent .logo-img--transparent {
     opacity: 1;
-    visibility: visible;
   }
 
   .nav-links {
@@ -74,7 +130,7 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
 
   .nav-links a {
     text-decoration: none;
-    color: var(--taubenblau);
+    color: inherit;
     font-weight: 600;
   }
 
@@ -82,7 +138,7 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     display: none;
     background: none;
     border: none;
-    color: var(--taubenblau);
+    color: inherit;
     font-size: 1.5rem;
     cursor: pointer;
   }
@@ -101,6 +157,15 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
 
     .nav-links.open {
       display: flex;
+      color: var(--taubenblau);
+    }
+
+    .navbar.is-transparent .nav-links {
+      background-color: rgba(251, 247, 237, 0.92);
+    }
+
+    .navbar.is-transparent .nav-links a {
+      color: var(--taubenblau);
     }
 
     .nav-toggle {
