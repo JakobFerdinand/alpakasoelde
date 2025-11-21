@@ -1,11 +1,18 @@
 ---
 import { Image } from "astro:assets";
 import Logo from "../images/AS_Symbolik_Taubenblau.svg";
+import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
 ---
 <nav class="navbar">
   <div class="container">
     <a href="/" class="logo">
-      <Image style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
+      <Image class="logo-img logo-img--solid" src={Logo} alt="Alpakasölde Logo" />
+      <Image
+        class="logo-img logo-img--transparent"
+        src={LogoSchurwolle}
+        alt=""
+        aria-hidden="true"
+      />
     </a>
     <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="primary-navigation" aria-expanded="false">☰</button>
     <ul id="primary-navigation" class="nav-links">
@@ -19,12 +26,10 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
     const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
     const links = document.querySelector('.nav-links') as HTMLUListElement;
     const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
-    const navlogo = document.querySelector('.navbar .logo');
     toggle.addEventListener('click', () => {
       const expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
       links.classList.toggle('open');
-      navlogo?.classList.toggle('show-nav-icon');
     });
     linkItems.forEach((item) => {
       item.addEventListener('click', () => {
@@ -83,17 +88,37 @@ import Logo from "../images/AS_Symbolik_Taubenblau.svg";
   }
 
   .navbar .container .logo {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+  }
+
+  .logo-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: opacity 0.3s ease;
+  }
+
+  .logo-img--solid {
+    opacity: 1;
+  }
+
+  .logo-img--transparent {
     opacity: 0;
-    visibility: hidden;
-    transition: opacity .5s ease;
   }
-  .navbar .container .logo.show {
-    opacity: 1;
-    visibility: visible;
+
+  .navbar.is-transparent .logo-img--solid {
+    opacity: 0;
   }
-  .navbar .container .logo.show-nav-icon {
+
+  .navbar.is-transparent .logo-img--transparent {
     opacity: 1;
-    visibility: visible;
   }
 
   .nav-links {
