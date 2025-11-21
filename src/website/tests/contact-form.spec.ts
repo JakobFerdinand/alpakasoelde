@@ -33,6 +33,7 @@ test.describe('Contact form validation', () => {
     await page.getByLabel('Name*').fill('Maria Muster');
     await page.getByLabel('E-Mail*').fill('maria@example.com');
     await page.getByLabel('Nachricht*').fill('Hallo, ich interessiere mich für eine Alpaka-Wanderung.');
+    await page.locator('#privacy-consent').check();
 
     const submitButton = page.getByRole('button', { name: 'Senden' });
     await expect(submitButton).toBeEnabled();
