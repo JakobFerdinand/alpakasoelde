@@ -164,8 +164,8 @@
     resize: vertical;
   }
 
-  .contact input:focus,
-  .contact textarea:focus {
+  .contact input:focus-visible,
+  .contact textarea:focus-visible {
     outline: none;
     box-shadow: 0 0 0 2px var(--bluetenhonig);
   }
@@ -197,8 +197,16 @@
   }
 
   .contact button:disabled {
-    opacity: 0.7;
+    opacity: 1;
+    filter: brightness(0.95);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
     cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact button.loading::after {
+      animation: none;
+    }
   }
 
   @keyframes spin {
@@ -235,7 +243,8 @@
   /* ===== map styling (unchanged) ===== */
   .map-frame {
     width: 100%;
-    height: 250px;
+    aspect-ratio: 4 / 3;
+    min-height: 220px;
     border-radius: 0.5rem;
     overflow: hidden;
   }
