@@ -1,6 +1,9 @@
 ---
+import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from '../layouts/Layout.astro';
 import Slideshow from "../components/Slideshow.astro";
+
+import heroImage from "../images/impressions/impression_7.jpg";
 
 import Strickgabel from "../images/produkte/Strickgabel.jpeg";
 import Zauberwolle from "../images/produkte/Zauberwolle.jpg";
@@ -12,7 +15,17 @@ import Wollpellets from "../images/produkte/Wollpellets.jpg";
 const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpellets];
 ---
 
-<Layout title="Produkte">
+<Layout title="Produkte" navTransparentOnHero={true} hideLogoOnTransparent={false}>
+  <section class="hero service-hero" style={`--hero-bg-image: url(${heroImage.src})`}>
+	<div class="hero-content">
+		<h1>Produkte</h1>
+	  <p>
+		Entdecke die vielfältigen Produkte aus der weichen Alpakawolle in
+		unserem Hofladen.
+	  </p>
+	</div>
+  </section>
+
   <section class="service-page section">
     <div class="container">
       <h2>Produkte</h2>
@@ -27,6 +40,43 @@ const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpel
 </Layout>
 
 <style>
+  .hero {
+    margin-top: calc(-1 * var(--nav-height, 80px));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 32rem;
+    background-image: linear-gradient(
+        rgba(0, 0, 0, 0.35),
+        rgba(0, 0, 0, 0.35)
+      ),
+      var(--hero-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--schurwolle);
+    padding: calc(5rem + var(--nav-height, 80px)) 1rem 5rem;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 720px;
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  .hero p {
+    font-size: 1.125rem;
+    margin: 0;
+  }
+
   .service-page {
     background-color: var(--auwasser);
     color: var(--taubenblau);
