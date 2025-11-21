@@ -7,10 +7,12 @@ import '@fontsource/bricolage-grotesque/300.css';
 import '@fontsource/bricolage-grotesque/400.css';
 
 interface Props {
-	title: string;
+  title: string;
+  navTransparentOnHero?: boolean;
+  hideLogoOnTransparent?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, navTransparentOnHero = false, hideLogoOnTransparent = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -20,14 +22,17 @@ const { title } = Astro.props;
     <meta name="viewport" content="width=device-width" />
     <Head title={title} />
   </head>
-  <body>
-    <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
-    <Navbar />
-    <main id="main-content">
-      <slot />
-    </main>
-    <Footer />
-  </body>
+<body
+  data-nav-transparent={navTransparentOnHero}
+  data-nav-hide-logo={hideLogoOnTransparent}
+>
+  <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+  <Navbar />
+  <main id="main-content">
+    <slot />
+  </main>
+  <Footer />
+</body>
 </html>
 
 <style>
@@ -36,13 +41,23 @@ const { title } = Astro.props;
     margin: 0;
     width: 100%;
   }
+
+  main {
+    padding-top: var(--nav-height);
+  }
 </style>
 
 <script is:inline>
   const navbar = document.querySelector('.navbar');
   const heroSection = document.querySelector('.hero');
+  const allowTransparent = document.body.dataset.navTransparent === 'true';
+  const hideLogoTransparent = document.body.dataset.navHideLogo === 'true';
   const navHeight = navbar?.offsetHeight ?? 80;
   const rootMargin = `-${navHeight}px 0px 0px 0px`;
+
+  if (navbar) {
+    navbar.classList.toggle('nav-hide-logo', hideLogoTransparent);
+  }
 
   const setTransparentNav = () => {
     navbar?.classList.add('is-transparent');
@@ -52,7 +67,7 @@ const { title } = Astro.props;
     navbar?.classList.remove('is-transparent');
   };
 
-  if (navbar && heroSection) {
+  if (navbar && heroSection && allowTransparent) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {

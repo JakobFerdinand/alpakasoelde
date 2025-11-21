@@ -23,18 +23,22 @@ import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
     </ul>
   </div>
   <script>
-    const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
-    const links = document.querySelector('.nav-links') as HTMLUListElement;
-    const linkItems = document.querySelectorAll<HTMLAnchorElement>('.nav-links a');
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      toggle.setAttribute('aria-expanded', String(!expanded));
-      links.classList.toggle('open');
-    });
+    const toggle = document.querySelector('.nav-toggle');
+    const links = document.querySelector('.nav-links');
+    const linkItems = document.querySelectorAll('.nav-links a');
+
+    if (toggle && links) {
+      toggle.addEventListener('click', () => {
+        const expanded = toggle.getAttribute('aria-expanded') === 'true';
+        toggle.setAttribute('aria-expanded', String(!expanded));
+        links.classList.toggle('open');
+      });
+    }
+
     linkItems.forEach((item) => {
       item.addEventListener('click', () => {
-        links.classList.remove('open');
-        toggle.setAttribute('aria-expanded', 'false');
+        links?.classList.remove('open');
+        toggle?.setAttribute('aria-expanded', 'false');
       });
     });
   </script>
@@ -42,8 +46,10 @@ import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
 
 <style>
   .navbar {
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    right: 0;
     z-index: 1000;
     color: var(--taubenblau);
     background-color: var(--schurwolle);
@@ -118,6 +124,11 @@ import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
 
   .navbar.is-transparent .logo-img--transparent {
     opacity: 1;
+  }
+
+  .navbar.nav-hide-logo.is-transparent .logo-img {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .nav-links {
