@@ -7,7 +7,7 @@ test.describe('Contact form validation', () => {
     const nameInput = page.getByLabel('Name*');
     const emailInput = page.getByLabel('E-Mail*');
 
-    await nameInput.evaluate((input) => {
+    await nameInput.evaluate((input: HTMLInputElement) => {
       input.removeAttribute('maxLength');
       input.value = 'a'.repeat(101);
       input.dispatchEvent(new Event('input', { bubbles: true }));
