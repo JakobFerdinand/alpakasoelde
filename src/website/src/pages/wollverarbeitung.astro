@@ -1,8 +1,23 @@
 ---
+import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from '../layouts/Layout.astro';
+
+import heroImage from "../images/impressions/impression_32.jpg";
+
+import impression_102 from "../images/impressions/impression_102.jpg";
 ---
 
-<Layout title="Wollverarbeitungs-Workshop">
+<Layout title="Wollverarbeitungs-Workshop" navTransparentOnHero={true} hideLogoOnTransparent={false}>
+  <section class="hero service-hero" style={`--hero-bg-image: url(${heroImage.src})`}>
+	<div class="hero-content">
+	  <h1>Wollverarbeitungs-Workshop</h1>
+	  <p>
+		Lerne in unserem Workshop, wie du Rohwolle in wunderschöne Garne
+		verwandeln kannst.
+	  </p>
+	</div>
+  </section>
+
   <section class="service-page section">
     <div class="container">
       <h2>Wollverarbeitung</h2>
@@ -13,11 +28,54 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </div>
   </section>
+
+  <ImpressionBreak
+    image={impression_102}
+    alt="Richard im Stall"
+    backgroundPosition="center 40%"
+  />
 </Layout>
 
 <style>
+  .hero {
+    margin-top: calc(-1 * var(--nav-height, 80px));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 32rem;
+    background-image: linear-gradient(
+        rgba(0, 0, 0, 0.35),
+        rgba(0, 0, 0, 0.35)
+      ),
+      var(--hero-bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: var(--schurwolle);
+    padding: calc(5rem + var(--nav-height, 80px)) 1rem 5rem;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    max-width: 720px;
+  }
+
+  .hero h1 {
+    margin: 0;
+    font-size: 2rem;
+  }
+
+  .hero p {
+    font-size: 1.125rem;
+    margin: 0;
+  }
+
   .service-page {
-    background-color: var(--auwasser);
-    color: var(--taubenblau);
+    background-color: var(--taubenblau);
+    color: var(--schurwolle);
   }
 </style>
