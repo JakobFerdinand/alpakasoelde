@@ -1,4 +1,5 @@
 ---
+import { Trash2 } from 'lucide-astro';
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
@@ -14,34 +15,100 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               <th>Email</th>
               <th>Nachricht</th>
               <th>Zeitpunkt</th>
+              <th class="actions-header">Aktionen</th>
             </tr>
           </thead>
           <tbody id="message-table-body">
             <tr>
-              <td colspan="4">Lade Nachrichten...</td>
+              <td colspan="5">Lade Nachrichten...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </div>
   </section>
+
+  <template id="trash-icon">
+    <Trash2 aria-hidden="true" class="delete-icon" />
+  </template>
 </DashboardLayout>
 
 <script>
+  const columnCount = 5;
+  const trashIconTemplate = document.getElementById('trash-icon') as HTMLTemplateElement | null;
+
+  type Message = {
+    Id: string;
+    Name: string;
+    Email: string;
+    Message: string;
+    Timestamp: string;
+  };
+
+  function renderEmptyRow(text: string) {
+    const tbody = document.getElementById('message-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="${columnCount}">${text}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  async function deleteMessage(id: string, row: HTMLTableRowElement) {
+    const confirmed = window.confirm('Möchten Sie diese Nachricht wirklich löschen?');
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        console.error('Failed to delete message', id, res.status);
+        return;
+      }
+
+      row.remove();
+      const tbody = document.getElementById('message-table-body');
+      if (tbody && tbody.children.length === 0) {
+        renderEmptyRow('Keine Nachrichten vorhanden.');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async function loadMessages() {
     try {
       const res = await fetch('/api/messages');
       if (!res.ok) return;
-      const msgs = await res.json();
+      const msgs: Message[] = await res.json();
       const tbody = document.getElementById('message-table-body');
       if (tbody) {
         tbody.innerHTML = '';
-        msgs.forEach((msg: { Timestamp: string; Name: string; Email: string; Message: string }) => {
+        if (msgs.length === 0) {
+          renderEmptyRow('Keine Nachrichten gefunden.');
+          return;
+        }
+
+        msgs.forEach((msg: Message) => {
           const tr = document.createElement('tr');
           const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
             timeZone: 'Europe/Vienna'
           });
           tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
+
+          const actionCell = document.createElement('td');
+          actionCell.classList.add('action-cell');
+          const deleteButton = document.createElement('button');
+          deleteButton.classList.add('icon-button');
+          deleteButton.setAttribute('aria-label', 'Nachricht löschen');
+          const iconClone = trashIconTemplate?.content.firstElementChild?.cloneNode(true);
+          if (iconClone) {
+            deleteButton.appendChild(iconClone);
+          }
+          deleteButton.addEventListener('click', () => deleteMessage(msg.Id, tr));
+
+          actionCell.appendChild(deleteButton);
+          tr.appendChild(actionCell);
           tbody.appendChild(tr);
         });
       }
@@ -104,6 +171,35 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .message-cell {
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .actions-header,
+  .action-cell {
+    text-align: center;
+    width: 5rem;
+  }
+
+  .icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: var(--taubenblau);
+    transition: color 0.2s ease, transform 0.1s ease;
+  }
+
+  .icon-button:hover,
+  .icon-button:focus-visible {
+    color: var(--weidegruen);
+    transform: scale(1.05);
+    outline: none;
+  }
+
+  .icon-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    fill: none;
   }
 
   @media (max-width: 600px) {

@@ -1,5 +1,6 @@
 ---
 import { Image } from 'astro:assets';
+import { Menu } from 'lucide-astro';
 import Logo from '../images/AS_Symbolik_Backstein.svg';
 ---
 
@@ -17,7 +18,9 @@ import Logo from '../images/AS_Symbolik_Backstein.svg';
         <img class="avatar" alt="" />
       </li>
     </ul>
-    <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="dashboard-navigation" aria-expanded="false">☰</button>
+    <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="dashboard-navigation" aria-expanded="false">
+      <Menu aria-hidden="true" />
+    </button>
   </div>
   <script>
     const toggle = document.querySelector('.nav-toggle') as HTMLButtonElement;
@@ -103,6 +106,10 @@ import Logo from '../images/AS_Symbolik_Backstein.svg';
     color: var(--taubenblau);
     font-size: 1.5rem;
     cursor: pointer;
+  }
+  .nav-toggle svg {
+    width: 1.75rem;
+    height: 1.75rem;
   }
   @media (max-width: 768px) {
     .nav-links {

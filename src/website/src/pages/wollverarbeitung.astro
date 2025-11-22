@@ -1,8 +1,21 @@
 ---
+import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from '../layouts/Layout.astro';
+import ServiceHero from "../components/ServiceHero.astro";
+
+import heroImage from "../images/impressions/impression_32.jpg";
+
+import impression_102 from "../images/impressions/impression_102.jpg";
 ---
 
-<Layout title="Wollverarbeitungs-Workshop">
+<Layout title="Wollverarbeitungs-Workshop" navTransparentOnHero={true} hideLogoOnTransparent={false}>
+  <ServiceHero
+    title="Wollverarbeitungs-Workshop"
+    description="Lerne in unserem Workshop, wie du Rohwolle in wunderschöne Garne verwandeln kannst."
+    image={heroImage}
+    className="service-hero"
+  />
+
   <section class="service-page section">
     <div class="container">
       <h2>Wollverarbeitung</h2>
@@ -13,11 +26,17 @@ import Layout from '../layouts/Layout.astro';
       </p>
     </div>
   </section>
+
+  <ImpressionBreak
+    image={impression_102}
+    alt="Richard im Stall"
+    backgroundPosition="center 40%"
+  />
 </Layout>
 
 <style>
   .service-page {
-    background-color: var(--auwasser);
-    color: var(--taubenblau);
+    background-color: var(--taubenblau);
+    color: var(--schurwolle);
   }
 </style>

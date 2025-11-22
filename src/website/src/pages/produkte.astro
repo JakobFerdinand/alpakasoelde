@@ -1,6 +1,10 @@
 ---
+import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from '../layouts/Layout.astro';
+import ServiceHero from "../components/ServiceHero.astro";
 import Slideshow from "../components/Slideshow.astro";
+
+import heroImage from "../images/impressions/impression_7.jpg";
 
 import Strickgabel from "../images/produkte/Strickgabel.jpeg";
 import Zauberwolle from "../images/produkte/Zauberwolle.jpg";
@@ -12,7 +16,14 @@ import Wollpellets from "../images/produkte/Wollpellets.jpg";
 const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpellets];
 ---
 
-<Layout title="Produkte">
+<Layout title="Produkte" navTransparentOnHero={true} hideLogoOnTransparent={false}>
+  <ServiceHero
+    title="Produkte"
+    description="Entdecke die vielfältigen Produkte aus der weichen Alpakawolle in unserem Hofladen."
+    image={heroImage}
+    className="service-hero"
+  />
+
   <section class="service-page section">
     <div class="container">
       <h2>Produkte</h2>

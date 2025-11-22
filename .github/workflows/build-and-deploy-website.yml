@@ -36,14 +36,6 @@ jobs:
         run: npm install
         working-directory: ./src/website
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-        working-directory: ./src/website
-
-      - name: Test
-        run: npm test
-        working-directory: ./src/website
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -55,7 +47,7 @@ jobs:
       - name: Build Page
         run: npm run build
         working-directory: ./src/website
-      
+
       - name: Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1

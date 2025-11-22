@@ -39,6 +39,7 @@ html {
 
 .section {
   padding: 4rem 0;
+  scroll-margin-top: calc(var(--nav-height) + 1rem);
 }
 
 .section h2 {
@@ -74,7 +75,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--taubenblau);
   padding: 0.5rem 1rem;
   text-decoration: none;
-  z-index: 1000;
+  z-index: 1200;
 }
 
 .skip-link:focus {

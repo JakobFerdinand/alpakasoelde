@@ -23,6 +23,7 @@ public class GetMessagesFunction(ILoggerFactory loggerFactory, TableServiceClien
             .OrderByDescending(m => m.Timestamp)
             .Select(m => new
             {
+                Id = m.RowKey,
                 m.Name,
                 m.Email,
                 m.Message,
