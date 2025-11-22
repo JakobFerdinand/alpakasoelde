@@ -14,47 +14,50 @@ namespace WebsiteApi.Features.Messages;
 
 public sealed class SendMessage
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
+	private readonly Handler _handler;
+	private readonly ILogger<SendMessage> _logger;
+
+	public SendMessage(Handler handler, ILogger<SendMessage> logger)
 	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+		_handler = handler;
+		_logger = logger;
+	}
 
-		[Function("send-message")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
-			FunctionContext context)
+	[Function("send-message")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
+		FunctionContext context)
+	{
+		string? body = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
+		_logger.LogInformation("Received data: {Body}", body);
+
+		var parsedForm = HttpUtility.ParseQueryString(body);
+		string? name = parsedForm["name"]?.Trim();
+		string? email = parsedForm["email"]?.Trim();
+		string? messageContent = parsedForm["message"]?.Trim();
+		bool privacyAccepted = parsedForm["privacyConsent"]?.Trim().ToLowerInvariant() switch
 		{
-			string? body = await new StreamReader(req.Body).ReadToEndAsync().ConfigureAwait(false);
-			_logger.LogInformation("Received data: {Body}", body);
+			"on" or "true" or "1" => true,
+			_ => false
+		};
 
-			var parsedForm = HttpUtility.ParseQueryString(body);
-			string? name = parsedForm["name"]?.Trim();
-			string? email = parsedForm["email"]?.Trim();
-			string? messageContent = parsedForm["message"]?.Trim();
-			bool privacyAccepted = parsedForm["privacyConsent"]?.Trim().ToLowerInvariant() switch
+		var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty, privacyAccepted), req.FunctionContext.CancellationToken);
+		if (validation is not null)
+		{
+			_logger.LogWarning("Form submission validation failed: {Detail}", validation.Detail);
+			var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequestResponse.WriteAsJsonAsync(new
 			{
-				"on" or "true" or "1" => true,
-				_ => false
-			};
-
-			var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty, privacyAccepted), req.FunctionContext.CancellationToken);
-			if (validation is not null)
-			{
-				_logger.LogWarning("Form submission validation failed: {Detail}", validation.Detail);
-				var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequestResponse.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = validation.Detail
-				}).ConfigureAwait(false);
-				return badRequestResponse;
-			}
-
-			var response = req.CreateResponse(HttpStatusCode.SeeOther);
-			response.Headers.Add("Location", result!.RedirectLocation);
-			return response;
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = validation.Detail
+			}).ConfigureAwait(false);
+			return badRequestResponse;
 		}
+
+		var response = req.CreateResponse(HttpStatusCode.SeeOther);
+		response.Headers.Add("Location", result!.RedirectLocation);
+		return response;
 	}
 
 	public sealed record Command(string Name, string Email, string Message, bool PrivacyAccepted);

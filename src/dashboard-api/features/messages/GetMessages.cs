@@ -9,20 +9,23 @@ namespace DashboardApi.Features.Messages;
 
 public sealed class GetMessages
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
-	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+	private readonly Handler _handler;
+	private readonly ILogger<GetMessages> _logger;
 
-		[Function("get-messages")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages")] HttpRequestData req)
-		{
-			var messages = await _handler.HandleAsync(new Query(), req.FunctionContext.CancellationToken);
-			var response = req.CreateResponse(HttpStatusCode.OK);
-			await response.WriteAsJsonAsync(messages).ConfigureAwait(false);
-			return response;
-		}
+	public GetMessages(Handler handler, ILogger<GetMessages> logger)
+	{
+		_handler = handler;
+		_logger = logger;
+	}
+
+	[Function("get-messages")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages")] HttpRequestData req)
+	{
+		var messages = await _handler.HandleAsync(new Query(), req.FunctionContext.CancellationToken);
+		var response = req.CreateResponse(HttpStatusCode.OK);
+		await response.WriteAsJsonAsync(messages).ConfigureAwait(false);
+		return response;
 	}
 
 	public sealed record Query;

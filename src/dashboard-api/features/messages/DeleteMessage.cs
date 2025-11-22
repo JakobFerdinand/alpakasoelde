@@ -9,31 +9,34 @@ namespace DashboardApi.Features.Messages;
 
 public sealed class DeleteMessage
 {
-    public sealed class Function(Handler handler, ILogger<Function> logger)
+    private readonly Handler _handler;
+    private readonly ILogger<DeleteMessage> _logger;
+
+    public DeleteMessage(Handler handler, ILogger<DeleteMessage> logger)
     {
-        private readonly Handler _handler = handler;
-        private readonly ILogger<Function> _logger = logger;
+        _handler = handler;
+        _logger = logger;
+    }
 
-        [Function("delete-message")]
-        public async Task<HttpResponseData> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "messages/{rowKey}")] HttpRequestData req,
-            string rowKey)
+    [Function("delete-message")]
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "messages/{rowKey}")] HttpRequestData req,
+        string rowKey)
+    {
+        bool deleted = await _handler.HandleAsync(new Command(rowKey), req.FunctionContext.CancellationToken);
+        if (!deleted)
         {
-            bool deleted = await _handler.HandleAsync(new Command(rowKey), req.FunctionContext.CancellationToken);
-            if (!deleted)
+            var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+            await notFoundResponse.WriteAsJsonAsync(new
             {
-                var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
-                await notFoundResponse.WriteAsJsonAsync(new
-                {
-                    title = "Not Found",
-                    status = (int)HttpStatusCode.NotFound,
-                    detail = $"Message with id '{rowKey}' was not found."
-                }).ConfigureAwait(false);
-                return notFoundResponse;
-            }
-
-            return req.CreateResponse(HttpStatusCode.NoContent);
+                title = "Not Found",
+                status = (int)HttpStatusCode.NotFound,
+                detail = $"Message with id '{rowKey}' was not found."
+            }).ConfigureAwait(false);
+            return notFoundResponse;
         }
+
+        return req.CreateResponse(HttpStatusCode.NoContent);
     }
 
     public sealed record Command(string RowKey);

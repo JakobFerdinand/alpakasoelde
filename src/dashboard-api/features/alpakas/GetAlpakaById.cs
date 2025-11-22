@@ -11,35 +11,38 @@ namespace DashboardApi.Features.Alpakas;
 
 public sealed class GetAlpakaById
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
+	private readonly Handler _handler;
+	private readonly ILogger<GetAlpakaById> _logger;
+
+	public GetAlpakaById(Handler handler, ILogger<GetAlpakaById> logger)
 	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+		_handler = handler;
+		_logger = logger;
+	}
 
-		[Function("get-alpaka-by-id")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas/{alpakaId}")] HttpRequestData req,
-			string alpakaId)
+	[Function("get-alpaka-by-id")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas/{alpakaId}")] HttpRequestData req,
+		string alpakaId)
+	{
+		if (string.IsNullOrWhiteSpace(alpakaId))
 		{
-			if (string.IsNullOrWhiteSpace(alpakaId))
-			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteStringAsync("Alpaka id is required.").ConfigureAwait(false);
-				return badRequest;
-			}
-
-			Result? alpaka = await _handler.HandleAsync(new Query(alpakaId), req.FunctionContext.CancellationToken);
-			if (alpaka is null)
-			{
-				var notFound = req.CreateResponse(HttpStatusCode.NotFound);
-				await notFound.WriteStringAsync("Alpaka not found.").ConfigureAwait(false);
-				return notFound;
-			}
-
-			var response = req.CreateResponse(HttpStatusCode.OK);
-			await response.WriteAsJsonAsync(alpaka).ConfigureAwait(false);
-			return response;
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteStringAsync("Alpaka id is required.").ConfigureAwait(false);
+			return badRequest;
 		}
+
+		Result? alpaka = await _handler.HandleAsync(new Query(alpakaId), req.FunctionContext.CancellationToken);
+		if (alpaka is null)
+		{
+			var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+			await notFound.WriteStringAsync("Alpaka not found.").ConfigureAwait(false);
+			return notFound;
+		}
+
+		var response = req.CreateResponse(HttpStatusCode.OK);
+		await response.WriteAsJsonAsync(alpaka).ConfigureAwait(false);
+		return response;
 	}
 
 	public sealed record Query(string Id);

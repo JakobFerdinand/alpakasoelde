@@ -12,47 +12,50 @@ namespace DashboardApi.Features.Alpakas;
 
 public sealed class AddAlpaka
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
+	private readonly Handler _handler;
+	private readonly ILogger<AddAlpaka> _logger;
+
+	public AddAlpaka(Handler handler, ILogger<AddAlpaka> logger)
 	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+		_handler = handler;
+		_logger = logger;
+	}
 
-		[Function("add-alpaka")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "post", Route = "alpakas")] HttpRequestData req)
+	[Function("add-alpaka")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "post", Route = "alpakas")] HttpRequestData req)
+	{
+		var parsedFormBody = await HttpMultipartParser.MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
+
+		string? name = parsedFormBody.GetParameterValue("name")?.Trim();
+		string? geburtsdatum = parsedFormBody.GetParameterValue("geburtsdatum")?.Trim();
+		var imageFile = parsedFormBody.Files.FirstOrDefault();
+
+		AlpakaImagePayload? imagePayload = imageFile is { Data.Length: > 0 }
+			? new AlpakaImagePayload(imageFile.Data, imageFile.FileName, imageFile.ContentType)
+			: null;
+
+		Response response = await _handler.HandleAsync(
+			new Command(name ?? string.Empty, geburtsdatum ?? string.Empty, imagePayload),
+			req.FunctionContext.CancellationToken);
+
+		if (!response.IsValid)
 		{
-			var parsedFormBody = await HttpMultipartParser.MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
-
-			string? name = parsedFormBody.GetParameterValue("name")?.Trim();
-			string? geburtsdatum = parsedFormBody.GetParameterValue("geburtsdatum")?.Trim();
-			var imageFile = parsedFormBody.Files.FirstOrDefault();
-
-			AlpakaImagePayload? imagePayload = imageFile is { Data.Length: > 0 }
-				? new AlpakaImagePayload(imageFile.Data, imageFile.FileName, imageFile.ContentType)
-				: null;
-
-			Response response = await _handler.HandleAsync(
-				new Command(name ?? string.Empty, geburtsdatum ?? string.Empty, imagePayload),
-				req.FunctionContext.CancellationToken);
-
-			if (!response.IsValid)
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteAsJsonAsync(new
 			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = string.Join(" ", response.ValidationErrors!)
-				}).ConfigureAwait(false);
-				return badRequest;
-			}
-
-			var result = response.Result!;
-			var seeOther = req.CreateResponse(HttpStatusCode.SeeOther);
-			seeOther.Headers.Add("Location", "/");
-			await seeOther.WriteAsJsonAsync(result).ConfigureAwait(false);
-			return seeOther;
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = string.Join(" ", response.ValidationErrors!)
+			}).ConfigureAwait(false);
+			return badRequest;
 		}
+
+		var result = response.Result!;
+		var seeOther = req.CreateResponse(HttpStatusCode.SeeOther);
+		seeOther.Headers.Add("Location", "/");
+		await seeOther.WriteAsJsonAsync(result).ConfigureAwait(false);
+		return seeOther;
 	}
 
 	public sealed record Command(string Name, string Geburtsdatum, AlpakaImagePayload? Image);

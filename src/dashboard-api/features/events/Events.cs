@@ -11,92 +11,96 @@ namespace DashboardApi.Features.Events;
 
 public sealed class Events
 {
-	public sealed class Function(GetHandler getHandler, AddHandler addHandler, ILogger<Function> logger)
+	private readonly GetHandler _getHandler;
+	private readonly AddHandler _addHandler;
+	private readonly ILogger<Events> _logger;
+
+	public Events(GetHandler getHandler, AddHandler addHandler, ILogger<Events> logger)
 	{
-		private readonly GetHandler _getHandler = getHandler;
-		private readonly AddHandler _addHandler = addHandler;
-		private readonly ILogger<Function> _logger = logger;
+		_getHandler = getHandler;
+		_addHandler = addHandler;
+		_logger = logger;
+	}
 
-		[Function("events")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "events")] HttpRequestData req)
+	[Function("events")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "events")] HttpRequestData req)
+	{
+		if (string.Equals(req.Method, HttpMethod.Get.Method, StringComparison.OrdinalIgnoreCase))
 		{
-			if (string.Equals(req.Method, HttpMethod.Get.Method, StringComparison.OrdinalIgnoreCase))
-			{
-				IReadOnlyList<EventResult> events = await _getHandler.HandleAsync(new GetQuery(), req.FunctionContext.CancellationToken);
-				var response = req.CreateResponse(HttpStatusCode.OK);
-				await response.WriteAsJsonAsync(events).ConfigureAwait(false);
-				return response;
-			}
-
-			if (!string.Equals(req.Method, HttpMethod.Post.Method, StringComparison.OrdinalIgnoreCase))
-			{
-				var methodNotAllowed = req.CreateResponse(HttpStatusCode.MethodNotAllowed);
-				await methodNotAllowed.WriteAsJsonAsync(new
-				{
-					title = "Method Not Allowed",
-					status = (int)HttpStatusCode.MethodNotAllowed
-				}).ConfigureAwait(false);
-				return methodNotAllowed;
-			}
-
-			AddEventRequest? payload;
-			try
-			{
-				payload = await JsonSerializer.DeserializeAsync<AddEventRequest>(req.Body, new JsonSerializerOptions
-				{
-					PropertyNameCaseInsensitive = true
-				}).ConfigureAwait(false);
-			}
-			catch (JsonException ex)
-			{
-				_logger.LogWarning(ex, "Invalid JSON payload for add-event.");
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = "Ungültiger Anfrageinhalt."
-				}).ConfigureAwait(false);
-				return badRequest;
-			}
-
-			if (payload is null)
-			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = "Ein Ereignis muss angegeben werden."
-				}).ConfigureAwait(false);
-				return badRequest;
-			}
-
-			AddCommand command = new(
-				payload.EventType ?? string.Empty,
-				payload.AlpakaIds?.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [],
-				payload.EventDate ?? string.Empty,
-				payload.Cost,
-				payload.Comment?.Trim());
-
-			var (result, error) = await _addHandler.HandleAsync(command, req.FunctionContext.CancellationToken);
-			if (error is not null)
-			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = error
-				}).ConfigureAwait(false);
-				return badRequest;
-			}
-
-			var created = req.CreateResponse(HttpStatusCode.Created);
-			await created.WriteAsJsonAsync(result).ConfigureAwait(false);
-			return created;
+			IReadOnlyList<EventResult> events = await _getHandler.HandleAsync(new GetQuery(), req.FunctionContext.CancellationToken);
+			var response = req.CreateResponse(HttpStatusCode.OK);
+			await response.WriteAsJsonAsync(events).ConfigureAwait(false);
+			return response;
 		}
+
+		if (!string.Equals(req.Method, HttpMethod.Post.Method, StringComparison.OrdinalIgnoreCase))
+		{
+			var methodNotAllowed = req.CreateResponse(HttpStatusCode.MethodNotAllowed);
+			await methodNotAllowed.WriteAsJsonAsync(new
+			{
+				title = "Method Not Allowed",
+				status = (int)HttpStatusCode.MethodNotAllowed
+			}).ConfigureAwait(false);
+			return methodNotAllowed;
+		}
+
+		AddEventRequest? payload;
+		try
+		{
+			payload = await JsonSerializer.DeserializeAsync<AddEventRequest>(req.Body, new JsonSerializerOptions
+			{
+				PropertyNameCaseInsensitive = true
+			}).ConfigureAwait(false);
+		}
+		catch (JsonException ex)
+		{
+			_logger.LogWarning(ex, "Invalid JSON payload for add-event.");
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteAsJsonAsync(new
+			{
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = "Ungültiger Anfrageinhalt."
+			}).ConfigureAwait(false);
+			return badRequest;
+		}
+
+		if (payload is null)
+		{
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteAsJsonAsync(new
+			{
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = "Ein Ereignis muss angegeben werden."
+			}).ConfigureAwait(false);
+			return badRequest;
+		}
+
+		AddCommand command = new(
+			payload.EventType ?? string.Empty,
+			payload.AlpakaIds?.Where(id => !string.IsNullOrWhiteSpace(id)).Select(id => id.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList() ?? [],
+			payload.EventDate ?? string.Empty,
+			payload.Cost,
+			payload.Comment?.Trim());
+
+		var (result, error) = await _addHandler.HandleAsync(command, req.FunctionContext.CancellationToken);
+		if (error is not null)
+		{
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteAsJsonAsync(new
+			{
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = error
+			}).ConfigureAwait(false);
+			return badRequest;
+		}
+
+		var created = req.CreateResponse(HttpStatusCode.Created);
+		await created.WriteAsJsonAsync(result).ConfigureAwait(false);
+		return created;
 	}
 
 	public sealed record GetQuery;

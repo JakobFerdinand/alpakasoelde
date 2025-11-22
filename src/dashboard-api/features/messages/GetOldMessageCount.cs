@@ -8,20 +8,23 @@ namespace DashboardApi.Features.Messages;
 
 public sealed class GetOldMessageCount
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
-	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+	private readonly Handler _handler;
+	private readonly ILogger<GetOldMessageCount> _logger;
 
-		[Function("get-old-message-count")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages/count-old")] HttpRequestData req)
-		{
-			Result result = await _handler.HandleAsync(new Query(TimeSpan.FromDays(30 * 6)), req.FunctionContext.CancellationToken);
-			var response = req.CreateResponse(HttpStatusCode.OK);
-			await response.WriteAsJsonAsync(result).ConfigureAwait(false);
-			return response;
-		}
+	public GetOldMessageCount(Handler handler, ILogger<GetOldMessageCount> logger)
+	{
+		_handler = handler;
+		_logger = logger;
+	}
+
+	[Function("get-old-message-count")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "messages/count-old")] HttpRequestData req)
+	{
+		Result result = await _handler.HandleAsync(new Query(TimeSpan.FromDays(30 * 6)), req.FunctionContext.CancellationToken);
+		var response = req.CreateResponse(HttpStatusCode.OK);
+		await response.WriteAsJsonAsync(result).ConfigureAwait(false);
+		return response;
 	}
 
 	public sealed record Query(TimeSpan AgeThreshold);

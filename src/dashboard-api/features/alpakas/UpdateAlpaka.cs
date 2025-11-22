@@ -16,60 +16,63 @@ namespace DashboardApi.Features.Alpakas;
 
 public sealed class UpdateAlpaka
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
+	private readonly Handler _handler;
+	private readonly ILogger<UpdateAlpaka> _logger;
+
+	public UpdateAlpaka(Handler handler, ILogger<UpdateAlpaka> logger)
 	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+		_handler = handler;
+		_logger = logger;
+	}
 
-		[Function("update-alpaka")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "put", Route = "alpakas/{alpakaId}")] HttpRequestData req,
-			string alpakaId)
+	[Function("update-alpaka")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "put", Route = "alpakas/{alpakaId}")] HttpRequestData req,
+		string alpakaId)
+	{
+		if (string.IsNullOrWhiteSpace(alpakaId))
 		{
-			if (string.IsNullOrWhiteSpace(alpakaId))
-			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteStringAsync("Alpaka id is required.").ConfigureAwait(false);
-				return badRequest;
-			}
-
-			var parsedFormBody = await MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
-			string? name = parsedFormBody.GetParameterValue("name")?.Trim();
-			string? geburtsdatum = parsedFormBody.GetParameterValue("geburtsdatum")?.Trim();
-			FilePart? imageFile = parsedFormBody.Files.FirstOrDefault();
-
-			AlpakaImagePayload? imagePayload = imageFile is { Data.Length: > 0 }
-				? new AlpakaImagePayload(imageFile.Data, imageFile.FileName, imageFile.ContentType)
-				: null;
-
-			Response response = await _handler.HandleAsync(
-				new Command(alpakaId, name ?? string.Empty, geburtsdatum ?? string.Empty, imagePayload),
-				req.FunctionContext.CancellationToken);
-
-			if (response.NotFound)
-			{
-				var notFound = req.CreateResponse(HttpStatusCode.NotFound);
-				await notFound.WriteStringAsync("Alpaka not found.").ConfigureAwait(false);
-				return notFound;
-			}
-
-			if (!response.IsValid)
-			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = string.Join(" ", response.ValidationErrors!)
-				}).ConfigureAwait(false);
-				return badRequest;
-			}
-
-			var result = response.Result!;
-			var ok = req.CreateResponse(HttpStatusCode.OK);
-			await ok.WriteAsJsonAsync(result).ConfigureAwait(false);
-			return ok;
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteStringAsync("Alpaka id is required.").ConfigureAwait(false);
+			return badRequest;
 		}
+
+		var parsedFormBody = await MultipartFormDataParser.ParseAsync(req.Body).ConfigureAwait(false);
+		string? name = parsedFormBody.GetParameterValue("name")?.Trim();
+		string? geburtsdatum = parsedFormBody.GetParameterValue("geburtsdatum")?.Trim();
+		FilePart? imageFile = parsedFormBody.Files.FirstOrDefault();
+
+		AlpakaImagePayload? imagePayload = imageFile is { Data.Length: > 0 }
+			? new AlpakaImagePayload(imageFile.Data, imageFile.FileName, imageFile.ContentType)
+			: null;
+
+		Response response = await _handler.HandleAsync(
+			new Command(alpakaId, name ?? string.Empty, geburtsdatum ?? string.Empty, imagePayload),
+			req.FunctionContext.CancellationToken);
+
+		if (response.NotFound)
+		{
+			var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+			await notFound.WriteStringAsync("Alpaka not found.").ConfigureAwait(false);
+			return notFound;
+		}
+
+		if (!response.IsValid)
+		{
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteAsJsonAsync(new
+			{
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = string.Join(" ", response.ValidationErrors!)
+			}).ConfigureAwait(false);
+			return badRequest;
+		}
+
+		var result = response.Result!;
+		var ok = req.CreateResponse(HttpStatusCode.OK);
+		await ok.WriteAsJsonAsync(result).ConfigureAwait(false);
+		return ok;
 	}
 
 	public sealed record Command(string Id, string Name, string Geburtsdatum, AlpakaImagePayload? Image);

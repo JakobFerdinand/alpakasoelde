@@ -7,49 +7,46 @@ using Microsoft.Extensions.Logging;
 
 namespace DashboardApi.Features.Events;
 
-public sealed class GetAlpakaEvents
+public sealed class GetAlpakaEvents(ILogger<GetAlpakaEvents> logger, TableServiceClient tableServiceClient)
 {
-	public sealed class Function(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
+	private readonly ILogger _logger = logger;
+	private readonly TableServiceClient _tableServiceClient = tableServiceClient;
+
+	[Function("get-alpaka-events")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas/{alpakaId}/events")] HttpRequestData req,
+		string alpakaId)
 	{
-		private readonly ILogger _logger = loggerFactory.CreateLogger<Function>();
-		private readonly TableServiceClient _tableServiceClient = tableServiceClient;
-
-		[Function("get-alpaka-events")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas/{alpakaId}/events")] HttpRequestData req,
-			string alpakaId)
+		if (string.IsNullOrWhiteSpace(alpakaId))
 		{
-			if (string.IsNullOrWhiteSpace(alpakaId))
+			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
+			await badRequest.WriteAsJsonAsync(new
 			{
-				var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-				await badRequest.WriteAsJsonAsync(new
-				{
-					title = "Bad Request",
-					status = (int)HttpStatusCode.BadRequest,
-					detail = "Eine Alpaka-ID ist erforderlich."
-				}).ConfigureAwait(false);
-				return badRequest;
-			}
-
-			TableClient tableClient = _tableServiceClient.GetTableClient("events");
-			await tableClient.CreateIfNotExistsAsync().ConfigureAwait(false);
-
-			var events = tableClient
-				.Query<EventEntity>(e => e.PartitionKey == alpakaId)
-				.OrderByDescending(e => e.EventDate)
-				.Select(e => new
-				{
-					id = e.RowKey,
-					eventType = e.EventType,
-					eventDate = e.EventDate.ToString("yyyy-MM-dd"),
-					comment = e.Comment,
-					cost = e.Cost
-				})
-				.ToList();
-
-			var response = req.CreateResponse(HttpStatusCode.OK);
-			await response.WriteAsJsonAsync(events).ConfigureAwait(false);
-			return response;
+				title = "Bad Request",
+				status = (int)HttpStatusCode.BadRequest,
+				detail = "Eine Alpaka-ID ist erforderlich."
+			}).ConfigureAwait(false);
+			return badRequest;
 		}
+
+		TableClient tableClient = _tableServiceClient.GetTableClient("events");
+		await tableClient.CreateIfNotExistsAsync().ConfigureAwait(false);
+
+		var events = tableClient
+			.Query<EventEntity>(e => e.PartitionKey == alpakaId)
+			.OrderByDescending(e => e.EventDate)
+			.Select(e => new
+			{
+				id = e.RowKey,
+				eventType = e.EventType,
+				eventDate = e.EventDate.ToString("yyyy-MM-dd"),
+				comment = e.Comment,
+				cost = e.Cost
+			})
+			.ToList();
+
+		var response = req.CreateResponse(HttpStatusCode.OK);
+		await response.WriteAsJsonAsync(events).ConfigureAwait(false);
+		return response;
 	}
 }

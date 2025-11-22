@@ -13,20 +13,23 @@ namespace DashboardApi.Features.Alpakas;
 
 public sealed class GetAlpakas
 {
-	public sealed class Function(Handler handler, ILogger<Function> logger)
-	{
-		private readonly Handler _handler = handler;
-		private readonly ILogger<Function> _logger = logger;
+	private readonly Handler _handler;
+	private readonly ILogger<GetAlpakas> _logger;
 
-		[Function("get-alpakas")]
-		public async Task<HttpResponseData> Run(
-			[HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas")] HttpRequestData req)
-		{
-			IReadOnlyList<AlpakaListItem> alpakas = await _handler.HandleAsync(new Query(), req.FunctionContext.CancellationToken);
-			var response = req.CreateResponse(HttpStatusCode.OK);
-			await response.WriteAsJsonAsync(alpakas).ConfigureAwait(false);
-			return response;
-		}
+	public GetAlpakas(Handler handler, ILogger<GetAlpakas> logger)
+	{
+		_handler = handler;
+		_logger = logger;
+	}
+
+	[Function("get-alpakas")]
+	public async Task<HttpResponseData> Run(
+		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "alpakas")] HttpRequestData req)
+	{
+		IReadOnlyList<AlpakaListItem> alpakas = await _handler.HandleAsync(new Query(), req.FunctionContext.CancellationToken);
+		var response = req.CreateResponse(HttpStatusCode.OK);
+		await response.WriteAsJsonAsync(alpakas).ConfigureAwait(false);
+		return response;
 	}
 
 	public sealed record Query;
