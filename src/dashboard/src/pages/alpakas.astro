@@ -38,27 +38,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <div id="alpaka-detail-content">
           <p class="loading-text">Lade Alpaka...</p>
         </div>
-
-        <form id="alpaka-edit-form" class="alpaka-edit-form" enctype="multipart/form-data" hidden>
-          <div class="form-field">
-            <label for="alpaka-name">Name*</label>
-            <input id="alpaka-name" name="name" type="text" maxlength="100" required />
-          </div>
-          <div class="form-field">
-            <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
-            <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
-          </div>
-          <div class="form-field">
-            <label for="alpaka-photo">Neues Foto (optional)</label>
-            <input id="alpaka-photo" name="photo" type="file" accept=".png,.jpg,.jpeg" />
-            <p class="form-hint">Maximal 15 MB, .png, .jpg oder .jpeg</p>
-          </div>
-          <div class="form-actions">
-            <button id="cancel-edit" class="btn secondary" type="button">Abbrechen</button>
-            <button id="submit-edit" class="btn" type="submit">Änderungen speichern</button>
-          </div>
-          <p id="alpaka-edit-status" class="edit-status" role="status"></p>
-        </form>
       </div>
       <div id="alpaka-events" class="alpaka-events" hidden>
         <h3>Ereignisse</h3>
@@ -76,13 +55,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const eventsContent = document.getElementById('alpaka-events-content');
   const detailContent = document.getElementById('alpaka-detail-content');
   const editButton = document.getElementById('edit-alpaka-button');
-  const editForm = document.getElementById('alpaka-edit-form');
-  const cancelEditButton = document.getElementById('cancel-edit');
-  const editStatus = document.getElementById('alpaka-edit-status');
-  const nameInput = document.getElementById('alpaka-name');
-  const geburtsdatumInput = document.getElementById('alpaka-geburtsdatum');
-  const photoInput = document.getElementById('alpaka-photo');
-  const submitEditButton = document.getElementById('submit-edit');
+  let editForm = null;
+  let cancelEditButton = null;
+  let editStatus = null;
+  let nameInput = null;
+  let geburtsdatumInput = null;
+  let photoInput = null;
+  let submitEditButton = null;
+  let currentAlpaka = null;
   const searchParams = new URLSearchParams(window.location.search);
   const alpakaId = searchParams.get('id');
 
@@ -129,41 +109,28 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return `${year}-${month}-${day}`;
   };
 
-  const setEditMode = (active) => {
-    if (!editForm || !detailContent || !editButton || !detailCard) return;
-    detailCard.classList.toggle('editing', active);
-    editForm.hidden = !active;
-    detailContent.hidden = active;
-    editButton.disabled = active;
-    if (!active && editStatus) {
-      editStatus.textContent = '';
-    }
-  };
-
-  const populateEditForm = (alpaka) => {
-    if (!nameInput || !geburtsdatumInput || !editButton) return;
-    nameInput.value = alpaka.Name ?? '';
-    geburtsdatumInput.value = formatDateForInput(alpaka.Geburtsdatum);
-    editButton.hidden = false;
-  };
-
-  const renderAlpaka = (alpaka) => {
-    if (!detailCard || !detailContent) return;
-    detailCard.classList.remove('loading');
-    detailContent.innerHTML = '';
-
+  const createPhotoElement = (alpaka) => {
     if (alpaka.ImageUrl) {
       const photo = document.createElement('img');
       photo.className = 'alpaka-photo';
       photo.src = alpaka.ImageUrl;
       photo.alt = alpaka.Name;
-      detailContent.appendChild(photo);
-    } else {
-      const placeholder = document.createElement('div');
-      placeholder.className = 'alpaka-photo placeholder';
-      placeholder.textContent = alpaka.Name.charAt(0).toUpperCase();
-      detailContent.appendChild(placeholder);
+      return photo;
     }
+
+    const placeholder = document.createElement('div');
+    placeholder.className = 'alpaka-photo placeholder';
+    placeholder.textContent = alpaka.Name.charAt(0).toUpperCase();
+    return placeholder;
+  };
+
+  const renderReadOnlyAlpaka = (alpaka) => {
+    if (!detailCard || !detailContent) return;
+    detailCard.classList.remove('editing');
+    detailContent.hidden = false;
+    detailContent.innerHTML = '';
+
+    detailContent.appendChild(createPhotoElement(alpaka));
 
     const heading = document.createElement('h2');
     heading.textContent = alpaka.Name;
@@ -178,8 +145,144 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     birthDate.className = 'alpaka-meta';
     birthDate.textContent = `Geburtsdatum: ${formatDate(alpaka.Geburtsdatum)}`;
     detailContent.appendChild(birthDate);
+  };
 
-    populateEditForm(alpaka);
+  const buildEditForm = (alpaka) => {
+    if (!detailContent) return null;
+
+    editForm = document.createElement('form');
+    editForm.id = 'alpaka-edit-form';
+    editForm.className = 'alpaka-edit-form';
+    editForm.enctype = 'multipart/form-data';
+
+    const nameField = document.createElement('div');
+    nameField.className = 'form-field';
+    const nameLabel = document.createElement('label');
+    nameLabel.setAttribute('for', 'alpaka-name');
+    nameLabel.textContent = 'Name*';
+    nameInput = document.createElement('input');
+    nameInput.id = 'alpaka-name';
+    nameInput.name = 'name';
+    nameInput.type = 'text';
+    nameInput.maxLength = 100;
+    nameInput.required = true;
+    nameField.appendChild(nameLabel);
+    nameField.appendChild(nameInput);
+
+    const birthField = document.createElement('div');
+    birthField.className = 'form-field';
+    const birthLabel = document.createElement('label');
+    birthLabel.setAttribute('for', 'alpaka-geburtsdatum');
+    birthLabel.textContent = 'Geburtsdatum*';
+    geburtsdatumInput = document.createElement('input');
+    geburtsdatumInput.id = 'alpaka-geburtsdatum';
+    geburtsdatumInput.name = 'geburtsdatum';
+    geburtsdatumInput.type = 'date';
+    geburtsdatumInput.required = true;
+    birthField.appendChild(birthLabel);
+    birthField.appendChild(geburtsdatumInput);
+
+    const photoField = document.createElement('div');
+    photoField.className = 'form-field';
+    const photoLabel = document.createElement('label');
+    photoLabel.setAttribute('for', 'alpaka-photo');
+    photoLabel.textContent = 'Neues Foto (optional)';
+    photoInput = document.createElement('input');
+    photoInput.id = 'alpaka-photo';
+    photoInput.name = 'photo';
+    photoInput.type = 'file';
+    photoInput.accept = '.png,.jpg,.jpeg';
+    const photoHint = document.createElement('p');
+    photoHint.className = 'form-hint';
+    photoHint.textContent = 'Maximal 15 MB, .png, .jpg oder .jpeg';
+    photoField.appendChild(photoLabel);
+    photoField.appendChild(photoInput);
+    photoField.appendChild(photoHint);
+
+    const formActions = document.createElement('div');
+    formActions.className = 'form-actions';
+    cancelEditButton = document.createElement('button');
+    cancelEditButton.id = 'cancel-edit';
+    cancelEditButton.className = 'btn secondary';
+    cancelEditButton.type = 'button';
+    cancelEditButton.textContent = 'Abbrechen';
+    submitEditButton = document.createElement('button');
+    submitEditButton.id = 'submit-edit';
+    submitEditButton.className = 'btn';
+    submitEditButton.type = 'submit';
+    submitEditButton.textContent = 'Änderungen speichern';
+    formActions.appendChild(cancelEditButton);
+    formActions.appendChild(submitEditButton);
+
+    editStatus = document.createElement('p');
+    editStatus.id = 'alpaka-edit-status';
+    editStatus.className = 'edit-status';
+    editStatus.setAttribute('role', 'status');
+
+    editForm.appendChild(nameField);
+    editForm.appendChild(birthField);
+    editForm.appendChild(photoField);
+    editForm.appendChild(formActions);
+    editForm.appendChild(editStatus);
+
+    nameInput.value = alpaka.Name ?? '';
+    geburtsdatumInput.value = formatDateForInput(alpaka.Geburtsdatum);
+
+    cancelEditButton.addEventListener('click', () => setEditMode(false));
+    editForm.addEventListener('submit', submitEdit);
+
+    return editForm;
+  };
+
+  const renderEditableAlpaka = (alpaka) => {
+    if (!detailContent || !editButton || !detailCard) return;
+    detailCard.classList.add('editing');
+    detailContent.hidden = false;
+    detailContent.innerHTML = '';
+
+    detailContent.appendChild(createPhotoElement(alpaka));
+
+    const heading = document.createElement('h2');
+    heading.textContent = alpaka.Name;
+    detailContent.appendChild(heading);
+
+    const form = buildEditForm(alpaka);
+    if (form) {
+      detailContent.appendChild(form);
+    }
+  };
+
+  const setEditMode = (active) => {
+    if (!detailContent || !editButton || !detailCard) return;
+    editButton.disabled = active;
+
+    if (!currentAlpaka) {
+      return;
+    }
+
+    if (active) {
+      renderEditableAlpaka(currentAlpaka);
+    } else {
+      if (editStatus) {
+        editStatus.textContent = '';
+      }
+      renderReadOnlyAlpaka(currentAlpaka);
+      editForm = null;
+      cancelEditButton = null;
+      nameInput = null;
+      geburtsdatumInput = null;
+      photoInput = null;
+      submitEditButton = null;
+      editStatus = null;
+    }
+  };
+
+  const renderAlpaka = (alpaka) => {
+    if (!detailCard || !detailContent || !editButton) return;
+    currentAlpaka = alpaka;
+    detailCard.classList.remove('loading');
+    renderReadOnlyAlpaka(alpaka);
+    editButton.hidden = false;
   };
 
   const loadAlpaka = async (id) => {
@@ -336,10 +439,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   };
 
   editButton?.addEventListener('click', () => setEditMode(true));
-  cancelEditButton?.addEventListener('click', () => setEditMode(false));
-  editForm?.addEventListener('submit', submitEdit);
 
-  // Ensure the form stays hidden until "Alpaka bearbeiten" is clicked.
+  // Start in view mode until the user chooses to edit.
   setEditMode(false);
 
   if (!alpakaId) {
