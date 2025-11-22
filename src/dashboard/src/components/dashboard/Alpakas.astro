@@ -97,6 +97,14 @@
   const eventDateInput = document.getElementById('event-date') as HTMLInputElement | null;
   const eventCostInput = document.getElementById('event-cost') as HTMLInputElement | null;
   const eventCommentInput = document.getElementById('event-comment') as HTMLTextAreaElement | null;
+  const ensureAlpakaSelection = () => {
+    if (!eventAlpakasSelect) return;
+    const options = Array.from(eventAlpakasSelect.options);
+    const hasSelection = options.some((option) => option.selected);
+    if (!hasSelection && options.length > 0) {
+      options[0].selected = true;
+    }
+  };
 
   const setLightboxVisibility = (targetLightbox: HTMLElement | null, visible: boolean) => {
     if (!targetLightbox) return;
@@ -116,6 +124,7 @@
       const formatted = today.toISOString().split('T')[0];
       eventDateInput.value = formatted;
     }
+    ensureAlpakaSelection();
     setLightboxVisibility(eventLightbox, true);
   };
 
@@ -357,6 +366,7 @@
         option.textContent = alpaka.Name;
         eventAlpakasSelect.appendChild(option);
       });
+    ensureAlpakaSelection();
   }
 </script>
 
