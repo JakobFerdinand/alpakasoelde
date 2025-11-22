@@ -39,7 +39,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
+
+      - name: Run API tests
+        run: dotnet test --project src/website-api.Tests/website-api.Tests.csproj
 
       - name: Build Functions
         run: dotnet publish src/website-api/website-api.csproj -c Release -o website-api_output

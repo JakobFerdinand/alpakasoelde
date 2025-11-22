@@ -27,6 +27,18 @@
     return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
   };
 
+  const normalizeEvents = (events) => {
+    if (!Array.isArray(events)) return [];
+
+    return events.map((event) => ({
+      eventType: event.eventType ?? event.EventType ?? '',
+      eventDate: event.eventDate ?? event.EventDate ?? '',
+      alpakaNames: event.alpakaNames ?? event.AlpakaNames ?? [],
+      comment: event.comment ?? event.Comment ?? '',
+      cost: event.cost ?? event.Cost ?? null
+    }));
+  };
+
   const renderEvents = (events) => {
     if (!eventsContainer) return;
 
@@ -107,7 +119,7 @@
         throw new Error('Ereignisse konnten nicht geladen werden.');
       }
       const events = await response.json();
-      renderEvents(events);
+      renderEvents(normalizeEvents(events));
     } catch (error) {
       console.error(error);
       eventsContainer.classList.remove('loading');
