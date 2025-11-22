@@ -6,6 +6,7 @@
 - `src/dashboard-api`: .NET 9 isolated Azure Functions for data ingestion and storage, co-locating triggers with their entity models.
 - `src/website-api`: Public-facing Azure Functions that mirror the patterns from `src/dashboard-api`.
 - `infrastructure/table-storage.bicep`: Bicep template that provisions the shared Azure Table Storage resources.
+- `.slnx` solution: use `alpakasoelde.slnx` to open all projects together; `global.json` pins .NET SDK 10.0.0 with the new test runner.
 
 ## Build, Test, and Development Commands
 - `cd src/website && npm install && npm run dev` — launches the marketing site with hot reload.
@@ -13,11 +14,14 @@
 - `cd src/dashboard && npm install && npm run dev` — starts the internal dashboard; run `npm run build` before shipping changes.
 - `dotnet build src/dashboard-api/dashboard-api.csproj` then `cd src/dashboard-api && func start` — compile and serve the dashboard API locally (Azure Functions Core Tools required).
 - `dotnet build src/website-api/website-api.csproj` then `cd src/website-api && func start` — same workflow for the public API facade.
+- Tests: `dotnet test src/dashboard-api.Tests/dashboard-api.Tests.csproj` and `dotnet test src/website-api.Tests/website-api.Tests.csproj`; extend the slice-specific test suites when adding handlers or stores.
 
 ## Coding Style & Naming Conventions
 - Use two-space indentation in Astro/TS files, PascalCase component filenames, and keep copy in dedicated `.astro` or `.md` fragments.
 - Co-locate styles with the component and rely on the shared CSS variables exposed by the layout.
 - In C#, keep one public type per file, use PascalCase for types, camelCase for locals, and `const` for shared environment keys.
+- Azure Functions follow a vertical-slice layout: define command/query records, handler, interfaces (stores/utilities), and function entry in the same file; prefer dependency injection via `Program.cs`.
+- Shared table entities live under `src/*/shared/entities`; reuse them from slices instead of duplicating.
 
 ## Testing Guidelines
 - Frontend validation comes from `astro check` during `npm run build`; run it before opening a PR.
@@ -31,4 +35,6 @@
 
 ## Environment & Configuration
 - Never commit secrets; supply `StorageConnection`, `AZURE_STORAGE_ACCOUNT_NAME`, and `AZURE_STORAGE_ACCOUNT_KEY` via `local.settings.json` or user secrets.
+- Website email settings: `EmailSenderAddress`, `ReceiverEmailAddresses` (semicolon-separated), and `EmailConnection`.
+- Table usage: `alpakas`, `events`, and `messages` tables with partition keys `AlpakaPartition` (alpakas), `ContactPartition` (messages), and AlpakaId per row for events; ensure the storage account from `infrastructure/table-storage.bicep` exists or is mocked locally.
 - Ensure the storage resources from `infrastructure/table-storage.bicep` exist (or are substituted) before running the functions locally.
