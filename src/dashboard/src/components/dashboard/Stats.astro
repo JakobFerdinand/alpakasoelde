@@ -1,7 +1,9 @@
 <section class="dashboard-stats section">
   <div class="container">
     <div class="stats-card">
-      <p id="old-message-count" class="old-count loading">Lade Daten...</p>
+      <a class="old-count-link" href="/messages">
+        <p id="old-message-count" class="old-count loading">Lade Daten...</p>
+      </a>
     </div>
   </div>
 </section>
@@ -40,6 +42,17 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     max-width: 20rem;
     margin: 2rem auto;
+  }
+
+  .old-count-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    width: 100%;
+  }
+
+  .old-count-link:hover {
+    text-decoration: underline;
   }
 
   .old-count {
