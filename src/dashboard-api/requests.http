@@ -10,3 +10,9 @@ GET {{base}}/api/messages
 @alpakaId=REPLACE-WITH-ALPAKA-ID
 
 GET {{devbase}}/api/alpakas/{{alpakaId}}
+
+###
+
+@messageId=REPLACE-WITH-MESSAGE-ID
+
+DELETE {{devbase}}/api/messages/{{messageId}}

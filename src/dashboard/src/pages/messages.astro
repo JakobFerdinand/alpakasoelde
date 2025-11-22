@@ -14,11 +14,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               <th>Email</th>
               <th>Nachricht</th>
               <th>Zeitpunkt</th>
+              <th class="actions-header">Aktionen</th>
             </tr>
           </thead>
           <tbody id="message-table-body">
             <tr>
-              <td colspan="4">Lade Nachrichten...</td>
+              <td colspan="5">Lade Nachrichten...</td>
             </tr>
           </tbody>
         </table>
@@ -28,20 +29,74 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  const columnCount = 5;
+
+  type Message = {
+    Id: string;
+    Name: string;
+    Email: string;
+    Message: string;
+    Timestamp: string;
+  };
+
+  function renderEmptyRow(text: string) {
+    const tbody = document.getElementById('message-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = '';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="${columnCount}">${text}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  async function deleteMessage(id: string, row: HTMLTableRowElement) {
+    try {
+      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        console.error('Failed to delete message', id, res.status);
+        return;
+      }
+
+      row.remove();
+      const tbody = document.getElementById('message-table-body');
+      if (tbody && tbody.children.length === 0) {
+        renderEmptyRow('Keine Nachrichten vorhanden.');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   async function loadMessages() {
     try {
       const res = await fetch('/api/messages');
       if (!res.ok) return;
-      const msgs = await res.json();
+      const msgs: Message[] = await res.json();
       const tbody = document.getElementById('message-table-body');
       if (tbody) {
         tbody.innerHTML = '';
-        msgs.forEach((msg: { Timestamp: string; Name: string; Email: string; Message: string }) => {
+        if (msgs.length === 0) {
+          renderEmptyRow('Keine Nachrichten gefunden.');
+          return;
+        }
+
+        msgs.forEach((msg: Message) => {
           const tr = document.createElement('tr');
           const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
             timeZone: 'Europe/Vienna'
           });
           tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
+
+          const actionCell = document.createElement('td');
+          actionCell.classList.add('action-cell');
+          const deleteButton = document.createElement('button');
+          deleteButton.classList.add('icon-button');
+          deleteButton.setAttribute('aria-label', 'Nachricht löschen');
+          deleteButton.innerHTML = `<svg aria-hidden="true" viewBox="0 0 24 24" focusable="false"><path d="M9 3a1 1 0 0 0-1 1v1H5.5a.75.75 0 0 0 0 1.5h13a.75.75 0 0 0 0-1.5H16V4a1 1 0 0 0-1-1H9Zm1 11.25a.75.75 0 0 1 1.5 0v3a.75.75 0 0 1-1.5 0v-3Zm4.5-.75a.75.75 0 0 0-1.5 0v3.75a.75.75 0 0 0 1.5 0V13.5Zm-7.03-5.5a.75.75 0 0 1 .75-.75h8.56a.75.75 0 0 1 .75.75v10a1.75 1.75 0 0 1-1.75 1.75H9.72A1.75 1.75 0 0 1 8 18V8Z"/></svg>`;
+          deleteButton.addEventListener('click', () => deleteMessage(msg.Id, tr));
+
+          actionCell.appendChild(deleteButton);
+          tr.appendChild(actionCell);
           tbody.appendChild(tr);
         });
       }
@@ -104,6 +159,34 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .message-cell {
     white-space: pre-wrap;
     word-break: break-word;
+  }
+
+  .actions-header,
+  .action-cell {
+    text-align: center;
+    width: 5rem;
+  }
+
+  .icon-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: var(--taubenblau);
+    transition: color 0.2s ease, transform 0.1s ease;
+  }
+
+  .icon-button:hover,
+  .icon-button:focus-visible {
+    color: var(--weidegruen);
+    transform: scale(1.05);
+    outline: none;
+  }
+
+  .icon-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: currentColor;
   }
 
   @media (max-width: 600px) {
