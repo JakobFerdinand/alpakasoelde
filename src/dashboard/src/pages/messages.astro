@@ -56,6 +56,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   }
 
   async function deleteMessage(id: string, row: HTMLTableRowElement) {
+    const confirmed = window.confirm('Möchten Sie diese Nachricht wirklich löschen?');
+    if (!confirmed) return;
+
     try {
       const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
       if (!res.ok) {
