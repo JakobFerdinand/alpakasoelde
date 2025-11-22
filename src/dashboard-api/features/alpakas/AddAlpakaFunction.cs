@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
-namespace DashboardApi;
+namespace DashboardApi.Features.Alpakas;
 
 public class AddAlpakaFunction(
 	ILoggerFactory loggerFactory,
