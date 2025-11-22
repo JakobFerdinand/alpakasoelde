@@ -22,6 +22,7 @@
 - In C#, keep one public type per file, use PascalCase for types, camelCase for locals, and `const` for shared environment keys.
 - Azure Functions follow a vertical-slice layout: define command/query records, handler, interfaces (stores/utilities), and function entry in the same file; prefer dependency injection via `Program.cs`.
 - Shared table entities live under `src/*/shared/entities`; reuse them from slices instead of duplicating.
+- Prefer modern CSS capabilities (e.g., `:has`, form/visibility toggles) over JavaScript for UI state where possible; keep client-side scripts lean.
 
 ## Testing Guidelines
 - Frontend validation comes from `astro check` during `npm run build`; run it before opening a PR.
