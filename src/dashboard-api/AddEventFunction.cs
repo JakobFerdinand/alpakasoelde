@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using System.Text.Json;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
@@ -17,9 +18,91 @@ public class AddEventFunction(
     private const int MaxEventTypeLength = 100;
     private const int MaxCommentLength = 1000;
 
-    [Function("add-event")]
+    [Function("events")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "events")] HttpRequestData req)
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "events")] HttpRequestData req)
+    {
+        if (string.Equals(req.Method, HttpMethod.Get.Method, StringComparison.OrdinalIgnoreCase))
+        {
+            return await GetEventsAsync(req).ConfigureAwait(false);
+        }
+
+        if (!string.Equals(req.Method, HttpMethod.Post.Method, StringComparison.OrdinalIgnoreCase))
+        {
+            var methodNotAllowed = req.CreateResponse(HttpStatusCode.MethodNotAllowed);
+            await methodNotAllowed.WriteAsJsonAsync(new
+            {
+                title = "Method Not Allowed",
+                status = (int)HttpStatusCode.MethodNotAllowed
+            }).ConfigureAwait(false);
+            return methodNotAllowed;
+        }
+
+        return await AddEventAsync(req).ConfigureAwait(false);
+    }
+
+    private async Task<HttpResponseData> GetEventsAsync(HttpRequestData req)
+    {
+        TableClient eventsTableClient = _tableServiceClient.GetTableClient("events");
+        await eventsTableClient.CreateIfNotExistsAsync().ConfigureAwait(false);
+
+        TableClient alpakaTableClient = _tableServiceClient.GetTableClient("alpakas");
+        await alpakaTableClient.CreateIfNotExistsAsync().ConfigureAwait(false);
+
+        Dictionary<string, string> alpakaLookup = alpakaTableClient
+            .Query<AlpakaEntity>()
+            .ToDictionary(a => a.RowKey, a => a.Name, StringComparer.OrdinalIgnoreCase);
+
+        var events = eventsTableClient
+            .Query<EventEntity>()
+            .ToList()
+            .GroupBy(e => string.IsNullOrWhiteSpace(e.SharedEventId) ? e.RowKey : e.SharedEventId)
+            .Select(group =>
+            {
+                EventEntity first = group.First();
+                List<string> alpakaIds = group
+                    .Select(e => e.PartitionKey)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+                List<string> alpakaNames = alpakaIds
+                    .Select(id => alpakaLookup.TryGetValue(id, out string? name) ? name : null)
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .Cast<string>()
+                    .ToList();
+
+                return new
+                {
+                    id = string.IsNullOrWhiteSpace(first.SharedEventId) ? first.RowKey : first.SharedEventId,
+                    first.EventType,
+                    first.EventDate,
+                    first.Comment,
+                    first.Cost,
+                    AlpakaIds = alpakaIds,
+                    AlpakaNames = alpakaNames
+                };
+            })
+            .OrderByDescending(e => e.EventDate)
+            .ThenByDescending(e => e.id)
+            .Select(e => new
+            {
+                e.id,
+                eventType = e.EventType,
+                eventDate = e.EventDate.ToString("yyyy-MM-dd"),
+                e.Comment,
+                e.Cost,
+                e.AlpakaIds,
+                e.AlpakaNames
+            })
+            .ToList();
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(events).ConfigureAwait(false);
+        return response;
+    }
+
+    private async Task<HttpResponseData> AddEventAsync(HttpRequestData req)
     {
         AddEventRequest? payload;
         try

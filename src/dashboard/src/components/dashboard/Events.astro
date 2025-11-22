@@ -1,0 +1,241 @@
+<section class="dashboard-events section">
+  <div class="container">
+    <div class="events-header">
+      <div>
+        <p class="eyebrow">Überblick</p>
+        <h2>Letzte Ereignisse</h2>
+        <p class="events-subtitle">Alle Ereignisse der Herde in chronologischer Reihenfolge.</p>
+      </div>
+    </div>
+    <div id="events-content" class="events-content loading">
+      <p class="loading-text">Lade Ereignisse...</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  const eventsContainer = document.getElementById('events-content');
+
+  const formatDate = (value) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.valueOf())) return value;
+    return date.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const formatCurrency = (value) => {
+    if (value === null || value === undefined || Number.isNaN(value)) return null;
+    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
+  };
+
+  const renderEvents = (events) => {
+    if (!eventsContainer) return;
+
+    eventsContainer.classList.remove('loading');
+    eventsContainer.innerHTML = '';
+
+    if (!events || events.length === 0) {
+      const empty = document.createElement('p');
+      empty.className = 'empty';
+      empty.textContent = 'Noch keine Ereignisse vorhanden.';
+      eventsContainer.appendChild(empty);
+      return;
+    }
+
+    const list = document.createElement('ul');
+    list.className = 'event-list';
+
+    events.forEach((item) => {
+      const entry = document.createElement('li');
+      entry.className = 'event-item';
+
+      const header = document.createElement('div');
+      header.className = 'event-header';
+
+      const title = document.createElement('div');
+      title.className = 'event-title';
+      title.textContent = item.eventType;
+
+      const date = document.createElement('div');
+      date.className = 'event-date';
+      date.textContent = formatDate(item.eventDate);
+
+      header.appendChild(title);
+      header.appendChild(date);
+      entry.appendChild(header);
+
+      if (Array.isArray(item.alpakaNames) && item.alpakaNames.length > 0) {
+        const chips = document.createElement('div');
+        chips.className = 'alpaka-chips';
+        item.alpakaNames.forEach((name) => {
+          const chip = document.createElement('span');
+          chip.className = 'alpaka-chip';
+          chip.textContent = name;
+          chips.appendChild(chip);
+        });
+        entry.appendChild(chips);
+      }
+
+      if (item.comment) {
+        const comment = document.createElement('p');
+        comment.className = 'event-comment';
+        comment.textContent = item.comment;
+        entry.appendChild(comment);
+      }
+
+      const formattedCost = formatCurrency(item.cost);
+      if (formattedCost) {
+        const cost = document.createElement('p');
+        cost.className = 'event-cost';
+        cost.textContent = `Kosten: ${formattedCost}`;
+        entry.appendChild(cost);
+      }
+
+      list.appendChild(entry);
+    });
+
+    eventsContainer.appendChild(list);
+  };
+
+  const loadEvents = async () => {
+    if (!eventsContainer) return;
+    eventsContainer.classList.add('loading');
+    eventsContainer.innerHTML = '<p class="loading-text">Lade Ereignisse...</p>';
+
+    try {
+      const response = await fetch('/api/events');
+      if (!response.ok) {
+        throw new Error('Ereignisse konnten nicht geladen werden.');
+      }
+      const events = await response.json();
+      renderEvents(events);
+    } catch (error) {
+      console.error(error);
+      eventsContainer.classList.remove('loading');
+      eventsContainer.innerHTML = '<p class="error">Ereignisse konnten nicht geladen werden.</p>';
+    }
+  };
+
+  loadEvents();
+</script>
+
+<style>
+  .dashboard-events {
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+  }
+
+  .events-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .eyebrow {
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--sahlchen);
+    margin-bottom: 0.25rem;
+  }
+
+  .events-subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--taubenblau);
+    opacity: 0.85;
+  }
+
+  .events-content {
+    background-color: #fff;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    min-height: 120px;
+  }
+
+  .event-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .event-item {
+    border-bottom: 1px solid rgba(0, 32, 73, 0.08);
+    padding-bottom: 1rem;
+  }
+
+  .event-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .event-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+    margin-bottom: 0.35rem;
+  }
+
+  .event-title {
+    font-weight: 700;
+    color: var(--taubenblau);
+  }
+
+  .event-date {
+    color: var(--sahlchen);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .alpaka-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.35rem 0;
+  }
+
+  .alpaka-chip {
+    background-color: var(--himmelblau);
+    color: var(--schurwolle);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+  }
+
+  .event-comment {
+    margin: 0.35rem 0 0;
+    color: var(--taubenblau);
+  }
+
+  .event-cost {
+    margin: 0.35rem 0 0;
+    font-weight: 600;
+    color: var(--weidegruen);
+  }
+
+  .loading-text,
+  .error,
+  .empty {
+    margin: 0;
+  }
+
+  .error {
+    color: #b00020;
+  }
+
+  @media (max-width: 768px) {
+    .event-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .event-date {
+      white-space: normal;
+    }
+  }
+</style>
