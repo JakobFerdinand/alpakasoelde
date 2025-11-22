@@ -99,7 +99,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   };
 
   const setEditMode = (active) => {
-    if (!editForm || !detailContent || !editButton) return;
+    if (!editForm || !detailContent || !editButton || !detailCard) return;
+    detailCard.classList.toggle('editing', active);
     editForm.hidden = !active;
     detailContent.hidden = active;
     editButton.disabled = active;
@@ -221,6 +222,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   editButton?.addEventListener('click', () => setEditMode(true));
   cancelEditButton?.addEventListener('click', () => setEditMode(false));
   editForm?.addEventListener('submit', submitEdit);
+
+  // Ensure the form stays hidden until "Alpaka bearbeiten" is clicked.
+  setEditMode(false);
 
   if (!alpakaId) {
     renderError('Es wurde kein Alpaka angegeben.');
