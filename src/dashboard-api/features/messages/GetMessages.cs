@@ -39,6 +39,7 @@ public sealed class GetMessagesHandler(IMessageReadStore store)
 	{
 		IReadOnlyList<MessageEntity> messages = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
 		return messages
+			.OrderByDescending(m => m.Timestamp ?? DateTimeOffset.MinValue)
 			.Select(m => new DashboardMessage(m.RowKey, m.Name, m.Email, m.Message, m.Timestamp))
 			.ToList();
 	}
