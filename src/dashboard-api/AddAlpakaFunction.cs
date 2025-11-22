@@ -106,7 +106,7 @@ public class AddAlpakaFunction(
 		await tableClient.AddEntityAsync(entity).ConfigureAwait(false);
 
 		var response = req.CreateResponse(HttpStatusCode.SeeOther);
-		response.Headers.Add("Location", "/dashboard");
+		response.Headers.Add("Location", "/");
 
 		return response;
 	}
