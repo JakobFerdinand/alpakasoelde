@@ -98,14 +98,24 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return `${year}-${month}-${day}`;
   };
 
+  let editModeUnlocked = false;
+
   const setEditMode = (active) => {
     if (!editForm || !detailContent || !editButton || !detailCard) return;
+
+    if (active && !editModeUnlocked) {
+      return;
+    }
+
     detailCard.classList.toggle('editing', active);
     editForm.hidden = !active;
     detailContent.hidden = active;
     editButton.disabled = active;
     if (!active && editStatus) {
       editStatus.textContent = '';
+    }
+    if (!active) {
+      editModeUnlocked = false;
     }
   };
 
@@ -219,7 +229,10 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     }
   };
 
-  editButton?.addEventListener('click', () => setEditMode(true));
+  editButton?.addEventListener('click', () => {
+    editModeUnlocked = true;
+    setEditMode(true);
+  });
   cancelEditButton?.addEventListener('click', () => setEditMode(false));
   editForm?.addEventListener('submit', submitEdit);
 
