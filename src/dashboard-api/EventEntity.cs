@@ -6,7 +6,7 @@ namespace DashboardApi;
 public sealed class EventEntity : ITableEntity
 {
     public required string EventType { get; set; }
-    public DateTime EventDate { get; set; }
+    public DateTimeOffset EventDate { get; set; }
     public string? Comment { get; set; }
     public double? Cost { get; set; }
     public string SharedEventId { get; set; } = Guid.NewGuid().ToString();
