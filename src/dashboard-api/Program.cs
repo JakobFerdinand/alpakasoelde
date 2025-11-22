@@ -16,27 +16,27 @@ var host = new HostBuilder()
         services.AddSingleton(_ => new TableServiceClient(connectionString));
         services.AddSingleton(_ => new BlobServiceClient(connectionString));
 
-        services.AddScoped<AddAlpakaHandler>();
-        services.AddScoped<GetAlpakasHandler>();
-        services.AddScoped<GetAlpakaByIdHandler>();
-        services.AddScoped<UpdateAlpakaHandler>();
-        services.AddScoped<GetMessagesHandler>();
-        services.AddScoped<GetOldMessageCountHandler>();
-        services.AddScoped<DeleteMessageHandler>();
-        services.AddScoped<GetEventsHandler>();
-        services.AddScoped<AddEventHandler>();
+        services.AddScoped<AddAlpaka.Handler>();
+        services.AddScoped<GetAlpakas.Handler>();
+        services.AddScoped<GetAlpakaById.Handler>();
+        services.AddScoped<UpdateAlpaka.Handler>();
+        services.AddScoped<GetMessages.Handler>();
+        services.AddScoped<GetOldMessageCount.Handler>();
+        services.AddScoped<DeleteMessage.Handler>();
+        services.AddScoped<Events.GetHandler>();
+        services.AddScoped<Events.AddHandler>();
 
-        services.AddScoped<IAlpakaWriteStore, TableAlpakaWriteStore>();
-        services.AddScoped<IAlpakaImageStore, BlobAlpakaImageStore>();
-        services.AddScoped<IAlpakaReadStore, TableAlpakaReadStore>();
-        services.AddScoped<IAlpakaByIdReadStore, TableAlpakaByIdReadStore>();
-        services.AddScoped<IImageUrlSigner, BlobImageUrlSigner>();
-        services.AddScoped<IAlpakaUpdateStore, TableAlpakaUpdateStore>();
-        services.AddScoped<IAlpakaImageReplacementStore, BlobAlpakaImageReplacementStore>();
-        services.AddScoped<IMessageReadStore, TableMessageReadStore>();
-        services.AddScoped<IMessageDeleteStore, TableMessageDeleteStore>();
-        services.AddScoped<IEventStore, TableEventStore>();
-        services.AddScoped<IAlpakaLookupStore, TableAlpakaLookupStore>();
+        services.AddScoped<AddAlpaka.IAlpakaWriteStore, AddAlpaka.TableAlpakaWriteStore>();
+        services.AddScoped<AddAlpaka.IAlpakaImageStore, AddAlpaka.BlobAlpakaImageStore>();
+        services.AddScoped<GetAlpakas.IAlpakaReadStore, GetAlpakas.TableAlpakaReadStore>();
+        services.AddScoped<GetAlpakaById.IReadStore, GetAlpakaById.TableReadStore>();
+        services.AddScoped<GetAlpakas.IImageUrlSigner, GetAlpakas.BlobImageUrlSigner>();
+        services.AddScoped<UpdateAlpaka.IAlpakaUpdateStore, UpdateAlpaka.TableAlpakaUpdateStore>();
+        services.AddScoped<UpdateAlpaka.IAlpakaImageReplacementStore, UpdateAlpaka.BlobAlpakaImageReplacementStore>();
+        services.AddScoped<GetMessages.IReadStore, GetMessages.TableReadStore>();
+        services.AddScoped<DeleteMessage.IStore, DeleteMessage.TableStore>();
+        services.AddScoped<Events.IEventStore, Events.TableEventStore>();
+        services.AddScoped<Events.IAlpakaLookupStore, Events.TableAlpakaLookupStore>();
     })
     .Build();
 

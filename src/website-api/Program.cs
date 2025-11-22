@@ -11,9 +11,9 @@ var host = new HostBuilder()
         string connectionString = Environment.GetEnvironmentVariable(EnvironmentVariables.StorageConnection)
             ?? throw new InvalidOperationException("Environment variable 'StorageConnection' is not set.");
         services.AddSingleton(_ => new TableServiceClient(connectionString));
-        services.AddScoped<SendMessageHandler>();
-        services.AddScoped<IMessageWriteStore, TableMessageWriteStore>();
-        services.AddScoped<IEmailSender, EmailSender>();
+        services.AddScoped<SendMessage.Handler>();
+        services.AddScoped<SendMessage.IMessageWriteStore, SendMessage.TableMessageWriteStore>();
+        services.AddScoped<SendMessage.IEmailSender, SendMessage.EmailSender>();
     })
     .Build();
 

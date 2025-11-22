@@ -3,19 +3,22 @@ using DashboardApi.Features.Alpakas;
 using NSubstitute;
 using TUnit.Assertions;
 using TUnit.Core;
+using AlpakaImagePayload = DashboardApi.Features.Alpakas.AddAlpaka.AlpakaImagePayload;
+using IImageUrlSigner = DashboardApi.Features.Alpakas.GetAlpakas.IImageUrlSigner;
+using UpdateAlpakaFeature = DashboardApi.Features.Alpakas.UpdateAlpaka;
 
 namespace DashboardApi.Tests.Alpakas;
 
 public class UpdateAlpakaHandlerTests
 {
 	private sealed class InMemoryUpdateStore(AlpakaEntity? entity)
-		: IAlpakaUpdateStore
+		: UpdateAlpakaFeature.IAlpakaUpdateStore
 	{
 		public Task<AlpakaEntity?> GetAsync(string id, CancellationToken cancellationToken) => Task.FromResult(entity);
 		public Task UpdateAsync(AlpakaEntity entity, Azure.ETag etag, CancellationToken cancellationToken) => Task.CompletedTask;
 	}
 
-	private sealed class NoopImageReplacement : IAlpakaImageReplacementStore
+	private sealed class NoopImageReplacement : UpdateAlpakaFeature.IAlpakaImageReplacementStore
 	{
 		public Task<string?> ReplaceAsync(string? existingUrl, AlpakaImagePayload newImage, CancellationToken cancellationToken) => Task.FromResult(existingUrl);
 	}
@@ -28,8 +31,8 @@ public class UpdateAlpakaHandlerTests
 	[Test]
 	public async Task Returns_not_found_when_missing()
 	{
-		var handler = new UpdateAlpakaHandler(new InMemoryUpdateStore(null), new NoopImageReplacement(), Substitute.For<Microsoft.Extensions.Logging.ILogger<UpdateAlpakaHandler>>(), new StaticSigner());
-		var response = await handler.HandleAsync(new UpdateAlpakaCommand("missing", "Name", "Date", null), CancellationToken.None);
+		var handler = new UpdateAlpakaFeature.Handler(new InMemoryUpdateStore(null), new NoopImageReplacement(), Substitute.For<Microsoft.Extensions.Logging.ILogger<UpdateAlpakaFeature.Handler>>(), new StaticSigner());
+		var response = await handler.HandleAsync(new UpdateAlpakaFeature.Command("missing", "Name", "Date", null), CancellationToken.None);
 		await Assert.That(response.NotFound).IsTrue();
 	}
 }
