@@ -7,7 +7,35 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     <div class="container">
       <a class="back-link" href="/">← Zurück zur Übersicht</a>
       <div id="alpaka-detail-card" class="alpaka-detail-card loading">
-        <p class="loading-text">Lade Alpaka...</p>
+        <div class="alpaka-detail-header">
+          <p class="alpaka-detail-title">Alpaka Details</p>
+          <button id="edit-alpaka-button" class="edit-btn" type="button" hidden>Alpaka bearbeiten</button>
+        </div>
+
+        <div id="alpaka-detail-content">
+          <p class="loading-text">Lade Alpaka...</p>
+        </div>
+
+        <form id="alpaka-edit-form" class="alpaka-edit-form" enctype="multipart/form-data" hidden>
+          <div class="form-field">
+            <label for="alpaka-name">Name*</label>
+            <input id="alpaka-name" name="name" type="text" maxlength="100" required />
+          </div>
+          <div class="form-field">
+            <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
+            <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
+          </div>
+          <div class="form-field">
+            <label for="alpaka-photo">Neues Foto (optional)</label>
+            <input id="alpaka-photo" name="photo" type="file" accept=".png,.jpg,.jpeg" />
+            <p class="form-hint">Maximal 15 MB, .png, .jpg oder .jpeg</p>
+          </div>
+          <div class="form-actions">
+            <button id="cancel-edit" class="btn secondary" type="button">Abbrechen</button>
+            <button id="submit-edit" class="btn" type="submit">Änderungen speichern</button>
+          </div>
+          <p id="alpaka-edit-status" class="edit-status" role="status"></p>
+        </form>
       </div>
     </div>
   </section>
@@ -15,17 +43,26 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
 <script>
   const detailCard = document.getElementById('alpaka-detail-card');
+  const detailContent = document.getElementById('alpaka-detail-content');
+  const editButton = document.getElementById('edit-alpaka-button');
+  const editForm = document.getElementById('alpaka-edit-form');
+  const cancelEditButton = document.getElementById('cancel-edit');
+  const editStatus = document.getElementById('alpaka-edit-status');
+  const nameInput = document.getElementById('alpaka-name');
+  const geburtsdatumInput = document.getElementById('alpaka-geburtsdatum');
+  const photoInput = document.getElementById('alpaka-photo');
+  const submitEditButton = document.getElementById('submit-edit');
   const searchParams = new URLSearchParams(window.location.search);
   const alpakaId = searchParams.get('id');
 
   const renderError = (message) => {
-    if (!detailCard) return;
+    if (!detailCard || !detailContent) return;
     detailCard.classList.remove('loading');
-    detailCard.innerHTML = '';
+    detailContent.innerHTML = '';
     const errorMessage = document.createElement('p');
     errorMessage.className = 'error';
     errorMessage.textContent = message;
-    detailCard.appendChild(errorMessage);
+    detailContent.appendChild(errorMessage);
   };
 
   const calculateAge = (dateString) => {
@@ -50,37 +87,68 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return birthDate.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const formatDateForInput = (dateString) => {
+    const birthDate = new Date(dateString);
+    if (Number.isNaN(birthDate.valueOf())) {
+      return '';
+    }
+    const year = birthDate.getFullYear();
+    const month = String(birthDate.getMonth() + 1).padStart(2, '0');
+    const day = String(birthDate.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const setEditMode = (active) => {
+    if (!editForm || !detailContent || !editButton || !detailCard) return;
+    detailCard.classList.toggle('editing', active);
+    editForm.hidden = !active;
+    detailContent.hidden = active;
+    editButton.disabled = active;
+    if (!active && editStatus) {
+      editStatus.textContent = '';
+    }
+  };
+
+  const populateEditForm = (alpaka) => {
+    if (!nameInput || !geburtsdatumInput || !editButton) return;
+    nameInput.value = alpaka.Name ?? '';
+    geburtsdatumInput.value = formatDateForInput(alpaka.Geburtsdatum);
+    editButton.hidden = false;
+  };
+
   const renderAlpaka = (alpaka) => {
-    if (!detailCard) return;
+    if (!detailCard || !detailContent) return;
     detailCard.classList.remove('loading');
-    detailCard.innerHTML = '';
+    detailContent.innerHTML = '';
 
     if (alpaka.ImageUrl) {
       const photo = document.createElement('img');
       photo.className = 'alpaka-photo';
       photo.src = alpaka.ImageUrl;
       photo.alt = alpaka.Name;
-      detailCard.appendChild(photo);
+      detailContent.appendChild(photo);
     } else {
       const placeholder = document.createElement('div');
       placeholder.className = 'alpaka-photo placeholder';
       placeholder.textContent = alpaka.Name.charAt(0).toUpperCase();
-      detailCard.appendChild(placeholder);
+      detailContent.appendChild(placeholder);
     }
 
     const heading = document.createElement('h2');
     heading.textContent = alpaka.Name;
-    detailCard.appendChild(heading);
+    detailContent.appendChild(heading);
 
     const age = document.createElement('p');
     age.className = 'alpaka-meta';
     age.textContent = `Alter: ${calculateAge(alpaka.Geburtsdatum)}`;
-    detailCard.appendChild(age);
+    detailContent.appendChild(age);
 
     const birthDate = document.createElement('p');
     birthDate.className = 'alpaka-meta';
     birthDate.textContent = `Geburtsdatum: ${formatDate(alpaka.Geburtsdatum)}`;
-    detailCard.appendChild(birthDate);
+    detailContent.appendChild(birthDate);
+
+    populateEditForm(alpaka);
   };
 
   const loadAlpaka = async (id) => {
@@ -101,6 +169,62 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       renderError('Alpaka konnte nicht geladen werden.');
     }
   };
+
+  const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)
+
+  const submitEdit = async (event) => {
+    if (!alpakaId || !editForm || !submitEditButton) return;
+    event.preventDefault();
+
+    const file = photoInput?.files?.[0];
+    if (file && file.size > maxFileSize) {
+      alert(`Bild ist zu groß. Maximal ${maxFileSize / (1024 * 1024)}MB erlaubt.`);
+      return;
+    }
+
+    submitEditButton.disabled = true;
+    submitEditButton.classList.add('loading');
+    if (editStatus) {
+      editStatus.textContent = 'Speichere Änderungen...';
+    }
+
+    try {
+      const formData = new FormData(editForm);
+      const response = await fetch(`/api/alpakas/${encodeURIComponent(alpakaId)}`, {
+        method: 'PUT',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Update failed');
+      }
+
+      const updatedAlpaka = await response.json();
+      renderAlpaka(updatedAlpaka);
+      setEditMode(false);
+      if (editStatus) {
+        editStatus.textContent = 'Änderungen gespeichert!';
+      }
+    } catch (error) {
+      console.error(error);
+      if (editStatus) {
+        editStatus.textContent = 'Speichern fehlgeschlagen. Bitte versuche es erneut.';
+      }
+    } finally {
+      submitEditButton.disabled = false;
+      submitEditButton.classList.remove('loading');
+      if (photoInput) {
+        photoInput.value = '';
+      }
+    }
+  };
+
+  editButton?.addEventListener('click', () => setEditMode(true));
+  cancelEditButton?.addEventListener('click', () => setEditMode(false));
+  editForm?.addEventListener('submit', submitEdit);
+
+  // Ensure the form stays hidden until "Alpaka bearbeiten" is clicked.
+  setEditMode(false);
 
   if (!alpakaId) {
     renderError('Es wurde kein Alpaka angegeben.');
@@ -184,5 +308,67 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     margin: 0;
     color: var(--backstein);
     font-weight: 600;
+  }
+
+  .alpaka-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .alpaka-detail-title {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .edit-btn {
+    background: var(--weidegruen);
+    color: var(--schurwolle);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .edit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .alpaka-edit-form {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--taubenblau);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .form-hint {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: var(--taubenblau);
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .btn.secondary {
+    background: transparent;
+    color: var(--taubenblau);
+    border: 1px solid var(--taubenblau);
+  }
+
+  .edit-status {
+    margin: 0;
+    font-weight: 600;
+    color: var(--taubenblau);
   }
 </style>
