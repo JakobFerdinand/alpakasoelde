@@ -1,6 +1,7 @@
 ---
 import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from "../layouts/Layout.astro";
+import ServiceHero from "../components/ServiceHero.astro";
 import Slideshow from "../components/Slideshow.astro";
 
 import Wanderung1 from "../images/wanderungen/wanderung1.jpg";
@@ -16,17 +17,14 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
 ---
 
 <Layout title="Alpaka-Wanderungen" navTransparentOnHero={true} hideLogoOnTransparent={false}>
-  <section class="hero wander-hero" style={`--hero-bg-image: url(${heroImage.src})`}>
-    <div class="hero-content">
-      <h1>Alpaka-Wanderungen</h1>
-      <p>
-        Entdecke bei einer Wanderung durch die Inn Auen die Natur an der Seite
-        unserer freundlichen Alpakas. Ein Hofbesuch mit Kennenlernen der Tiere
-        ist inklusive.
-      </p>
-      <a href="/#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
-    </div>
-  </section>
+  <ServiceHero
+    title="Alpaka-Wanderungen"
+    description="Entdecke bei einer Wanderung durch die Inn Auen die Natur an der Seite unserer freundlichen Alpakas. Ein Hofbesuch mit Kennenlernen der Tiere ist inklusive."
+    image={heroImage}
+    className="wander-hero"
+  >
+    <a href="/#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
+  </ServiceHero>
 
   <section class="details section">
     <div class="container">
@@ -89,43 +87,6 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
 </Layout>
 
 <style>
-  .hero {
-    margin-top: calc(-1 * var(--nav-height, 80px));
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    min-height: 32rem;
-    background-image: linear-gradient(
-        rgba(0, 0, 0, 0.35),
-        rgba(0, 0, 0, 0.35)
-      ),
-      var(--hero-bg-image);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    color: var(--schurwolle);
-    padding: calc(5rem + var(--nav-height, 80px)) 1rem 5rem;
-  }
-
-  .hero-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    max-width: 720px;
-  }
-
-  .hero h1 {
-    margin: 0;
-    font-size: 2rem;
-  }
-
-  .hero p {
-    font-size: 1.125rem;
-    margin: 0;
-  }
-
   .wander-hero .btn {
     margin-top: 0.5rem;
   }
@@ -145,17 +106,4 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
     text-align: center;
   }
 
-  @media (min-width: 768px) {
-    .hero h1 {
-      font-size: 2.75rem;
-    }
-
-    .hero p {
-      font-size: 1.25rem;
-    }
-
-    .hero {
-      min-height: 37rem;
-    }
-  }
 </style>
