@@ -82,7 +82,7 @@ public class AddEventFunction(
             return await CreateValidationError(req, $"Die Notiz darf maximal {MaxCommentLength} Zeichen enthalten.").ConfigureAwait(false);
         }
 
-        if (!DateTime.TryParse(payload.EventDate, out DateTime parsedDate))
+        if (!DateTimeOffset.TryParse(payload.EventDate, out DateTimeOffset parsedDate))
         {
             return await CreateValidationError(req, "Das Datum ist ungültig.").ConfigureAwait(false);
         }
@@ -102,7 +102,7 @@ public class AddEventFunction(
             EventEntity entity = new()
             {
                 EventType = eventType!,
-                EventDate = parsedDate,
+                EventDate = new DateTimeOffset(parsedDate.Date, TimeSpan.Zero),
                 Comment = comment,
                 Cost = payload.Cost,
                 PartitionKey = alpakaId,
