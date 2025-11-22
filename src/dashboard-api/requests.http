@@ -16,3 +16,20 @@ GET {{devbase}}/api/alpakas/{{alpakaId}}
 @messageId=REPLACE-WITH-MESSAGE-ID
 
 DELETE {{devbase}}/api/messages/{{messageId}}
+
+###
+
+POST {{devbase}}/api/events
+Content-Type: application/json
+
+{
+  "eventType": "Impfen",
+  "alpakaIds": ["REPLACE-WITH-ALPAKA-ID"],
+  "eventDate": "2024-06-01",
+  "cost": 45.5,
+  "comment": "Impftermin beim Tierarzt"
+}
+
+###
+
+GET {{devbase}}/api/alpakas/{{alpakaId}}/events
