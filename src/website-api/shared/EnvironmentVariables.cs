@@ -1,4 +1,4 @@
-namespace WebsiteApi;
+namespace WebsiteApi.Shared;
 
 internal static class EnvironmentVariables
 {

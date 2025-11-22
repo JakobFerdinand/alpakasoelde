@@ -6,8 +6,9 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Web;
+using WebsiteApi.Shared;
 
-namespace WebsiteApi;
+namespace WebsiteApi.Features.Messages;
 
 public class SendMessageFunction(ILoggerFactory loggerFactory, TableServiceClient tableServiceClient)
 {

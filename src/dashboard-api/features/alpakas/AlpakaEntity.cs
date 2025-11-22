@@ -1,7 +1,7 @@
 using Azure;
 using Azure.Data.Tables;
 
-namespace DashboardApi;
+namespace DashboardApi.Features.Alpakas;
 
 public sealed class AlpakaEntity : ITableEntity
 {

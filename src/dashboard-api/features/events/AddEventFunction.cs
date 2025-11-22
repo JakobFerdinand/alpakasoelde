@@ -2,11 +2,12 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using Azure.Data.Tables;
+using DashboardApi.Features.Alpakas;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace DashboardApi;
+namespace DashboardApi.Features.Events;
 
 public class AddEventFunction(
     ILoggerFactory loggerFactory,

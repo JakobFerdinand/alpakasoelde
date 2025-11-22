@@ -1,6 +1,6 @@
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
-using DashboardApi;
+using DashboardApi.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

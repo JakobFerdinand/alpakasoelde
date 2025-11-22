@@ -1,4 +1,4 @@
-namespace DashboardApi;
+namespace DashboardApi.Shared;
 
 internal static class EnvironmentVariables
 {

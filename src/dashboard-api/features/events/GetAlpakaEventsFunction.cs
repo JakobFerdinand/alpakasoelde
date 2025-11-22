@@ -4,7 +4,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace DashboardApi;
+namespace DashboardApi.Features.Events;
 
 public class GetAlpakaEventsFunction(
     ILoggerFactory loggerFactory,
