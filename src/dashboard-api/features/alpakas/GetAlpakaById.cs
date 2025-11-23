@@ -1,4 +1,5 @@
 using System.Net;
+using System.Linq;
 using Azure;
 using Azure.Data.Tables;
 using dashboard_api.shared.entities;
@@ -47,12 +48,19 @@ public sealed class GetAlpakaById
 
 	public sealed record Query(string Id);
 
-	public sealed record Result(string Id, string Name, string Geburtsdatum, string? ImageUrl);
+        public sealed record Result(string Id, string Name, string Geburtsdatum, string? ImageUrl, IReadOnlyList<EventResult> Events);
 
-	public interface IReadStore
-	{
-		Task<AlpakaEntity?> GetByIdAsync(string id, CancellationToken cancellationToken);
-	}
+        public sealed record EventResult(string Id, string EventType, string EventDate, string? Comment, double? Cost);
+
+        public interface IReadStore
+        {
+                Task<AlpakaEntity?> GetByIdAsync(string id, CancellationToken cancellationToken);
+        }
+
+        public interface IEventReadStore
+        {
+                Task<IReadOnlyList<EventEntity>> GetByAlpakaIdAsync(string alpakaId, CancellationToken cancellationToken);
+        }
 
 	public sealed class TableReadStore(TableServiceClient tableServiceClient) : IReadStore
 	{
@@ -74,21 +82,54 @@ public sealed class GetAlpakaById
 		}
 	}
 
-	public sealed class Handler(IReadStore readStore, IImageUrlSigner imageSigner)
-	{
-		private readonly IReadStore _readStore = readStore;
-		private readonly IImageUrlSigner _imageSigner = imageSigner;
+        public sealed class Handler(IReadStore readStore, IImageUrlSigner imageSigner, IEventReadStore eventReadStore)
+        {
+                private readonly IReadStore _readStore = readStore;
+                private readonly IImageUrlSigner _imageSigner = imageSigner;
+                private readonly IEventReadStore _eventReadStore = eventReadStore;
 
-		public async Task<Result?> HandleAsync(Query query, CancellationToken cancellationToken)
-		{
-			AlpakaEntity? alpaka = await _readStore.GetByIdAsync(query.Id, cancellationToken).ConfigureAwait(false);
-			if (alpaka is null)
-			{
-				return null;
-			}
+                public async Task<Result?> HandleAsync(Query query, CancellationToken cancellationToken)
+                {
+                        AlpakaEntity? alpaka = await _readStore.GetByIdAsync(query.Id, cancellationToken).ConfigureAwait(false);
+                        if (alpaka is null)
+                        {
+                                return null;
+                        }
 
-			string? signedUrl = _imageSigner.TrySignReadUrl(alpaka.ImageUrl, TimeSpan.FromMinutes(30));
-			return new Result(alpaka.RowKey, alpaka.Name, alpaka.Geburtsdatum, signedUrl);
-		}
-	}
+                        IReadOnlyList<EventEntity> events = await _eventReadStore
+                                .GetByAlpakaIdAsync(query.Id, cancellationToken)
+                                .ConfigureAwait(false);
+
+                        List<EventResult> eventResults = events
+                                .OrderByDescending(e => e.EventDate)
+                                .ThenByDescending(e => e.RowKey)
+                                .Select(e => new EventResult(
+                                        e.RowKey,
+                                        e.EventType,
+                                        e.EventDate.ToString("yyyy-MM-dd"),
+                                        e.Comment,
+                                        e.Cost))
+                                .ToList();
+
+                        string? signedUrl = _imageSigner.TrySignReadUrl(alpaka.ImageUrl, TimeSpan.FromMinutes(30));
+                        return new Result(alpaka.RowKey, alpaka.Name, alpaka.Geburtsdatum, signedUrl, eventResults);
+                }
+        }
+
+        public sealed class TableEventReadStore(TableServiceClient tableServiceClient) : IEventReadStore
+        {
+                private readonly TableServiceClient _tableServiceClient = tableServiceClient;
+
+                public async Task<IReadOnlyList<EventEntity>> GetByAlpakaIdAsync(string alpakaId, CancellationToken cancellationToken)
+                {
+                        TableClient tableClient = _tableServiceClient.GetTableClient("events");
+                        await tableClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                        var events = tableClient
+                                .Query<EventEntity>(e => e.PartitionKey == alpakaId)
+                                .ToList();
+
+                        return events;
+                }
+        }
 }

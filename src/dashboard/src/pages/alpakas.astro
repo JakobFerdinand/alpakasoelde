@@ -298,7 +298,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       }
       const alpaka = await response.json();
       renderAlpaka(alpaka);
-      loadEvents(id);
+      renderEvents(normalizeEvents(alpaka.Events ?? alpaka.events ?? []));
     } catch (error) {
       console.error(error);
       renderError('Alpaka konnte nicht geladen werden.');
@@ -314,6 +314,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     const date = new Date(value);
     if (Number.isNaN(date.valueOf())) return value;
     return date.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
+  };
+
+  const normalizeEvents = (events) => {
+    if (!Array.isArray(events)) return [];
+    return events.map((event) => ({
+      eventType: event.eventType ?? event.EventType ?? '',
+      eventDate: event.eventDate ?? event.EventDate ?? '',
+      comment: event.comment ?? event.Comment ?? '',
+      cost: event.cost ?? event.Cost ?? null,
+    }));
   };
 
   const renderEvents = (events) => {
@@ -366,27 +376,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     });
 
     eventsContent.appendChild(list);
-  };
-
-  const loadEvents = async (id) => {
-    if (!eventsContent) return;
-    eventsContent.classList.add('loading');
-    eventsContent.innerHTML = '<p class="loading-text">Lade Ereignisse...</p>';
-    try {
-      const response = await fetch(`/api/alpakas/${encodeURIComponent(id)}/events`);
-      if (!response.ok) {
-        throw new Error('Ereignisse konnten nicht geladen werden.');
-      }
-      const events = await response.json();
-      renderEvents(events);
-    } catch (error) {
-      console.error(error);
-      if (eventsContent) {
-        eventsContent.classList.remove('loading');
-        eventsContent.innerHTML = '<p class="error">Ereignisse konnten nicht geladen werden.</p>';
-        if (eventsSection) eventsSection.hidden = false;
-      }
-    }
   };
 
   const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)

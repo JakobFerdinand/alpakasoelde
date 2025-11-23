@@ -30,6 +30,7 @@ var host = new HostBuilder()
         services.AddScoped<AddAlpaka.IAlpakaImageStore, AddAlpaka.BlobAlpakaImageStore>();
         services.AddScoped<GetAlpakas.IAlpakaReadStore, GetAlpakas.TableAlpakaReadStore>();
         services.AddScoped<GetAlpakaById.IReadStore, GetAlpakaById.TableReadStore>();
+        services.AddScoped<GetAlpakaById.IEventReadStore, GetAlpakaById.TableEventReadStore>();
         services.AddScoped<GetAlpakas.IImageUrlSigner, GetAlpakas.BlobImageUrlSigner>();
         services.AddScoped<UpdateAlpaka.IAlpakaUpdateStore, UpdateAlpaka.TableAlpakaUpdateStore>();
         services.AddScoped<UpdateAlpaka.IAlpakaImageReplacementStore, UpdateAlpaka.BlobAlpakaImageReplacementStore>();
