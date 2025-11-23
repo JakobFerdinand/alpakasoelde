@@ -32,4 +32,4 @@ Content-Type: application/json
 
 ###
 
-GET {{devbase}}/api/alpakas/{{alpakaId}}/events
+GET {{devbase}}/api/events
