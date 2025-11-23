@@ -2,8 +2,25 @@
 import { Image } from "astro:assets";
 import Logo from "../images/AS_Symbolik_Taubenblau.svg";
 import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
+
+interface Props {
+  initialTransparent?: boolean;
+  hideLogo?: boolean;
+}
+
+const { initialTransparent = false, hideLogo = false } = Astro.props;
+
+const navbarClasses = ["navbar"];
+
+if (initialTransparent) {
+  navbarClasses.push("is-transparent");
+}
+
+if (hideLogo) {
+  navbarClasses.push("nav-hide-logo");
+}
 ---
-<nav class="navbar">
+<nav class={navbarClasses.join(" ")}>
   <div class="container">
     <a href="/" class="logo">
       <Image class="logo-img logo-img--solid" src={Logo} alt="Alpakasölde Logo" />
