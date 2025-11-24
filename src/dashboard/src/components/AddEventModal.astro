@@ -1,0 +1,324 @@
+---
+import { ALPAKA_OPTIONS_EVENT, type AlpakaOption } from './alpakaEvents';
+
+const uid = Math.random().toString(36).slice(2);
+const toggleId = `add-event-toggle-${uid}`;
+const lightboxId = `event-lightbox-${uid}`;
+const closeId = `close-event-form-${uid}`;
+const formId = `add-event-form-${uid}`;
+const typeId = `event-type-${uid}`;
+const alpakaSelectId = `event-alpakas-${uid}`;
+const dateId = `event-date-${uid}`;
+const costId = `event-cost-${uid}`;
+const commentId = `event-comment-${uid}`;
+---
+
+<div class="alpaka-action">
+  <button id={toggleId} class="add-btn" aria-label="Neues Ereignis erfassen" title="Ereignis erfassen">🗓️</button>
+
+  <div id={lightboxId} class="lightbox" hidden>
+    <div class="lightbox-content">
+      <button type="button" id={closeId} class="close-btn" aria-label="Schließen">×</button>
+      <form id={formId} class="alpaka-form" novalidate>
+        <div class="form-field">
+          <label for={typeId}>Ereignis*</label>
+          <select id={typeId} name="eventType" required>
+            <option value="">Bitte auswählen</option>
+            <option value="Entwurmen">Entwurmen</option>
+            <option value="Nägel schneiden">Nägel schneiden</option>
+            <option value="Impfen">Impfen</option>
+            <option value="Gesundheitscheck">Gesundheitscheck</option>
+            <option value="Sonstiges">Sonstiges</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for={alpakaSelectId}>Alpakas*</label>
+          <select id={alpakaSelectId} name="alpakaIds" multiple size="5" required></select>
+          <small class="field-hint">Mit gedrückter STRG/Cmd Taste mehrere Alpakas auswählen.</small>
+        </div>
+        <div class="form-field">
+          <label for={dateId}>Datum*</label>
+          <input id={dateId} name="eventDate" type="date" required />
+        </div>
+        <div class="form-field">
+          <label for={costId}>Kosten (optional)</label>
+          <input id={costId} name="cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
+        </div>
+        <div class="form-field">
+          <label for={commentId}>Notiz</label>
+          <textarea id={commentId} name="comment" rows="3" placeholder="Details zum Ereignis"></textarea>
+        </div>
+        <button type="submit" class="btn">Ereignis speichern</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ALPAKA_OPTIONS_EVENT = '{ALPAKA_OPTIONS_EVENT}';
+  const toggle = document.getElementById('{toggleId}');
+  const lightbox = document.getElementById('{lightboxId}');
+  const closeBtn = document.getElementById('{closeId}');
+  const form = document.getElementById('{formId}') as HTMLFormElement | null;
+  const eventTypeInput = document.getElementById('{typeId}') as HTMLSelectElement | null;
+  const eventAlpakasSelect = document.getElementById('{alpakaSelectId}') as HTMLSelectElement | null;
+  const eventDateInput = document.getElementById('{dateId}') as HTMLInputElement | null;
+  const eventCostInput = document.getElementById('{costId}') as HTMLInputElement | null;
+  const eventCommentInput = document.getElementById('{commentId}') as HTMLTextAreaElement | null;
+
+  const setLightboxVisibility = (targetLightbox: HTMLElement | null, visible: boolean) => {
+    if (!targetLightbox) return;
+    targetLightbox.hidden = !visible;
+    targetLightbox.classList.toggle('is-visible', visible);
+    targetLightbox.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    if (document.body) {
+      document.body.style.overflow = visible ? 'hidden' : '';
+    }
+  };
+
+  const ensureAlpakaSelection = () => {
+    if (!eventAlpakasSelect) return;
+    const options = Array.from(eventAlpakasSelect.options);
+    const hasSelection = options.some((option) => option.selected);
+    if (!hasSelection && options.length > 0) {
+      options[0].selected = true;
+    }
+  };
+
+  const openEventLightbox = () => {
+    if (eventDateInput) {
+      const today = new Date();
+      const formatted = today.toISOString().split('T')[0];
+      eventDateInput.value = formatted;
+    }
+    ensureAlpakaSelection();
+    setLightboxVisibility(lightbox, true);
+  };
+
+  [lightbox].forEach((lb) => lb?.setAttribute('aria-hidden', 'true'));
+
+  toggle?.addEventListener('click', () => {
+    openEventLightbox();
+  });
+
+  closeBtn?.addEventListener('click', () => {
+    setLightboxVisibility(lightbox, false);
+  });
+
+  lightbox?.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      setLightboxVisibility(lightbox, false);
+    }
+  });
+
+  const submitEventButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!eventTypeInput || !eventAlpakasSelect || !eventDateInput) return;
+
+    const selectedAlpakas = Array.from(eventAlpakasSelect.selectedOptions).map((option) => option.value);
+    if (!eventTypeInput.value) {
+      eventTypeInput.setCustomValidity('Bitte ein Ereignis auswählen.');
+      eventTypeInput.reportValidity();
+      return;
+    }
+    eventTypeInput.setCustomValidity('');
+
+    if (selectedAlpakas.length === 0) {
+      eventAlpakasSelect.setCustomValidity('Mindestens ein Alpaka auswählen.');
+      eventAlpakasSelect.reportValidity();
+      return;
+    }
+    eventAlpakasSelect.setCustomValidity('');
+
+    if (!eventDateInput.value) {
+      eventDateInput.setCustomValidity('Bitte ein Datum angeben.');
+      eventDateInput.reportValidity();
+      return;
+    }
+    eventDateInput.setCustomValidity('');
+
+    const payload = {
+      eventType: eventTypeInput.value,
+      alpakaIds: selectedAlpakas,
+      eventDate: eventDateInput.value,
+      cost: eventCostInput?.value ? Number(eventCostInput.value) : null,
+      comment: eventCommentInput?.value.trim() || null,
+    };
+
+    try {
+      submitEventButton?.classList.add('loading');
+      submitEventButton?.setAttribute('disabled', 'true');
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.json().catch(() => ({}));
+        throw new Error(errorBody?.detail || 'Das Ereignis konnte nicht gespeichert werden.');
+      }
+
+      form.reset();
+      setLightboxVisibility(lightbox, false);
+      alert('Ereignis erfolgreich gespeichert.');
+    } catch (error) {
+      console.error('Fehler beim Speichern des Ereignisses', error);
+      alert(error instanceof Error ? error.message : 'Das Ereignis konnte nicht gespeichert werden.');
+    } finally {
+      submitEventButton?.classList.remove('loading');
+      submitEventButton?.removeAttribute('disabled');
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && lightbox && !lightbox.hidden) {
+      setLightboxVisibility(lightbox, false);
+    }
+  });
+
+  function populateEventAlpakaOptions(alpacas: AlpakaOption[]) {
+    if (!eventAlpakasSelect) return;
+    eventAlpakasSelect.innerHTML = '';
+    alpacas
+      .sort((a, b) => a.Name.localeCompare(b.Name))
+      .forEach((alpaka) => {
+        const option = document.createElement('option');
+        option.value = alpaka.Id;
+        option.textContent = alpaka.Name;
+        eventAlpakasSelect.appendChild(option);
+      });
+    ensureAlpakaSelection();
+  }
+
+  document.addEventListener(ALPAKA_OPTIONS_EVENT, (event) => {
+    const detail = (event as CustomEvent<AlpakaOption[] | undefined>).detail;
+    if (!Array.isArray(detail)) return;
+    populateEventAlpakaOptions(detail);
+  });
+</script>
+
+<style>
+  .alpaka-action {
+    display: inline-flex;
+  }
+
+  .add-btn {
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+    border: none;
+    border-radius: 50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.75rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .lightbox.is-visible {
+    display: flex;
+  }
+
+  .lightbox-content {
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 28rem;
+    position: relative;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--taubenblau);
+    cursor: pointer;
+  }
+
+  .alpaka-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-field label {
+    font-weight: 600;
+  }
+
+  .form-field input,
+  .form-field textarea {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--taubenblau);
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .form-field select {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--taubenblau);
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: var(--schurwolle);
+  }
+
+  .form-field small {
+    color: var(--taubenblau);
+    opacity: 0.8;
+  }
+
+  .alpaka-form button.loading::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .lightbox-content {
+      padding: 1.5rem;
+    }
+  }
+</style>

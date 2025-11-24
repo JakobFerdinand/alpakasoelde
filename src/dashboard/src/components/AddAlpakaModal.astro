@@ -1,0 +1,243 @@
+---
+const uid = Math.random().toString(36).slice(2);
+const toggleId = `add-alpaka-toggle-${uid}`;
+const lightboxId = `alpaka-lightbox-${uid}`;
+const closeId = `close-alpaka-form-${uid}`;
+const formId = `add-alpaka-form-${uid}`;
+const nameId = `alpaka-name-${uid}`;
+const birthDateId = `alpaka-geburtsdatum-${uid}`;
+const photoId = `alpaka-photo-${uid}`;
+---
+
+<div class="alpaka-action">
+  <button id={toggleId} class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
+
+  <div id={lightboxId} class="lightbox" hidden>
+    <div class="lightbox-content">
+      <button type="button" id={closeId} class="close-btn" aria-label="Schließen">×</button>
+      <form id={formId} class="alpaka-form" method="post" action="/api/alpakas" enctype="multipart/form-data">
+        <div class="form-field">
+          <label for={nameId}>Name*</label>
+          <input id={nameId} name="name" type="text" maxlength="100" required />
+        </div>
+        <div class="form-field">
+          <label for={birthDateId}>Geburtsdatum*</label>
+          <input id={birthDateId} name="geburtsdatum" type="date" required />
+        </div>
+        <div class="form-field">
+          <label for={photoId}>Foto</label>
+          <input id={photoId} name="photo" type="file" accept=".png,.jpg,.jpeg" />
+        </div>
+        <button type="submit" class="btn">Neues Alpaka anlegen</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const toggle = document.getElementById('{toggleId}');
+  const lightbox = document.getElementById('{lightboxId}');
+  const closeBtn = document.getElementById('{closeId}');
+  const form = document.getElementById('{formId}') as HTMLFormElement | null;
+  const imageUploadInput = document.getElementById('{photoId}') as HTMLInputElement | null;
+  const limits: { [key: string]: number } = { '{nameId}': 100 };
+
+  const setLightboxVisibility = (targetLightbox: HTMLElement | null, visible: boolean) => {
+    if (!targetLightbox) return;
+    targetLightbox.hidden = !visible;
+    targetLightbox.classList.toggle('is-visible', visible);
+    targetLightbox.setAttribute('aria-hidden', visible ? 'false' : 'true');
+    if (document.body) {
+      document.body.style.overflow = visible ? 'hidden' : '';
+    }
+  };
+
+  [lightbox].forEach((lb) => lb?.setAttribute('aria-hidden', 'true'));
+
+  toggle?.addEventListener('click', () => {
+    setLightboxVisibility(lightbox, true);
+  });
+
+  closeBtn?.addEventListener('click', () => {
+    setLightboxVisibility(lightbox, false);
+  });
+
+  lightbox?.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      setLightboxVisibility(lightbox, false);
+    }
+  });
+
+  Object.entries(limits).forEach(([id, max]) => {
+    const el = document.getElementById(id) as HTMLInputElement | null;
+    el?.addEventListener('input', () => {
+      if (el.value.length > max) {
+        el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
+      } else {
+        el.setCustomValidity('');
+      }
+    });
+  });
+
+  const submitButton = form?.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+
+  form?.addEventListener('submit', (e) => {
+    for (const [id, max] of Object.entries(limits)) {
+      const el = document.getElementById(id) as HTMLInputElement | null;
+      if (el && el.value.trim().length > max) {
+        el.setCustomValidity(`Maximal ${max} Zeichen erlaubt`);
+        el.reportValidity();
+        e.preventDefault();
+        return;
+      }
+    }
+
+    if (imageUploadInput && imageUploadInput.files && imageUploadInput.files.length > 0) {
+      const file = imageUploadInput.files[0];
+      const maxFileSize = 15 * 1024 * 1024;
+      if (file.size > maxFileSize) {
+        alert(`File is too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB.`);
+        e.preventDefault();
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.classList.remove('loading');
+        }
+        return;
+      }
+    }
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.classList.add('loading');
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && lightbox && !lightbox.hidden) {
+      setLightboxVisibility(lightbox, false);
+    }
+  });
+</script>
+
+<style>
+  .alpaka-action {
+    display: inline-flex;
+  }
+
+  .add-btn {
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+    border: none;
+    border-radius: 50%;
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.75rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .add-btn:hover {
+    transform: scale(1.05);
+  }
+
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .lightbox.is-visible {
+    display: flex;
+  }
+
+  .lightbox-content {
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    border-radius: 0.5rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 28rem;
+    position: relative;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--taubenblau);
+    cursor: pointer;
+  }
+
+  .alpaka-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-field label {
+    font-weight: 600;
+  }
+
+  .form-field input,
+  .form-field textarea {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--taubenblau);
+    font-family: inherit;
+    font-size: 1rem;
+  }
+
+  .form-field select {
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--taubenblau);
+    font-family: inherit;
+    font-size: 1rem;
+    background-color: var(--schurwolle);
+  }
+
+  .form-field small {
+    color: var(--taubenblau);
+    opacity: 0.8;
+  }
+
+  .alpaka-form button.loading::after {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.5rem;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .lightbox-content {
+      padding: 1.5rem;
+    }
+  }
+</style>
