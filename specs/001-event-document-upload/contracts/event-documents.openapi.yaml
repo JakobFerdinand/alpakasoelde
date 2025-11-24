@@ -1,0 +1,325 @@
+openapi: 3.0.3
+info:
+  title: Event Documents API
+  version: 0.1.0
+  description: |
+    REST contracts for creating, listing, downloading, and removing event documents
+    within the dashboard experience. All endpoints are secured through Static Web Apps
+    authentication headers forwarded to Azure Functions.
+servers:
+  - url: https://alpakasoelde.at/api
+components:
+  securitySchemes:
+    swaAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    UploadFileDescriptor:
+      type: object
+      required: [clientFileId, originalName, sizeBytes, contentType]
+      properties:
+        clientFileId:
+          type: string
+          format: uuid
+        originalName:
+          type: string
+        sizeBytes:
+          type: integer
+          maximum: 26214400
+        contentType:
+          type: string
+          enum: [application/pdf, image/jpeg, image/png, text/csv]
+    UploadToken:
+      type: object
+      required: [documentId, blobName, sasUrl, expiresAt, maxChunkBytes]
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        blobName:
+          type: string
+        sasUrl:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+        maxChunkBytes:
+          type: integer
+          description: Maximum block size permitted for upload chunks
+    FinalizeDocument:
+      type: object
+      required: [documentId, checksum, description]
+      properties:
+        documentId:
+          type: string
+          format: uuid
+        checksum:
+          type: string
+          description: Hex-encoded SHA-256 of uploaded blob
+        description:
+          type: string
+          maxLength: 280
+    EventDocument:
+      type: object
+      required: [eventId, documentId, originalName, blobUri, contentType, sizeBytes, uploadStatus, scanStatus, uploaderUserId, uploadTimestamp]
+      properties:
+        eventId:
+          type: string
+        documentId:
+          type: string
+          format: uuid
+        originalName:
+          type: string
+        blobUri:
+          type: string
+          format: uri
+        contentType:
+          type: string
+        sizeBytes:
+          type: integer
+        uploadStatus:
+          type: string
+          enum: [Queued, Uploading, Uploaded, Failed, Archived]
+        scanStatus:
+          type: string
+          enum: [Pending, Clean, Quarantined, Failed]
+        uploaderUserId:
+          type: string
+        uploadTimestamp:
+          type: string
+          format: date-time
+        description:
+          type: string
+          nullable: true
+        archivePurgeAt:
+          type: string
+          format: date-time
+          nullable: true
+    AuditEntry:
+      type: object
+      required: [auditId, action, actorUserId, timestamp, channel]
+      properties:
+        auditId:
+          type: string
+          format: uuid
+        action:
+          type: string
+        actorUserId:
+          type: string
+        channel:
+          type: string
+          enum: [UI, API, System]
+        timestamp:
+          type: string
+          format: date-time
+        result:
+          type: string
+          nullable: true
+security:
+  - swaAuth: []
+paths:
+  /events/{eventId}/documents/uploads:
+    post:
+      summary: Request SAS tokens for up to five files that will be uploaded for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  minItems: 1
+                  maxItems: 5
+                  items:
+                    $ref: '#/components/schemas/UploadFileDescriptor'
+      responses:
+        '200':
+          description: SAS tokens issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tokens:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UploadToken'
+        '400':
+          description: Validation error (size/type/limit)
+        '403':
+          description: Caller lacks edit permissions
+  /events/{eventId}/documents/finalize:
+    post:
+      summary: Finalize uploaded blobs and persist metadata
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [documents]
+              properties:
+                documents:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FinalizeDocument'
+                submitEventPayload:
+                  type: object
+                  description: Optional event draft payload when called during create flow
+      responses:
+        '200':
+          description: Documents linked to event
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventDocument'
+        '423':
+          description: Event is locked and cannot accept new documents
+  /events/{eventId}/documents:
+    get:
+      summary: List documents and metadata for an event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: contentType
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: uploader
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventDocument'
+        '403':
+          description: Caller lacks view permission
+  /events/{eventId}/documents/{documentId}/download-link:
+    post:
+      summary: Obtain a short-lived download URL if scan + permissions allow
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Link issued
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [sasUrl, expiresAt]
+                properties:
+                  sasUrl:
+                    type: string
+                    format: uri
+                  expiresAt:
+                    type: string
+                    format: date-time
+        '403':
+          description: Permission denied or scan not clean
+        '404':
+          description: Document not found
+  /events/{eventId}/documents/{documentId}:
+    delete:
+      summary: Remove a document and archive the blob for 90 days
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '202':
+          description: Removal requested; blob moved to archive tier
+        '403':
+          description: Caller lacks edit permission or event locked
+        '404':
+          description: Document not found
+  /events/{eventId}/documents/{documentId}/audit:
+    get:
+      summary: Retrieve audit trail for a single document
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: documentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit entries ordered descending by timestamp
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  audits:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditEntry'
+        '403':
+          description: Caller lacks audit permission
+        '404':
+          description: Document not found
