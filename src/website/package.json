@@ -11,7 +11,7 @@
     "test": "playwright test"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.5",
+    "@astrojs/ts-plugin": "^1.10.6",
     "@fontsource/bricolage-grotesque": "^5.2.10",
     "astro": "^5.16.3"
   },
