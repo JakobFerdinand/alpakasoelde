@@ -63,12 +63,16 @@ const gutscheine = null;
     return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(wert));
   };
 
-  const gutscheinNormieren = (gutschein) => ({
-    gutscheinnummer: gutschein.gutscheinnummer ?? '',
-    kaufdatum: gutschein.kaufdatum ?? '',
-    betrag: gutschein.betrag ?? null,
-    eingeloestAm: gutschein.eingeloestAm ?? null
-  });
+  const gutscheinNormieren = (gutschein) => {
+    const uppercase = gutschein ?? {};
+
+    return {
+      gutscheinnummer: gutschein?.gutscheinnummer ?? uppercase.Gutscheinnummer ?? '',
+      kaufdatum: gutschein?.kaufdatum ?? uppercase.Kaufdatum ?? '',
+      betrag: gutschein?.betrag ?? uppercase.Betrag ?? null,
+      eingeloestAm: gutschein?.eingeloestAm ?? uppercase.EingeloestAm ?? null
+    };
+  };
 
   const listeRendern = (gutscheine) => {
     gutscheinListe.classList.remove('ladezustand');

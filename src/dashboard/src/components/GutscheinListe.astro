@@ -4,6 +4,10 @@ interface Gutschein {
   kaufdatum?: string;
   betrag?: number | string | null;
   eingeloestAm?: string | null;
+  Gutscheinnummer?: string;
+  Kaufdatum?: string;
+  Betrag?: number | string | null;
+  EingeloestAm?: string | null;
 }
 
 interface Props {
@@ -25,12 +29,16 @@ const formatCurrency = (value?: number | string | null) => {
   return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
 };
 
-const normalizeGutschein = (gutschein: Gutschein) => ({
-  gutscheinnummer: gutschein.gutscheinnummer ?? '',
-  kaufdatum: gutschein.kaufdatum ?? '',
-  betrag: gutschein.betrag ?? null,
-  eingeloestAm: gutschein.eingeloestAm ?? null
-});
+const normalizeGutschein = (gutschein: Gutschein) => {
+  const uppercase = gutschein as Record<string, unknown>;
+
+  return {
+    gutscheinnummer: gutschein.gutscheinnummer ?? (uppercase.Gutscheinnummer as string) ?? '',
+    kaufdatum: gutschein.kaufdatum ?? (uppercase.Kaufdatum as string) ?? '',
+    betrag: gutschein.betrag ?? (uppercase.Betrag as number | string | null) ?? null,
+    eingeloestAm: gutschein.eingeloestAm ?? (uppercase.EingeloestAm as string | null) ?? null
+  };
+};
 
 const normalisierteGutscheine = gutscheine.map(normalizeGutschein);
 const hatGutscheine = normalisierteGutscheine.length > 0;
