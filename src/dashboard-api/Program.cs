@@ -41,7 +41,7 @@ var host = new HostBuilder()
         services.AddScoped<DeleteMessage.IStore, DeleteMessage.TableStore>();
         services.AddScoped<Events.IEventStore, Events.TableEventStore>();
         services.AddScoped<Events.IAlpakaLookupStore, Events.TableAlpakaLookupStore>();
-        services.AddScoped<Gutscheine.IGutscheinStore, Gutscheine.TableGutscheinStore>();
+        services.AddScoped<IGutscheinStore, TableGutscheinStore>();
     })
     .Build();
 
