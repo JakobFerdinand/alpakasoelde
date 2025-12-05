@@ -34,6 +34,29 @@ export const normalizeEvents = (events: unknown): EventListItem[] => {
   }));
 };
 
+const EVENT_TYPE_ICON_KEYS: Record<string, string> = {
+  entwurmen: 'worm',
+  'nägel schneiden': 'scissors',
+  'naegel schneiden': 'scissors',
+  impfen: 'syringe',
+  gesundheitscheck: 'stethoscope'
+};
+
+const resolveIconKey = (eventType: string | undefined): string => {
+  if (!eventType) return 'circle-ellipsis';
+
+  const normalizedType = eventType.trim().toLowerCase();
+  return EVENT_TYPE_ICON_KEYS[normalizedType] ?? 'circle-ellipsis';
+};
+
+const cloneIconTemplate = (iconKey: string) => {
+  const templates = document.getElementById('event-icon-templates');
+  if (!templates) return undefined;
+
+  const template = templates.querySelector(`[data-icon="${iconKey}"] svg`);
+  return template?.cloneNode(true) as SVGElement | undefined;
+};
+
 export const renderEventList = (
   container: HTMLElement | null,
   events: EventListItem[],
@@ -65,15 +88,26 @@ export const renderEventList = (
     const header = document.createElement('div');
     header.className = 'event-header';
 
+    const titleGroup = document.createElement('div');
+    titleGroup.className = 'event-title-group';
+
+    const icon = cloneIconTemplate(resolveIconKey(item.eventType));
+
     const title = document.createElement('div');
     title.className = 'event-title';
-    title.textContent = item.eventType;
+    title.textContent = item.eventType || 'Ereignis';
+
+    if (icon) {
+      icon.classList.add('event-icon');
+      titleGroup.appendChild(icon);
+    }
+    titleGroup.appendChild(title);
 
     const date = document.createElement('div');
     date.className = 'event-date';
     date.textContent = formatDate(item.eventDate);
 
-    header.appendChild(title);
+    header.appendChild(titleGroup);
     header.appendChild(date);
     entry.appendChild(header);
 
