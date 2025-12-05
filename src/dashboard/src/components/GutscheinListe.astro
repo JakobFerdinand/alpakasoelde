@@ -1,0 +1,73 @@
+---
+interface Gutschein {
+  gutscheinnummer?: string;
+  kaufdatum?: string;
+  betrag?: number | string | null;
+  eingeloestAm?: string | null;
+}
+
+interface Props {
+  gutscheine?: Gutschein[] | null;
+}
+
+const gutscheineProp = Astro.props.gutscheine ?? null;
+const gutscheine = Array.isArray(gutscheineProp) ? gutscheineProp : [];
+
+const formatDate = (value?: string | null) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return value;
+  return date.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
+};
+
+const formatCurrency = (value?: number | string | null) => {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+  return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
+};
+
+const normalizeGutschein = (gutschein: Gutschein) => ({
+  gutscheinnummer: gutschein.gutscheinnummer ?? '',
+  kaufdatum: gutschein.kaufdatum ?? '',
+  betrag: gutschein.betrag ?? null,
+  eingeloestAm: gutschein.eingeloestAm ?? null
+});
+
+const normalisierteGutscheine = gutscheine.map(normalizeGutschein);
+const hatGutscheine = normalisierteGutscheine.length > 0;
+const wirdGeladen = gutscheineProp === null;
+---
+
+<div class="gutschein-karte" data-gutschein-liste data-initial-gutscheine={JSON.stringify(gutscheineProp)}>
+  <div class="listen-kopf">
+    <div>
+      <p class="eyebrow">Übersicht</p>
+      <h2>Verkaufte Gutscheine</h2>
+      <p class="card-subtitle">Alle Gutscheine mit Kauf- und Einlösedaten.</p>
+    </div>
+    <button id="aktualisieren-button" type="button" class="ghost-button">Aktualisieren</button>
+  </div>
+  <div id="gutschein-liste" class={`gutschein-liste${wirdGeladen ? ' ladezustand' : ''}`}>
+    {wirdGeladen ? (
+      <p class="lade-text">Lade Gutscheine...</p>
+    ) : hatGutscheine ? (
+      <div class="gutschein-tabelle">
+        <div class="gutschein-zeile gutschein-kopf">
+          <div>Gutscheinnummer</div>
+          <div>Kaufdatum</div>
+          <div>Betrag</div>
+          <div>Eingelöst am</div>
+        </div>
+        {normalisierteGutscheine.map((gutschein) => (
+          <div class="gutschein-zeile">
+            <div>{gutschein.gutscheinnummer || '—'}</div>
+            <div>{formatDate(gutschein.kaufdatum)}</div>
+            <div>{formatCurrency(gutschein.betrag)}</div>
+            <div>{gutschein.eingeloestAm ? formatDate(gutschein.eingeloestAm) : 'Noch offen'}</div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="leer">Noch keine Gutscheine erfasst.</p>
+    )}
+  </div>
+</div>

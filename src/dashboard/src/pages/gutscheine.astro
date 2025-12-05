@@ -1,17 +1,20 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import GutscheinListe from '../components/GutscheinListe.astro';
+
+const gutscheine = null;
 ---
 
 <DashboardLayout title="Gutscheine">
-  <section class="vouchers section">
+  <section class="gutscheine section">
     <div class="container">
-      <a class="back-link" href="/">← Zurück zur Übersicht</a>
-      <div class="vouchers-grid">
-        <div class="voucher-card">
+      <a class="zurueck-link" href="/">← Zurück zur Übersicht</a>
+      <div class="gutscheine-grid">
+        <div class="gutschein-karte">
           <p class="eyebrow">Neu</p>
           <h2>Gutschein erfassen</h2>
           <p class="card-subtitle">Verkäufe dokumentieren und optional das Einlösedatum festhalten.</p>
-          <form id="voucher-form" class="voucher-form">
+          <form id="gutschein-formular" class="gutschein-formular">
             <div class="form-field">
               <label for="gutscheinnummer">Gutscheinnummer</label>
               <input id="gutscheinnummer" name="gutscheinnummer" type="text" inputmode="numeric" placeholder="z. B. 202501" />
@@ -30,221 +33,214 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
               <input id="eingeloestAm" name="eingeloestAm" type="date" />
               <p class="form-hint">Nur ausfüllen, wenn der Gutschein bereits eingelöst wurde.</p>
             </div>
-            <button id="submit-button" type="submit" class="primary-button">Gutschein speichern</button>
-            <p id="voucher-status" class="status-message" hidden></p>
+            <button id="senden-button" type="submit" class="primary-button">Gutschein speichern</button>
+            <p id="gutschein-status" class="status-message" hidden></p>
           </form>
         </div>
-        <div class="voucher-card">
-          <div class="list-header">
-            <div>
-              <p class="eyebrow">Übersicht</p>
-              <h2>Verkaufte Gutscheine</h2>
-              <p class="card-subtitle">Alle Gutscheine mit Kauf- und Einlösedaten.</p>
-            </div>
-            <button id="refresh-button" type="button" class="ghost-button">Aktualisieren</button>
-          </div>
-          <div id="voucher-list" class="voucher-list loading">
-            <p class="loading-text">Lade Gutscheine...</p>
-          </div>
-        </div>
+        <GutscheinListe gutscheine={gutscheine} />
       </div>
     </div>
   </section>
 </DashboardLayout>
 
 <script>
-  const voucherForm = document.getElementById('voucher-form');
-  const voucherList = document.getElementById('voucher-list');
-  const statusMessage = document.getElementById('voucher-status');
-  const submitButton = document.getElementById('submit-button');
-  const refreshButton = document.getElementById('refresh-button');
-  const gutscheinnummerInput = document.getElementById('gutscheinnummer');
+  const gutscheinFormular = document.getElementById('gutschein-formular');
+  const gutscheinListe = document.getElementById('gutschein-liste');
+  const statusNachricht = document.getElementById('gutschein-status');
+  const sendenButton = document.getElementById('senden-button');
+  const aktualisierenButton = document.getElementById('aktualisieren-button');
+  const gutscheinnummerEingabe = document.getElementById('gutscheinnummer');
 
-  const formatDate = (value) => {
-    if (!value) return '—';
-    const date = new Date(value);
-    if (Number.isNaN(date.valueOf())) return value;
-    return date.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  const datumFormatieren = (wert) => {
+    if (!wert) return '—';
+    const datum = new Date(wert);
+    if (Number.isNaN(datum.valueOf())) return wert;
+    return datum.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
   };
 
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
-    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
+  const betragFormatieren = (wert) => {
+    if (wert === null || wert === undefined || Number.isNaN(Number(wert))) return '—';
+    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(wert));
   };
 
-  const normalizeVoucher = (voucher) => ({
-    gutscheinnummer: voucher.gutscheinnummer ?? voucher.Gutscheinnummer ?? '',
-    kaufdatum: voucher.kaufdatum ?? voucher.Kaufdatum ?? '',
-    betrag: voucher.betrag ?? voucher.Betrag ?? null,
-    eingeloestAm: voucher.eingeloestAm ?? voucher.EingeloestAm ?? null
+  const gutscheinNormieren = (gutschein) => ({
+    gutscheinnummer: gutschein.gutscheinnummer ?? '',
+    kaufdatum: gutschein.kaufdatum ?? '',
+    betrag: gutschein.betrag ?? null,
+    eingeloestAm: gutschein.eingeloestAm ?? null
   });
 
-  const renderList = (vouchers) => {
-    voucherList.classList.remove('loading');
-    voucherList.innerHTML = '';
+  const listeRendern = (gutscheine) => {
+    gutscheinListe.classList.remove('ladezustand');
+    gutscheinListe.innerHTML = '';
 
-    if (!vouchers || vouchers.length === 0) {
-      const empty = document.createElement('p');
-      empty.className = 'empty';
-      empty.textContent = 'Noch keine Gutscheine erfasst.';
-      voucherList.appendChild(empty);
+    if (!gutscheine || gutscheine.length === 0) {
+      const leer = document.createElement('p');
+      leer.className = 'leer';
+      leer.textContent = 'Noch keine Gutscheine erfasst.';
+      gutscheinListe.appendChild(leer);
       return;
     }
 
-    const table = document.createElement('div');
-    table.className = 'voucher-table';
+    const tabelle = document.createElement('div');
+    tabelle.className = 'gutschein-tabelle';
 
-    const header = document.createElement('div');
-    header.className = 'voucher-row voucher-head';
-    ['Gutscheinnummer', 'Kaufdatum', 'Betrag', 'Eingelöst am'].forEach((title) => {
-      const cell = document.createElement('div');
-      cell.textContent = title;
-      header.appendChild(cell);
+    const kopf = document.createElement('div');
+    kopf.className = 'gutschein-zeile gutschein-kopf';
+    ['Gutscheinnummer', 'Kaufdatum', 'Betrag', 'Eingelöst am'].forEach((titel) => {
+      const zelle = document.createElement('div');
+      zelle.textContent = titel;
+      kopf.appendChild(zelle);
     });
-    table.appendChild(header);
+    tabelle.appendChild(kopf);
 
-    vouchers.forEach((voucher) => {
-      const normalized = normalizeVoucher(voucher);
-      const row = document.createElement('div');
-      row.className = 'voucher-row';
+    gutscheine.forEach((gutschein) => {
+      const normalisiert = gutscheinNormieren(gutschein);
+      const zeile = document.createElement('div');
+      zeile.className = 'gutschein-zeile';
 
-      const number = document.createElement('div');
-      number.textContent = normalized.gutscheinnummer || '—';
-      row.appendChild(number);
+      const nummer = document.createElement('div');
+      nummer.textContent = normalisiert.gutscheinnummer || '—';
+      zeile.appendChild(nummer);
 
-      const purchaseDate = document.createElement('div');
-      purchaseDate.textContent = formatDate(normalized.kaufdatum);
-      row.appendChild(purchaseDate);
+      const kaufdatum = document.createElement('div');
+      kaufdatum.textContent = datumFormatieren(normalisiert.kaufdatum);
+      zeile.appendChild(kaufdatum);
 
-      const amount = document.createElement('div');
-      amount.textContent = formatCurrency(normalized.betrag);
-      row.appendChild(amount);
+      const betrag = document.createElement('div');
+      betrag.textContent = betragFormatieren(normalisiert.betrag);
+      zeile.appendChild(betrag);
 
-      const redeemed = document.createElement('div');
-      redeemed.textContent = normalized.eingeloestAm ? formatDate(normalized.eingeloestAm) : 'Noch offen';
-      row.appendChild(redeemed);
+      const eingeloest = document.createElement('div');
+      eingeloest.textContent = normalisiert.eingeloestAm ? datumFormatieren(normalisiert.eingeloestAm) : 'Noch offen';
+      zeile.appendChild(eingeloest);
 
-      table.appendChild(row);
+      tabelle.appendChild(zeile);
     });
 
-    voucherList.appendChild(table);
+    gutscheinListe.appendChild(tabelle);
   };
 
-  const suggestNextNumber = (vouchers) => {
-    if (!gutscheinnummerInput) return;
+  const naechsteNummerVorschlagen = (gutscheine) => {
+    if (!gutscheinnummerEingabe) return;
 
-    const yearPrefix = new Date().getFullYear().toString();
-    const highestSuffix = vouchers
-      .map((voucher) => normalizeVoucher(voucher).gutscheinnummer)
-      .filter((number) => number?.startsWith(yearPrefix))
-      .map((number) => number?.slice(yearPrefix.length) ?? '0')
-      .map((suffix) => (Number.isNaN(Number(suffix)) ? 0 : Number(suffix)))
-      .reduce((max, current) => Math.max(max, current), 0);
+    const jahresPraefix = new Date().getFullYear().toString();
+    const hoechsteEndung = gutscheine
+      .map((gutschein) => gutscheinNormieren(gutschein).gutscheinnummer)
+      .filter((nummer) => nummer?.startsWith(jahresPraefix))
+      .map((nummer) => nummer?.slice(jahresPraefix.length) ?? '0')
+      .map((endung) => (Number.isNaN(Number(endung)) ? 0 : Number(endung)))
+      .reduce((max, aktuell) => Math.max(max, aktuell), 0);
 
-    const nextNumber = `${yearPrefix}${String(highestSuffix + 1).padStart(2, '0')}`;
-    if (!gutscheinnummerInput.value) {
-      gutscheinnummerInput.value = nextNumber;
+    const naechsteNummer = `${jahresPraefix}${String(hoechsteEndung + 1).padStart(2, '0')}`;
+    if (!gutscheinnummerEingabe.value) {
+      gutscheinnummerEingabe.value = naechsteNummer;
     }
   };
 
-  const loadVouchers = async () => {
-    if (!voucherList) return;
-    voucherList.classList.add('loading');
-    voucherList.innerHTML = '<p class="loading-text">Lade Gutscheine...</p>';
+  const gutscheineLaden = async () => {
+    if (!gutscheinListe) return;
+    gutscheinListe.classList.add('ladezustand');
+    gutscheinListe.innerHTML = '<p class="lade-text">Lade Gutscheine...</p>';
 
     try {
-      const response = await fetch('/api/gutscheine');
-      if (!response.ok) throw new Error('Fehler beim Laden der Gutscheine');
-      const data = await response.json();
-      const vouchers = Array.isArray(data) ? data : [];
-      renderList(vouchers);
-      suggestNextNumber(vouchers);
-    } catch (error) {
-      console.error(error);
-      voucherList.classList.remove('loading');
-      voucherList.innerHTML = '<p class="error">Gutscheine konnten nicht geladen werden.</p>';
+      const antwort = await fetch('/api/gutscheine');
+      if (!antwort.ok) throw new Error('Fehler beim Laden der Gutscheine');
+      const daten = await antwort.json();
+      const gutscheine = Array.isArray(daten) ? daten : [];
+      listeRendern(gutscheine);
+      naechsteNummerVorschlagen(gutscheine);
+    } catch (fehler) {
+      console.error(fehler);
+      gutscheinListe.classList.remove('ladezustand');
+      gutscheinListe.innerHTML = '<p class="error">Gutscheine konnten nicht geladen werden.</p>';
     }
   };
 
-  const showStatus = (message, isError = false) => {
-    if (!statusMessage) return;
-    statusMessage.hidden = false;
-    statusMessage.textContent = message;
-    statusMessage.classList.toggle('error', isError);
+  const statusAnzeigen = (nachricht, istFehler = false) => {
+    if (!statusNachricht) return;
+    statusNachricht.hidden = false;
+    statusNachricht.textContent = nachricht;
+    statusNachricht.classList.toggle('error', istFehler);
   };
 
-  const resetStatus = () => {
-    if (!statusMessage) return;
-    statusMessage.hidden = true;
-    statusMessage.textContent = '';
-    statusMessage.classList.remove('error');
+  const statusZuruecksetzen = () => {
+    if (!statusNachricht) return;
+    statusNachricht.hidden = true;
+    statusNachricht.textContent = '';
+    statusNachricht.classList.remove('error');
   };
 
-  voucherForm?.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    resetStatus();
+  gutscheinFormular?.addEventListener('submit', async (ereignis) => {
+    ereignis.preventDefault();
+    statusZuruecksetzen();
 
-    const gutscheinnummer = voucherForm.gutscheinnummer.value.trim();
-    const kaufdatum = voucherForm.kaufdatum.value;
-    const betrag = Number(voucherForm.betrag.value);
-    const eingeloestAm = voucherForm.eingeloestAm.value || null;
+    const gutscheinnummer = gutscheinFormular.gutscheinnummer.value.trim();
+    const kaufdatum = gutscheinFormular.kaufdatum.value;
+    const betrag = Number(gutscheinFormular.betrag.value);
+    const eingeloestAm = gutscheinFormular.eingeloestAm.value || null;
 
     if (!kaufdatum || !betrag) {
-      showStatus('Bitte Kaufdatum und Betrag ausfüllen.', true);
+      statusAnzeigen('Bitte Kaufdatum und Betrag ausfüllen.', true);
       return;
     }
 
-    submitButton.disabled = true;
-    submitButton.textContent = 'Speichern...';
+    sendenButton.disabled = true;
+    sendenButton.textContent = 'Speichern...';
 
     try {
-      const response = await fetch('/api/gutscheine', {
+      const antwort = await fetch('/api/gutscheine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gutscheinnummer: gutscheinnummer || undefined, kaufdatum, betrag, eingeloestAm })
       });
 
-      if (!response.ok) {
-        const error = await response.json().catch(() => null);
-        throw new Error(error?.detail || 'Gutschein konnte nicht gespeichert werden.');
+      if (!antwort.ok) {
+        const fehler = await antwort.json().catch(() => null);
+        throw new Error(fehler?.detail || 'Gutschein konnte nicht gespeichert werden.');
       }
 
-      const result = await response.json();
-      voucherForm.reset();
-      suggestNextNumber([]);
-      showStatus(`Gutschein ${result.gutscheinnummer ?? result.Gutscheinnummer ?? ''} wurde gespeichert.`);
-      await loadVouchers();
-    } catch (error) {
-      console.error(error);
-      showStatus(error.message || 'Gutschein konnte nicht gespeichert werden.', true);
+      const ergebnis = await antwort.json();
+      gutscheinFormular.reset();
+      naechsteNummerVorschlagen([]);
+      statusAnzeigen(`Gutschein ${ergebnis.gutscheinnummer ?? ''} wurde gespeichert.`);
+      await gutscheineLaden();
+    } catch (fehler) {
+      console.error(fehler);
+      statusAnzeigen(fehler.message || 'Gutschein konnte nicht gespeichert werden.', true);
     } finally {
-      submitButton.disabled = false;
-      submitButton.textContent = 'Gutschein speichern';
+      sendenButton.disabled = false;
+      sendenButton.textContent = 'Gutschein speichern';
     }
   });
 
-  refreshButton?.addEventListener('click', loadVouchers);
-  loadVouchers();
+  aktualisierenButton?.addEventListener('click', gutscheineLaden);
+  gutscheineLaden();
 </script>
 
 <style>
-  .vouchers {
+  .gutscheine {
     background-color: var(--schurwolle);
     color: var(--taubenblau);
   }
 
-  .vouchers-grid {
+  .gutscheine-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
     margin-top: 1rem;
   }
 
-  .voucher-card {
+  .gutschein-karte {
     background: #fff;
     border-radius: 0.75rem;
     padding: 1.5rem;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  .zurueck-link {
+    display: inline-block;
+    margin-bottom: 0.5rem;
   }
 
   .eyebrow {
@@ -260,7 +256,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     color: rgba(0, 32, 73, 0.7);
   }
 
-  .voucher-form {
+  .gutschein-formular {
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -324,7 +320,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     color: #b00020;
   }
 
-  .list-header {
+  .listen-kopf {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -332,25 +328,25 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     margin-bottom: 0.5rem;
   }
 
-  .voucher-list {
+  .gutschein-liste {
     border: 1px solid rgba(0, 32, 73, 0.08);
     border-radius: 0.75rem;
     padding: 1rem;
     min-height: 120px;
   }
 
-  .voucher-list.loading {
+  .gutschein-liste.ladezustand {
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .voucher-table {
+  .gutschein-tabelle {
     display: grid;
     gap: 0.5rem;
   }
 
-  .voucher-row {
+  .gutschein-zeile {
     display: grid;
     grid-template-columns: 1.2fr repeat(3, 1fr);
     gap: 0.75rem;
@@ -358,19 +354,19 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     border-bottom: 1px solid rgba(0, 32, 73, 0.08);
   }
 
-  .voucher-row:last-child {
+  .gutschein-zeile:last-child {
     border-bottom: none;
   }
 
-  .voucher-head {
+  .gutschein-kopf {
     font-weight: 700;
     color: var(--taubenblau);
     border-bottom: 2px solid rgba(0, 32, 73, 0.15);
   }
 
-  .loading-text,
+  .lade-text,
   .error,
-  .empty {
+  .leer {
     margin: 0;
   }
 
@@ -379,16 +375,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   }
 
   @media (max-width: 720px) {
-    .list-header {
+    .listen-kopf {
       flex-direction: column;
       align-items: flex-start;
     }
 
-    .voucher-row {
+    .gutschein-zeile {
       grid-template-columns: repeat(2, 1fr);
     }
 
-    .voucher-row div:nth-child(1) {
+    .gutschein-zeile div:nth-child(1) {
       grid-column: span 2;
       font-weight: 700;
     }
