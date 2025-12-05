@@ -1,4 +1,6 @@
 ---
+import { CircleEllipsis, Scissors, Stethoscope, Syringe, Worm } from 'lucide-astro';
+
 export interface Props {
   id: string;
   loadingText?: string;
@@ -9,6 +11,24 @@ const { id, loadingText = 'Lade Ereignisse...', emptyText = 'Keine Ereignisse vo
 ---
 <div id={id} class="events-content loading" data-empty-text={emptyText}>
   <p class="loading-text">{loadingText}</p>
+</div>
+
+<div id="event-icon-templates" aria-hidden="true">
+  <div data-icon="worm">
+    <Worm class="event-icon" />
+  </div>
+  <div data-icon="scissors">
+    <Scissors class="event-icon" />
+  </div>
+  <div data-icon="syringe">
+    <Syringe class="event-icon" />
+  </div>
+  <div data-icon="stethoscope">
+    <Stethoscope class="event-icon" />
+  </div>
+  <div data-icon="circle-ellipsis">
+    <CircleEllipsis class="event-icon" />
+  </div>
 </div>
 
 <style>
@@ -52,6 +72,19 @@ const { id, loadingText = 'Lade Ereignisse...', emptyText = 'Keine Ereignisse vo
     color: var(--taubenblau);
   }
 
+  .event-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .event-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--taubenblau);
+    flex-shrink: 0;
+  }
+
   .event-date {
     color: var(--sahlchen);
     font-weight: 600;
@@ -92,6 +125,10 @@ const { id, loadingText = 'Lade Ereignisse...', emptyText = 'Keine Ereignisse vo
 
   .error {
     color: #b00020;
+  }
+
+  #event-icon-templates {
+    display: none;
   }
 
   @media (max-width: 768px) {
