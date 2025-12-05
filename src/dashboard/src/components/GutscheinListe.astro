@@ -59,12 +59,6 @@ const wirdGeladen = gutscheineProp === null;
       <p class="lade-text">Lade Gutscheine...</p>
     ) : hatGutscheine ? (
       <div class="gutschein-tabelle">
-        <div class="gutschein-zeile gutschein-kopf">
-          <div>Gutscheinnummer</div>
-          <div>Kaufdatum</div>
-          <div>Betrag</div>
-          <div>Eingelöst am</div>
-        </div>
         {normalisierteGutscheine.map((gutschein) => (
           <div class="gutschein-zeile">
             <div>{gutschein.gutscheinnummer || '—'}</div>
