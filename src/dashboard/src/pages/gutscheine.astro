@@ -13,6 +13,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           <p class="card-subtitle">Verkäufe dokumentieren und optional das Einlösedatum festhalten.</p>
           <form id="voucher-form" class="voucher-form">
             <div class="form-field">
+              <label for="gutscheinnummer">Gutscheinnummer</label>
+              <input id="gutscheinnummer" name="gutscheinnummer" type="text" inputmode="numeric" placeholder="z. B. 202501" />
+              <p class="form-hint">Standardmäßig wird die nächste Nummer vorgeschlagen. Bei Bedarf überschreiben.</p>
+            </div>
+            <div class="form-field">
               <label for="kaufdatum">Kaufdatum*</label>
               <input id="kaufdatum" name="kaufdatum" type="date" required />
             </div>
@@ -53,6 +58,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   const statusMessage = document.getElementById('voucher-status');
   const submitButton = document.getElementById('submit-button');
   const refreshButton = document.getElementById('refresh-button');
+  const gutscheinnummerInput = document.getElementById('gutscheinnummer');
 
   const formatDate = (value) => {
     if (!value) return '—';
@@ -124,6 +130,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     voucherList.appendChild(table);
   };
 
+  const suggestNextNumber = (vouchers) => {
+    if (!gutscheinnummerInput) return;
+
+    const yearPrefix = new Date().getFullYear().toString();
+    const highestSuffix = vouchers
+      .map((voucher) => normalizeVoucher(voucher).gutscheinnummer)
+      .filter((number) => number?.startsWith(yearPrefix))
+      .map((number) => number?.slice(yearPrefix.length) ?? '0')
+      .map((suffix) => (Number.isNaN(Number(suffix)) ? 0 : Number(suffix)))
+      .reduce((max, current) => Math.max(max, current), 0);
+
+    const nextNumber = `${yearPrefix}${String(highestSuffix + 1).padStart(2, '0')}`;
+    if (!gutscheinnummerInput.value) {
+      gutscheinnummerInput.value = nextNumber;
+    }
+  };
+
   const loadVouchers = async () => {
     if (!voucherList) return;
     voucherList.classList.add('loading');
@@ -133,7 +156,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const response = await fetch('/api/gutscheine');
       if (!response.ok) throw new Error('Fehler beim Laden der Gutscheine');
       const data = await response.json();
-      renderList(Array.isArray(data) ? data : []);
+      const vouchers = Array.isArray(data) ? data : [];
+      renderList(vouchers);
+      suggestNextNumber(vouchers);
     } catch (error) {
       console.error(error);
       voucherList.classList.remove('loading');
@@ -159,6 +184,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     event.preventDefault();
     resetStatus();
 
+    const gutscheinnummer = voucherForm.gutscheinnummer.value.trim();
     const kaufdatum = voucherForm.kaufdatum.value;
     const betrag = Number(voucherForm.betrag.value);
     const eingeloestAm = voucherForm.eingeloestAm.value || null;
@@ -175,7 +201,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       const response = await fetch('/api/gutscheine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ kaufdatum, betrag, eingeloestAm })
+        body: JSON.stringify({ gutscheinnummer: gutscheinnummer || undefined, kaufdatum, betrag, eingeloestAm })
       });
 
       if (!response.ok) {
@@ -185,6 +211,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       const result = await response.json();
       voucherForm.reset();
+      suggestNextNumber([]);
       showStatus(`Gutschein ${result.gutscheinnummer ?? result.Gutscheinnummer ?? ''} wurde gespeichert.`);
       await loadVouchers();
     } catch (error) {

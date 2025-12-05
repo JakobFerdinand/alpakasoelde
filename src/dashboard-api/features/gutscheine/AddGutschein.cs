@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Linq;
 using dashboard_api.shared.entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -56,6 +57,7 @@ public sealed class AddGutschein
         }
 
         AddCommand command = new(
+            payload.Gutscheinnummer,
             payload.Kaufdatum ?? string.Empty,
             payload.Betrag,
             payload.EingeloestAm);
@@ -78,10 +80,11 @@ public sealed class AddGutschein
         return created;
     }
 
-    public sealed record AddCommand(string Kaufdatum, double? Betrag, string? EingeloestAm);
+    public sealed record AddCommand(string? Gutscheinnummer, string Kaufdatum, double? Betrag, string? EingeloestAm);
     public sealed record AddResult(string Gutscheinnummer);
     public sealed record AddGutscheinRequest
     {
+        public string? Gutscheinnummer { get; init; }
         public string? Kaufdatum { get; init; }
         public double? Betrag { get; init; }
         public string? EingeloestAm { get; init; }
@@ -92,7 +95,7 @@ public sealed class AddGutschein
         private readonly IGutscheinStore _store = store;
         private readonly ILogger<Handler> _logger = logger;
 
-        private const int VoucherNumberSuffixLength = 2;
+        private const int GutscheinSuffixLength = 2;
 
         public async Task<(AddResult? Result, string? Error)> HandleAsync(AddCommand command, CancellationToken cancellationToken)
         {
@@ -122,8 +125,25 @@ public sealed class AddGutschein
                 return (null, "Das Einlösedatum darf nicht vor dem Kaufdatum liegen.");
             }
 
-            IReadOnlyList<GutscheinEntity> existingVouchers = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
-            string gutscheinnummer = GenerateVoucherNumber(existingVouchers, kaufdatum.Year);
+            IReadOnlyList<GutscheinEntity> existingGutscheine = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
+            string gutscheinnummer = command.Gutscheinnummer?.Trim() ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(gutscheinnummer))
+            {
+                if (!IsValidGutscheinNumberForYear(gutscheinnummer, kaufdatum.Year))
+                {
+                    return (null, $"Die Gutscheinnummer muss mit {kaufdatum.Year} beginnen und mindestens zwei Ziffern enthalten.");
+                }
+
+                if (existingGutscheine.Any(existing => string.Equals(existing.Gutscheinnummer, gutscheinnummer, StringComparison.Ordinal)))
+                {
+                    return (null, "Die angegebene Gutscheinnummer existiert bereits.");
+                }
+            }
+            else
+            {
+                gutscheinnummer = GenerateGutscheinNumber(existingGutscheine, kaufdatum.Year);
+            }
 
             GutscheinEntity entity = new()
             {
@@ -136,14 +156,14 @@ public sealed class AddGutschein
             };
 
             await _store.AddAsync(entity, cancellationToken).ConfigureAwait(false);
-            _logger.LogInformation("Added voucher {VoucherNumber}", gutscheinnummer);
+            _logger.LogInformation("Gutschein {Gutscheinnummer} gespeichert", gutscheinnummer);
             return (new AddResult(gutscheinnummer), null);
         }
 
-        private static string GenerateVoucherNumber(IEnumerable<GutscheinEntity> existingVouchers, int year)
+        private static string GenerateGutscheinNumber(IEnumerable<GutscheinEntity> existingGutscheine, int year)
         {
             string yearPrefix = year.ToString();
-            int highestSuffix = existingVouchers
+            int highestSuffix = existingGutscheine
                 .Select(v => v.Gutscheinnummer)
                 .Where(number => number.StartsWith(yearPrefix, StringComparison.Ordinal))
                 .Select(number => number.Length > yearPrefix.Length
@@ -154,7 +174,24 @@ public sealed class AddGutschein
                 .Max();
 
             int nextSuffix = highestSuffix + 1;
-            return $"{yearPrefix}{nextSuffix.ToString($"D{VoucherNumberSuffixLength}")}";
+            return $"{yearPrefix}{nextSuffix.ToString($"D{GutscheinSuffixLength}")}";
+        }
+
+        private static bool IsValidGutscheinNumberForYear(string gutscheinnummer, int year)
+        {
+            if (string.IsNullOrWhiteSpace(gutscheinnummer))
+            {
+                return false;
+            }
+
+            string expectedPrefix = year.ToString();
+            if (!gutscheinnummer.StartsWith(expectedPrefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            string suffix = gutscheinnummer[expectedPrefix.Length..];
+            return suffix.Length >= GutscheinSuffixLength && suffix.All(char.IsDigit);
         }
     }
 }
