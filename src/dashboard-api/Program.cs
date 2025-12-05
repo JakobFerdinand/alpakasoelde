@@ -2,6 +2,7 @@ using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using DashboardApi.Features.Alpakas;
 using DashboardApi.Features.Events;
+using DashboardApi.Features.Gutscheine;
 using DashboardApi.Features.Messages;
 using DashboardApi.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,8 @@ var host = new HostBuilder()
         services.AddScoped<DeleteMessage.Handler>();
         services.AddScoped<Events.GetHandler>();
         services.AddScoped<Events.AddHandler>();
+        services.AddScoped<Gutscheine.GetHandler>();
+        services.AddScoped<Gutscheine.AddHandler>();
 
         services.AddScoped<AddAlpaka.IAlpakaWriteStore, AddAlpaka.TableAlpakaWriteStore>();
         services.AddScoped<AddAlpaka.IAlpakaImageStore, AddAlpaka.BlobAlpakaImageStore>();
@@ -38,6 +41,7 @@ var host = new HostBuilder()
         services.AddScoped<DeleteMessage.IStore, DeleteMessage.TableStore>();
         services.AddScoped<Events.IEventStore, Events.TableEventStore>();
         services.AddScoped<Events.IAlpakaLookupStore, Events.TableAlpakaLookupStore>();
+        services.AddScoped<Gutscheine.IGutscheinStore, Gutscheine.TableGutscheinStore>();
     })
     .Build();
 

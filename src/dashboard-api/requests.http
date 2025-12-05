@@ -33,3 +33,18 @@ Content-Type: application/json
 ###
 
 GET {{devbase}}/api/events
+
+###
+
+GET {{devbase}}/api/gutscheine
+
+###
+
+POST {{devbase}}/api/gutscheine
+Content-Type: application/json
+
+{
+  "kaufdatum": "2025-01-05",
+  "betrag": 120,
+  "eingeloestAm": null
+}
