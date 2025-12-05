@@ -1,5 +1,6 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
+import EventList from '../components/EventList.astro';
 ---
 
 <DashboardLayout title="Alpaka Detail">
@@ -41,15 +42,18 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       </div>
       <div id="alpaka-events" class="alpaka-events" hidden>
         <h3>Ereignisse</h3>
-        <div id="alpaka-events-content" class="alpaka-events-content loading">
-          <p class="loading-text">Lade Ereignisse...</p>
-        </div>
+        <EventList
+          id="alpaka-events-content"
+          loadingText="Lade Ereignisse..."
+          emptyText="Keine Ereignisse vorhanden."
+        />
       </div>
     </div>
   </section>
 </DashboardLayout>
 
 <script>
+  import { normalizeEvents, renderEventList } from '../components/event-list';
   const detailCard = document.getElementById('alpaka-detail-card');
   const eventsSection = document.getElementById('alpaka-events');
   const eventsContent = document.getElementById('alpaka-events-content');
@@ -298,84 +302,17 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       }
       const alpaka = await response.json();
       renderAlpaka(alpaka);
-      renderEvents(normalizeEvents(alpaka.Events ?? alpaka.events ?? []));
+      if (eventsSection && eventsContent) {
+        eventsSection.hidden = false;
+        renderEventList(eventsContent, normalizeEvents(alpaka.Events ?? alpaka.events ?? []), {
+          emptyText: eventsContent.dataset.emptyText ?? 'Keine Ereignisse vorhanden.',
+          showAlpakaNames: false
+        });
+      }
     } catch (error) {
       console.error(error);
       renderError('Alpaka konnte nicht geladen werden.');
     }
-  };
-
-  const formatCurrency = (value) => {
-    if (value === null || value === undefined || Number.isNaN(value)) return '';
-    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
-  };
-
-  const formatEventDate = (value) => {
-    const date = new Date(value);
-    if (Number.isNaN(date.valueOf())) return value;
-    return date.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
-  };
-
-  const normalizeEvents = (events) => {
-    if (!Array.isArray(events)) return [];
-    return events.map((event) => ({
-      eventType: event.eventType ?? event.EventType ?? '',
-      eventDate: event.eventDate ?? event.EventDate ?? '',
-      comment: event.comment ?? event.Comment ?? '',
-      cost: event.cost ?? event.Cost ?? null,
-    }));
-  };
-
-  const renderEvents = (events) => {
-    if (!eventsContent || !eventsSection) return;
-    eventsSection.hidden = false;
-    eventsContent.classList.remove('loading');
-    eventsContent.innerHTML = '';
-
-    if (!events || events.length === 0) {
-      const empty = document.createElement('p');
-      empty.textContent = 'Keine Ereignisse vorhanden.';
-      eventsContent.appendChild(empty);
-      return;
-    }
-
-    const list = document.createElement('ul');
-    list.className = 'event-list';
-
-    events.forEach((item) => {
-      const li = document.createElement('li');
-      li.className = 'event-list-item';
-
-      const header = document.createElement('div');
-      header.className = 'event-header';
-      const title = document.createElement('span');
-      title.className = 'event-title';
-      title.textContent = item.eventType;
-      const date = document.createElement('span');
-      date.className = 'event-date';
-      date.textContent = formatEventDate(item.eventDate);
-      header.appendChild(title);
-      header.appendChild(date);
-      li.appendChild(header);
-
-      if (item.comment) {
-        const comment = document.createElement('p');
-        comment.className = 'event-comment';
-        comment.textContent = item.comment;
-        li.appendChild(comment);
-      }
-
-      if (item.cost !== null && item.cost !== undefined) {
-        const cost = document.createElement('p');
-        cost.className = 'event-cost';
-        cost.textContent = `Kosten: ${formatCurrency(item.cost)}`;
-        li.appendChild(cost);
-      }
-
-      list.appendChild(li);
-    });
-
-    eventsContent.appendChild(list);
   };
 
   const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)
@@ -528,53 +465,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .alpaka-events h3 {
     margin-top: 0;
     margin-bottom: 1rem;
-  }
-
-  .event-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-
-  .event-list-item {
-    padding: 1rem;
-    border: 1px solid var(--taubenblau);
-    border-radius: 0.5rem;
-    background-color: var(--auwasser);
-  }
-
-  .event-header {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    align-items: baseline;
-  }
-
-  .event-title {
-    font-weight: 700;
-  }
-
-  .event-date {
-    font-weight: 600;
-  }
-
-  .event-comment {
-    margin: 0.5rem 0 0;
-  }
-
-  .event-cost {
-    margin: 0.25rem 0 0;
-    font-weight: 600;
-  }
-
-  @media (max-width: 600px) {
-    .event-header {
-      flex-direction: column;
-      align-items: flex-start;
-    }
   }
 
   .alpaka-detail-header {
