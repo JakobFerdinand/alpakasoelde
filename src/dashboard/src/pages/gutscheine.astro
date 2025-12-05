@@ -67,7 +67,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   };
 
   const normalizeVoucher = (voucher) => ({
-    voucherNumber: voucher.voucherNumber ?? voucher.VoucherNumber ?? '',
+    gutscheinnummer: voucher.gutscheinnummer ?? voucher.Gutscheinnummer ?? '',
     kaufdatum: voucher.kaufdatum ?? voucher.Kaufdatum ?? '',
     betrag: voucher.betrag ?? voucher.Betrag ?? null,
     eingeloestAm: voucher.eingeloestAm ?? voucher.EingeloestAm ?? null
@@ -103,7 +103,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       row.className = 'voucher-row';
 
       const number = document.createElement('div');
-      number.textContent = normalized.voucherNumber || '—';
+      number.textContent = normalized.gutscheinnummer || '—';
       row.appendChild(number);
 
       const purchaseDate = document.createElement('div');
@@ -185,7 +185,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       const result = await response.json();
       voucherForm.reset();
-      showStatus(`Gutschein ${result.voucherNumber ?? ''} wurde gespeichert.`);
+      showStatus(`Gutschein ${result.gutscheinnummer ?? result.Gutscheinnummer ?? ''} wurde gespeichert.`);
       await loadVouchers();
     } catch (error) {
       console.error(error);
