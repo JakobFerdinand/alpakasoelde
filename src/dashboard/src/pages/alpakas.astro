@@ -316,6 +316,59 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     return date.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const createEventIcon = (eventType = '') => {
+    const normalized = eventType.toLowerCase();
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.setAttribute('focusable', 'false');
+    icon.setAttribute('width', '20');
+    icon.setAttribute('height', '20');
+    icon.setAttribute('viewBox', '0 0 24 24');
+    icon.setAttribute('fill', 'none');
+    icon.setAttribute('stroke', 'currentColor');
+    icon.setAttribute('stroke-width', '2');
+    icon.setAttribute('stroke-linecap', 'round');
+    icon.setAttribute('stroke-linejoin', 'round');
+
+    const createPath = (d) => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      return path;
+    };
+
+    if (normalized.includes('impf') || normalized.includes('arzt')) {
+      icon.appendChild(createPath('M12 22V12'));
+      icon.appendChild(createPath('m7 12 5-5 5 5'));
+      icon.appendChild(createPath('M5 22h14'));
+    } else if (normalized.includes('training') || normalized.includes('übung')) {
+      icon.appendChild(createPath('M4 9h16'));
+      icon.appendChild(createPath('m7 9 2 12'));
+      icon.appendChild(createPath('m15 9-2 12'));
+      icon.appendChild(createPath('M9 4h6v3H9z'));
+    } else if (normalized.includes('pflege')) {
+      icon.appendChild(createPath('M4 12a8 8 0 0 1 16 0'));
+      icon.appendChild(createPath('M12 12v8'));
+      icon.appendChild(createPath('m8 20 4-4 4 4'));
+    } else {
+      icon.appendChild(createPath('M12 20c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8Z'));
+      icon.appendChild(createPath('m9 12 2 2 4-4'));
+    }
+
+    return icon;
+  };
+
+  const buildEventType = (eventType) => {
+    const wrapper = document.createElement('span');
+    wrapper.className = 'event-type';
+    const icon = createEventIcon(eventType);
+    const label = document.createElement('span');
+    label.className = 'event-type-label';
+    label.textContent = eventType || 'Ereignis';
+    wrapper.appendChild(icon);
+    wrapper.appendChild(label);
+    return wrapper;
+  };
+
   const normalizeEvents = (events) => {
     if (!Array.isArray(events)) return [];
     return events.map((event) => ({
@@ -348,14 +401,23 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
       const header = document.createElement('div');
       header.className = 'event-header';
-      const title = document.createElement('span');
-      title.className = 'event-title';
-      title.textContent = item.eventType;
+      const headerMain = document.createElement('div');
+      headerMain.className = 'event-header-main';
+      headerMain.appendChild(buildEventType(item.eventType));
+
       const date = document.createElement('span');
       date.className = 'event-date';
       date.textContent = formatEventDate(item.eventDate);
-      header.appendChild(title);
-      header.appendChild(date);
+      headerMain.appendChild(date);
+      header.appendChild(headerMain);
+
+      if (item.cost !== null && item.cost !== undefined) {
+        const cost = document.createElement('span');
+        cost.className = 'event-cost';
+        cost.textContent = formatCurrency(item.cost);
+        header.appendChild(cost);
+      }
+
       li.appendChild(header);
 
       if (item.comment) {
@@ -363,13 +425,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         comment.className = 'event-comment';
         comment.textContent = item.comment;
         li.appendChild(comment);
-      }
-
-      if (item.cost !== null && item.cost !== undefined) {
-        const cost = document.createElement('p');
-        cost.className = 'event-cost';
-        cost.textContent = `Kosten: ${formatCurrency(item.cost)}`;
-        li.appendChild(cost);
       }
 
       list.appendChild(li);
@@ -540,40 +595,74 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   }
 
   .event-list-item {
-    padding: 1rem;
+    padding: 1rem 1.25rem;
     border: 1px solid var(--taubenblau);
-    border-radius: 0.5rem;
-    background-color: var(--auwasser);
+    border-radius: 0.75rem;
+    background: linear-gradient(135deg, rgba(59, 89, 152, 0.07), rgba(26, 188, 156, 0.08));
+    border-left: 4px solid var(--weidegruen);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
   }
 
   .event-header {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
-    align-items: baseline;
+    align-items: center;
   }
 
-  .event-title {
+  .event-header-main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .event-type {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--schurwolle);
+    color: var(--taubenblau);
+    padding: 0.35rem 0.6rem;
+    border-radius: 999px;
     font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+
+  .event-type svg {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  .event-type-label {
+    display: inline-flex;
+    align-items: center;
   }
 
   .event-date {
     font-weight: 600;
+    color: var(--taubenblau);
   }
 
   .event-comment {
     margin: 0.5rem 0 0;
+    line-height: 1.6;
   }
 
   .event-cost {
-    margin: 0.25rem 0 0;
-    font-weight: 600;
+    margin-left: auto;
+    font-weight: 700;
+    color: var(--weidegruen);
   }
 
   @media (max-width: 600px) {
     .event-header {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .event-cost {
+      margin-left: 0;
     }
   }
 
