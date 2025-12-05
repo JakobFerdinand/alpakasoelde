@@ -91,43 +91,57 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       return;
     }
 
-    const table = document.createElement('div');
-    table.className = 'voucher-table';
-
-    const header = document.createElement('div');
-    header.className = 'voucher-row voucher-head';
-    ['Gutscheinnummer', 'Kaufdatum', 'Betrag', 'Eingelöst am'].forEach((title) => {
-      const cell = document.createElement('div');
-      cell.textContent = title;
-      header.appendChild(cell);
-    });
-    table.appendChild(header);
+    const list = document.createElement('div');
+    list.className = 'voucher-grid';
 
     vouchers.forEach((voucher) => {
       const normalized = normalizeVoucher(voucher);
-      const row = document.createElement('div');
-      row.className = 'voucher-row';
+      const card = document.createElement('article');
+      card.className = 'voucher-item';
 
-      const number = document.createElement('div');
-      number.textContent = normalized.gutscheinnummer || '—';
-      row.appendChild(number);
+      const header = document.createElement('div');
+      header.className = 'voucher-item__header';
 
-      const purchaseDate = document.createElement('div');
-      purchaseDate.textContent = formatDate(normalized.kaufdatum);
-      row.appendChild(purchaseDate);
+      const number = document.createElement('p');
+      number.className = 'voucher-number';
+      number.textContent = normalized.gutscheinnummer || 'Ohne Nummer';
+      header.appendChild(number);
 
-      const amount = document.createElement('div');
+      const status = document.createElement('span');
+      const isRedeemed = Boolean(normalized.eingeloestAm);
+      status.className = `status-pill ${isRedeemed ? 'status-success' : 'status-open'}`;
+      status.textContent = isRedeemed
+        ? `Eingelöst am ${formatDate(normalized.eingeloestAm)}`
+        : 'Noch offen';
+      header.appendChild(status);
+
+      card.appendChild(header);
+
+      const amount = document.createElement('p');
+      amount.className = 'voucher-amount';
       amount.textContent = formatCurrency(normalized.betrag);
-      row.appendChild(amount);
+      card.appendChild(amount);
 
-      const redeemed = document.createElement('div');
-      redeemed.textContent = normalized.eingeloestAm ? formatDate(normalized.eingeloestAm) : 'Noch offen';
-      row.appendChild(redeemed);
+      const meta = document.createElement('dl');
+      meta.className = 'voucher-meta';
 
-      table.appendChild(row);
+      const addMeta = (label, value) => {
+        const dt = document.createElement('dt');
+        dt.textContent = label;
+        const dd = document.createElement('dd');
+        dd.textContent = value;
+        meta.appendChild(dt);
+        meta.appendChild(dd);
+      };
+
+      addMeta('Kaufdatum', formatDate(normalized.kaufdatum));
+      addMeta('Einlösestatus', isRedeemed ? 'Eingelöst' : 'Nicht eingelöst');
+
+      card.appendChild(meta);
+      list.appendChild(card);
     });
 
-    voucherList.appendChild(table);
+    voucherList.appendChild(list);
   };
 
   const suggestNextNumber = (vouchers) => {
@@ -333,10 +347,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   }
 
   .voucher-list {
-    border: 1px solid rgba(0, 32, 73, 0.08);
-    border-radius: 0.75rem;
-    padding: 1rem;
     min-height: 120px;
+    padding: 0.25rem;
   }
 
   .voucher-list.loading {
@@ -345,27 +357,85 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     justify-content: center;
   }
 
-  .voucher-table {
+  .voucher-grid {
     display: grid;
-    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
   }
 
-  .voucher-row {
-    display: grid;
-    grid-template-columns: 1.2fr repeat(3, 1fr);
+  .voucher-item {
+    border: 1px solid rgba(0, 32, 73, 0.08);
+    border-radius: 0.9rem;
+    padding: 1rem 1.1rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f6fbff 100%);
+    box-shadow: 0 10px 30px rgba(0, 32, 73, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .voucher-item__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.5rem 0.25rem;
-    border-bottom: 1px solid rgba(0, 32, 73, 0.08);
   }
 
-  .voucher-row:last-child {
-    border-bottom: none;
+  .voucher-number {
+    margin: 0;
+    font-weight: 800;
+    color: var(--taubenblau);
+    letter-spacing: 0.02em;
   }
 
-  .voucher-head {
+  .status-pill {
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border: 1px solid rgba(0, 32, 73, 0.08);
+    background: #fff;
+    color: var(--taubenblau);
+    white-space: nowrap;
+  }
+
+  .status-success {
+    border-color: rgba(67, 160, 71, 0.2);
+    background: rgba(67, 160, 71, 0.08);
+    color: #2e7d32;
+  }
+
+  .status-open {
+    border-color: rgba(255, 152, 0, 0.2);
+    background: rgba(255, 152, 0, 0.08);
+    color: #c77800;
+  }
+
+  .voucher-amount {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--taubenblau);
+  }
+
+  .voucher-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.4rem 1rem;
+    margin: 0;
+  }
+
+  .voucher-meta dt {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(0, 32, 73, 0.65);
+  }
+
+  .voucher-meta dd {
+    margin: 0;
     font-weight: 700;
     color: var(--taubenblau);
-    border-bottom: 2px solid rgba(0, 32, 73, 0.15);
   }
 
   .loading-text,
@@ -382,15 +452,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     .list-header {
       flex-direction: column;
       align-items: flex-start;
-    }
-
-    .voucher-row {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .voucher-row div:nth-child(1) {
-      grid-column: span 2;
-      font-weight: 700;
     }
   }
 </style>
