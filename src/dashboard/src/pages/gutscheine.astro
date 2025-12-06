@@ -59,7 +59,9 @@ const gutscheine = null;
   </section>
 </DashboardLayout>
 
-<script>
+<script type="module">
+  import { normalizeGutscheine, renderGutscheinListe } from '../utils/gutscheine';
+
   const gutscheinFormular = document.getElementById('gutschein-formular');
   const gutscheinListe = document.getElementById('gutschein-liste');
   const statusNachricht = document.getElementById('gutschein-status');
@@ -73,30 +75,17 @@ const gutscheine = null;
   const einloesenNummer = document.getElementById('gutschein-einloesen-nummer');
   const einloesenAbbrechen = document.getElementById('gutschein-einloesen-abbrechen');
   const einloesenSpeichern = document.getElementById('gutschein-einloesen-speichern');
+  const gutscheinWrapper = document.querySelector('[data-gutschein-liste]');
+  const initialGutscheine = (() => {
+    if (!gutscheinWrapper) return [];
+    try {
+      return JSON.parse(gutscheinWrapper.getAttribute('data-initial-gutscheine') || '[]') ?? [];
+    } catch (error) {
+      console.error('Initiale Gutscheine konnten nicht gelesen werden.', error);
+      return [];
+    }
+  })();
   let aktuellerEinloeseGutschein = null;
-
-  const datumFormatieren = (wert) => {
-    if (!wert) return '—';
-    const datum = new Date(wert);
-    if (Number.isNaN(datum.valueOf())) return wert;
-    return datum.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
-  };
-
-  const betragFormatieren = (wert) => {
-    if (wert === null || wert === undefined || Number.isNaN(Number(wert))) return '—';
-    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(wert));
-  };
-
-  const gutscheinNormieren = (gutschein) => {
-    const uppercase = gutschein ?? {};
-
-    return {
-      gutscheinnummer: gutschein?.gutscheinnummer ?? uppercase.Gutscheinnummer ?? '',
-      kaufdatum: gutschein?.kaufdatum ?? uppercase.Kaufdatum ?? '',
-      betrag: gutschein?.betrag ?? uppercase.Betrag ?? null,
-      eingeloestAm: gutschein?.eingeloestAm ?? uppercase.EingeloestAm ?? null
-    };
-  };
 
   const einloesenStatusZuruecksetzen = () => {
     if (!einloesenStatus) return;
@@ -139,77 +128,15 @@ const gutscheine = null;
   };
 
   const listeRendern = (gutscheine) => {
-    gutscheinListe.classList.remove('ladezustand');
-    gutscheinListe.innerHTML = '';
-
-    if (!gutscheine || gutscheine.length === 0) {
-      const leer = document.createElement('p');
-      leer.className = 'leer';
-      leer.textContent = 'Noch keine Gutscheine erfasst.';
-      gutscheinListe.appendChild(leer);
-      return;
-    }
-
-    const tabelle = document.createElement('table');
-    tabelle.className = 'gutschein-tabelle';
-
-    const thead = document.createElement('thead');
-    const kopfZeile = document.createElement('tr');
-    kopfZeile.className = 'gutschein-kopf';
-    ['Gutscheinnummer', 'Kaufdatum', 'Betrag', 'Eingelöst am'].forEach((titel) => {
-      const zelle = document.createElement('th');
-      zelle.scope = 'col';
-      zelle.textContent = titel;
-      kopfZeile.appendChild(zelle);
-    });
-    thead.appendChild(kopfZeile);
-    tabelle.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
-
-    gutscheine.forEach((gutschein) => {
-      const normalisiert = gutscheinNormieren(gutschein);
-      const zeile = document.createElement('tr');
-      zeile.className = 'gutschein-zeile';
-
-      const nummer = document.createElement('td');
-      nummer.textContent = normalisiert.gutscheinnummer || '—';
-      zeile.appendChild(nummer);
-
-      const kaufdatum = document.createElement('td');
-      kaufdatum.textContent = datumFormatieren(normalisiert.kaufdatum);
-      zeile.appendChild(kaufdatum);
-
-      const betrag = document.createElement('td');
-      betrag.textContent = betragFormatieren(normalisiert.betrag);
-      zeile.appendChild(betrag);
-
-      const eingeloest = document.createElement('td');
-      if (normalisiert.eingeloestAm) {
-        eingeloest.textContent = datumFormatieren(normalisiert.eingeloestAm);
-      } else {
-        const einloesenButton = document.createElement('button');
-        einloesenButton.type = 'button';
-        einloesenButton.className = 'link-button';
-        einloesenButton.textContent = 'Einlösen';
-        einloesenButton.addEventListener('click', () => einloesenDialogOeffnen(normalisiert));
-        eingeloest.appendChild(einloesenButton);
-      }
-      zeile.appendChild(eingeloest);
-
-      tbody.appendChild(zeile);
-    });
-
-    tabelle.appendChild(tbody);
-    gutscheinListe.appendChild(tabelle);
+    renderGutscheinListe(gutscheinListe, gutscheine, { onRedeemClick: einloesenDialogOeffnen });
   };
 
   const naechsteNummerVorschlagen = (gutscheine) => {
     if (!gutscheinnummerEingabe) return;
 
     const jahresPraefix = new Date().getFullYear().toString();
-    const hoechsteEndung = gutscheine
-      .map((gutschein) => gutscheinNormieren(gutschein).gutscheinnummer)
+    const hoechsteEndung = normalizeGutscheine(gutscheine)
+      .map((gutschein) => gutschein.gutscheinnummer)
       .filter((nummer) => nummer?.startsWith(jahresPraefix))
       .map((nummer) => nummer?.slice(jahresPraefix.length) ?? '0')
       .map((endung) => (Number.isNaN(Number(endung)) ? 0 : Number(endung)))
@@ -351,6 +278,10 @@ const gutscheine = null;
   });
   einloesenAbbrechen?.addEventListener('click', einloesenDialogSchliessen);
   einloesenDialog?.addEventListener('cancel', einloesenDialogSchliessen);
+  if (initialGutscheine.length > 0) {
+    listeRendern(initialGutscheine);
+    naechsteNummerVorschlagen(initialGutscheine);
+  }
   gutscheineLaden();
 </script>
 

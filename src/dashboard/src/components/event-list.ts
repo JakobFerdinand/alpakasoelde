@@ -1,3 +1,5 @@
+import { formatCurrency, formatDate } from '../utils/format';
+
 export type EventListItem = {
   eventType: string;
   eventDate: string;
@@ -9,17 +11,6 @@ export type EventListItem = {
 export type EventListOptions = {
   emptyText?: string;
   showAlpakaNames?: boolean;
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return value;
-  return date.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
-};
-
-const formatCurrency = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return '';
-  return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
 };
 
 export const normalizeEvents = (events: unknown): EventListItem[] => {
@@ -105,7 +96,7 @@ export const renderEventList = (
 
     const date = document.createElement('div');
     date.className = 'event-date';
-    date.textContent = formatDate(item.eventDate);
+    date.textContent = formatDate(item.eventDate, { year: 'numeric', month: 'long', day: 'numeric' });
 
     header.appendChild(titleGroup);
     header.appendChild(date);
