@@ -73,7 +73,15 @@ const wirdGeladen = gutscheineProp === null;
               <td>{gutschein.gutscheinnummer || '—'}</td>
               <td>{formatDate(gutschein.kaufdatum)}</td>
               <td>{formatCurrency(gutschein.betrag)}</td>
-              <td>{gutschein.eingeloestAm ? formatDate(gutschein.eingeloestAm) : 'Noch offen'}</td>
+              <td>
+                {gutschein.eingeloestAm ? (
+                  formatDate(gutschein.eingeloestAm)
+                ) : (
+                  <button type="button" class="link-button" data-gutscheinnummer={gutschein.gutscheinnummer}>
+                    Einlösen
+                  </button>
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
