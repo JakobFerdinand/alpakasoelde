@@ -24,6 +24,7 @@
 - Shared table entities live under `src/*/shared/entities`; reuse them from slices instead of duplicating.
 - Prefer modern CSS capabilities (e.g., `:has`, form/visibility toggles) over JavaScript for UI state where possible; keep client-side scripts lean.
 - Dashboard UI: whenever an icon is needed, use the installed Astro Lucide icon pack instead of introducing other icon sources.
+- Reuse existing utilities before introducing new helpers. Formatting (dates/currency), normalization logic, and DOM renderers should live in shared modules rather than being copied across pages or components.
 
 ## Testing Guidelines
 - Frontend validation comes from `astro check` during `npm run build`; run it before opening a PR.
