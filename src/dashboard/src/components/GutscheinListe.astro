@@ -29,6 +29,11 @@ const formatCurrency = (value?: number | string | null) => {
   return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
 };
 
+const normalizeAmount = (value?: number | string | null) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+};
+
 const normalizeGutschein = (gutschein: Gutschein) => {
   const uppercase = gutschein as Record<string, unknown>;
 
@@ -43,6 +48,11 @@ const normalizeGutschein = (gutschein: Gutschein) => {
 const normalisierteGutscheine = gutscheine.map(normalizeGutschein);
 const hatGutscheine = normalisierteGutscheine.length > 0;
 const wirdGeladen = gutscheineProp === null;
+const summeVerkauft = normalisierteGutscheine.reduce((summe, gutschein) => summe + normalizeAmount(gutschein.betrag), 0);
+const summeOffen = normalisierteGutscheine.reduce(
+  (summe, gutschein) => (!gutschein.eingeloestAm ? summe + normalizeAmount(gutschein.betrag) : summe),
+  0
+);
 ---
 
 <div class="gutschein-karte" data-gutschein-liste data-initial-gutscheine={JSON.stringify(gutscheineProp)}>
@@ -85,6 +95,17 @@ const wirdGeladen = gutscheineProp === null;
             </tr>
           ))}
         </tbody>
+        <tfoot>
+          <tr class="gutschein-summe">
+            <td colspan="2" aria-hidden="true"></td>
+            <td class="gutschein-summe-zelle">
+              <span class="gutschein-summe-betrag">{formatCurrency(summeVerkauft)}</span>
+            </td>
+            <td class="gutschein-summe-zelle">
+              <span class="gutschein-summe-betrag">{formatCurrency(summeOffen)}</span>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     ) : (
       <p class="leer">Noch keine Gutscheine erfasst.</p>
