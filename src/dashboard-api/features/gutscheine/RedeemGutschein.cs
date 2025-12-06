@@ -26,7 +26,10 @@ public sealed class RedeemGutschein
         RedeemGutscheinRequest? payload;
         try
         {
-            payload = await req.ReadFromJsonAsync<RedeemGutscheinRequest>(new() { PropertyNameCaseInsensitive = true }).ConfigureAwait(false);
+            payload = await JsonSerializer.DeserializeAsync<RedeemGutscheinRequest>(
+                req.Body,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                req.FunctionContext.CancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is JsonException or FormatException)
         {
