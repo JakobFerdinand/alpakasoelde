@@ -28,6 +28,7 @@ var host = new HostBuilder()
         services.AddScoped<Events.AddHandler>();
         services.AddScoped<GetGutscheine.Handler>();
         services.AddScoped<AddGutschein.Handler>();
+        services.AddScoped<RedeemGutschein.Handler>();
 
         services.AddScoped<AddAlpaka.IAlpakaWriteStore, AddAlpaka.TableAlpakaWriteStore>();
         services.AddScoped<AddAlpaka.IAlpakaImageStore, AddAlpaka.BlobAlpakaImageStore>();

@@ -49,3 +49,14 @@ Content-Type: application/json
   "betrag": 120,
   "eingeloestAm": null
 }
+
+###
+
+@gutscheinnummer=202501
+
+POST {{devbase}}/api/gutscheine/{{gutscheinnummer}}/einloesen
+Content-Type: application/json
+
+{
+  "eingeloestAm": "2025-02-15"
+}

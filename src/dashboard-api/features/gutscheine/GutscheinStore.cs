@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 using dashboard_api.shared.entities;
 
@@ -7,6 +8,8 @@ public interface IGutscheinStore
 {
     Task<IReadOnlyList<GutscheinEntity>> GetAllAsync(CancellationToken cancellationToken);
     Task AddAsync(GutscheinEntity entity, CancellationToken cancellationToken);
+    Task<GutscheinEntity?> GetByGutscheinnummerAsync(string gutscheinnummer, CancellationToken cancellationToken);
+    Task UpdateAsync(GutscheinEntity entity, CancellationToken cancellationToken);
 }
 
 public sealed class TableGutscheinStore(TableServiceClient tableServiceClient) : IGutscheinStore
@@ -27,5 +30,27 @@ public sealed class TableGutscheinStore(TableServiceClient tableServiceClient) :
         TableClient tableClient = _tableServiceClient.GetTableClient("gutscheine");
         await tableClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         await tableClient.AddEntityAsync(entity, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<GutscheinEntity?> GetByGutscheinnummerAsync(string gutscheinnummer, CancellationToken cancellationToken)
+    {
+        TableClient tableClient = _tableServiceClient.GetTableClient("gutscheine");
+
+        try
+        {
+            var response = await tableClient.GetEntityAsync<GutscheinEntity>("GutscheinePartition", gutscheinnummer, cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+            return response.Value;
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            return null;
+        }
+    }
+
+    public async Task UpdateAsync(GutscheinEntity entity, CancellationToken cancellationToken)
+    {
+        TableClient tableClient = _tableServiceClient.GetTableClient("gutscheine");
+        await tableClient.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Replace, cancellationToken).ConfigureAwait(false);
     }
 }
