@@ -86,7 +86,6 @@ const gutscheine = null;
     }
   })();
   let aktuellerEinloeseGutschein = null;
-
   const einloesenStatusZuruecksetzen = () => {
     if (!einloesenStatus) return;
     einloesenStatus.hidden = true;
@@ -474,6 +473,30 @@ const gutscheine = null;
 
   .gutschein-zeile:last-child td {
     border-bottom: none;
+  }
+
+  .gutschein-summe td {
+    border-top: 2px solid rgba(0, 32, 73, 0.15);
+    padding-top: 0.85rem;
+  }
+
+  .gutschein-summe-zelle {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    font-weight: 700;
+    color: var(--taubenblau);
+  }
+
+  .gutschein-summe-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(0, 32, 73, 0.75);
+  }
+
+  .gutschein-summe-betrag {
+    font-size: 1rem;
   }
 
   .lade-text,

@@ -34,10 +34,36 @@ export const normalizeGutscheine = (gutscheine: Gutschein[] | null | undefined):
   return gutscheine.map(normalizeGutschein);
 };
 
-export const renderGutscheinTableMarkup = (gutscheine: NormalizedGutschein[]) => {
+export const normalizeAmount = (value?: number | string | null) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+};
+
+export const calculateGutscheinSums = (gutscheine: NormalizedGutschein[]) => {
+  return gutscheine.reduce(
+    (sum, gutschein) => {
+      const amount = normalizeAmount(gutschein.betrag);
+
+      return {
+        total: sum.total + amount,
+        open: sum.open + (gutschein.eingeloestAm ? 0 : amount)
+      };
+    },
+    { total: 0, open: 0 }
+  );
+};
+
+export const renderGutscheinTableMarkup = (
+  gutscheine: NormalizedGutschein[],
+  options: { showTotals?: boolean } = {}
+) => {
+  const showTotals = options.showTotals ?? true;
+
   if (!gutscheine || gutscheine.length === 0) {
     return '<p class="leer">Noch keine Gutscheine erfasst.</p>';
   }
+
+  const { total, open } = calculateGutscheinSums(gutscheine);
 
   const header = `
     <thead>
@@ -70,12 +96,31 @@ export const renderGutscheinTableMarkup = (gutscheine: NormalizedGutschein[]) =>
     })
     .join('');
 
+  const totals = !showTotals
+    ? ''
+    : `
+      <tfoot>
+        <tr class="gutschein-summe">
+          <td colspan="2" aria-hidden="true"></td>
+          <td class="gutschein-summe-zelle">
+            <span class="gutschein-summe-label">Verkauft</span>
+            <span class="gutschein-summe-betrag">${formatCurrency(total)}</span>
+          </td>
+          <td class="gutschein-summe-zelle">
+            <span class="gutschein-summe-label">Offen</span>
+            <span class="gutschein-summe-betrag">${formatCurrency(open)}</span>
+          </td>
+        </tr>
+      </tfoot>
+    `;
+
   return `
     <table class="gutschein-tabelle" aria-label="Gutscheinliste">
       ${header}
       <tbody>
         ${rows}
       </tbody>
+      ${totals}
     </table>
   `;
 };
@@ -83,13 +128,14 @@ export const renderGutscheinTableMarkup = (gutscheine: NormalizedGutschein[]) =>
 export const renderGutscheinListe = (
   container: HTMLElement | null,
   gutscheine: Gutschein[] | NormalizedGutschein[],
-  options: { onRedeemClick?: (gutschein: NormalizedGutschein) => void } = {}
+  options: { onRedeemClick?: (gutschein: NormalizedGutschein) => void; showTotals?: boolean } = {}
 ) => {
   if (!container) return;
 
+  const { showTotals = true } = options;
   const normalisierteGutscheine = normalizeGutscheine(gutscheine as Gutschein[]);
   container.classList.remove('ladezustand');
-  container.innerHTML = renderGutscheinTableMarkup(normalisierteGutscheine);
+  container.innerHTML = renderGutscheinTableMarkup(normalisierteGutscheine, { showTotals });
 
   if (!options.onRedeemClick) return;
 
