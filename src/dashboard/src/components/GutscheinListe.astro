@@ -58,22 +58,26 @@ const wirdGeladen = gutscheineProp === null;
     {wirdGeladen ? (
       <p class="lade-text">Lade Gutscheine...</p>
     ) : hatGutscheine ? (
-      <div class="gutschein-tabelle" role="table" aria-label="Gutscheinliste">
-        <div class="gutschein-zeile gutschein-kopf" role="row">
-          <div role="columnheader">Gutscheinnummer</div>
-          <div role="columnheader">Kaufdatum</div>
-          <div role="columnheader">Betrag</div>
-          <div role="columnheader">Eingelöst am</div>
-        </div>
-        {normalisierteGutscheine.map((gutschein) => (
-          <div class="gutschein-zeile" role="row">
-            <div role="cell">{gutschein.gutscheinnummer || '—'}</div>
-            <div role="cell">{formatDate(gutschein.kaufdatum)}</div>
-            <div role="cell">{formatCurrency(gutschein.betrag)}</div>
-            <div role="cell">{gutschein.eingeloestAm ? formatDate(gutschein.eingeloestAm) : 'Noch offen'}</div>
-          </div>
-        ))}
-      </div>
+      <table class="gutschein-tabelle" aria-label="Gutscheinliste">
+        <thead>
+          <tr class="gutschein-kopf">
+            <th scope="col">Gutscheinnummer</th>
+            <th scope="col">Kaufdatum</th>
+            <th scope="col">Betrag</th>
+            <th scope="col">Eingelöst am</th>
+          </tr>
+        </thead>
+        <tbody>
+          {normalisierteGutscheine.map((gutschein) => (
+            <tr class="gutschein-zeile">
+              <td>{gutschein.gutscheinnummer || '—'}</td>
+              <td>{formatDate(gutschein.kaufdatum)}</td>
+              <td>{formatCurrency(gutschein.betrag)}</td>
+              <td>{gutschein.eingeloestAm ? formatDate(gutschein.eingeloestAm) : 'Noch offen'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     ) : (
       <p class="leer">Noch keine Gutscheine erfasst.</p>
     )}
