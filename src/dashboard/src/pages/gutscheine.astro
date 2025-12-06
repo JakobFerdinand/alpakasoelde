@@ -226,24 +226,18 @@ const gutscheine = null;
 
     const summeVerkauftZelle = document.createElement('td');
     summeVerkauftZelle.className = 'gutschein-summe-zelle';
-    const summeVerkauftLabel = document.createElement('span');
-    summeVerkauftLabel.className = 'gutschein-summe-label';
-    summeVerkauftLabel.textContent = 'Summe verkauft';
     const summeVerkauftWert = document.createElement('span');
     summeVerkauftWert.className = 'gutschein-summe-betrag';
     summeVerkauftWert.textContent = betragFormatieren(summeVerkauft);
-    summeVerkauftZelle.append(summeVerkauftLabel, summeVerkauftWert);
+    summeVerkauftZelle.append(summeVerkauftWert);
     summenZeile.appendChild(summeVerkauftZelle);
 
     const summeOffenZelle = document.createElement('td');
     summeOffenZelle.className = 'gutschein-summe-zelle';
-    const summeOffenLabel = document.createElement('span');
-    summeOffenLabel.className = 'gutschein-summe-label';
-    summeOffenLabel.textContent = 'Summe offen';
     const summeOffenWert = document.createElement('span');
     summeOffenWert.className = 'gutschein-summe-betrag';
     summeOffenWert.textContent = betragFormatieren(summeOffen);
-    summeOffenZelle.append(summeOffenLabel, summeOffenWert);
+    summeOffenZelle.append(summeOffenWert);
     summenZeile.appendChild(summeOffenZelle);
 
     tfoot.appendChild(summenZeile);
