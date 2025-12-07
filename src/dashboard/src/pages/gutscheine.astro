@@ -161,6 +161,9 @@ const gutscheine = null;
       return;
     }
 
+    const tabelleWrapper = document.createElement('div');
+    tabelleWrapper.className = 'gutschein-tabelle-wrapper';
+
     const tabelle = document.createElement('table');
     tabelle.className = 'gutschein-tabelle';
 
@@ -252,7 +255,8 @@ const gutscheine = null;
 
     tfoot.appendChild(summenZeile);
     tabelle.appendChild(tfoot);
-    gutscheinListe.appendChild(tabelle);
+    tabelleWrapper.appendChild(tabelle);
+    gutscheinListe.appendChild(tabelleWrapper);
   };
 
   const naechsteNummerVorschlagen = (gutscheine) => {
@@ -569,8 +573,6 @@ const gutscheine = null;
     border-radius: 0.75rem;
     padding: 1rem;
     min-height: 120px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
     width: 100%;
   }
 
@@ -578,6 +580,12 @@ const gutscheine = null;
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .gutschein-tabelle-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .gutschein-tabelle {

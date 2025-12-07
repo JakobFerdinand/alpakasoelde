@@ -71,47 +71,49 @@ const summeOffen = normalisierteGutscheine.reduce(
     {wirdGeladen ? (
       <p class="lade-text">Lade Gutscheine...</p>
     ) : hatGutscheine ? (
-      <table class="gutschein-tabelle" aria-label="Gutscheinliste">
-        <thead>
-          <tr class="gutschein-kopf">
-            <th scope="col">Gutscheinnummer</th>
-            <th scope="col">Kaufdatum</th>
-            <th scope="col">Betrag</th>
-            <th scope="col">Verkauft an</th>
-            <th scope="col">Eingelöst am</th>
-          </tr>
-        </thead>
-        <tbody>
-          {normalisierteGutscheine.map((gutschein) => (
-            <tr class="gutschein-zeile">
-              <td>{gutschein.gutscheinnummer || '—'}</td>
-              <td>{formatDate(gutschein.kaufdatum)}</td>
-              <td>{formatCurrency(gutschein.betrag)}</td>
-              <td>{gutschein.verkauftAn || '—'}</td>
-              <td>
-                {gutschein.eingeloestAm ? (
-                  formatDate(gutschein.eingeloestAm)
-                ) : (
-                  <button type="button" class="link-button" data-gutscheinnummer={gutschein.gutscheinnummer}>
-                    Einlösen
-                  </button>
-                )}
+      <div class="gutschein-tabelle-wrapper">
+        <table class="gutschein-tabelle" aria-label="Gutscheinliste">
+          <thead>
+            <tr class="gutschein-kopf">
+              <th scope="col">Gutscheinnummer</th>
+              <th scope="col">Kaufdatum</th>
+              <th scope="col">Betrag</th>
+              <th scope="col">Verkauft an</th>
+              <th scope="col">Eingelöst am</th>
+            </tr>
+          </thead>
+          <tbody>
+            {normalisierteGutscheine.map((gutschein) => (
+              <tr class="gutschein-zeile">
+                <td>{gutschein.gutscheinnummer || '—'}</td>
+                <td>{formatDate(gutschein.kaufdatum)}</td>
+                <td>{formatCurrency(gutschein.betrag)}</td>
+                <td>{gutschein.verkauftAn || '—'}</td>
+                <td>
+                  {gutschein.eingeloestAm ? (
+                    formatDate(gutschein.eingeloestAm)
+                  ) : (
+                    <button type="button" class="link-button" data-gutscheinnummer={gutschein.gutscheinnummer}>
+                      Einlösen
+                    </button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr class="gutschein-summe">
+              <td colspan="3" aria-hidden="true"></td>
+              <td class="gutschein-summe-zelle">
+                <span class="gutschein-summe-betrag">{formatCurrency(summeVerkauft)}</span>
+              </td>
+              <td class="gutschein-summe-zelle">
+                <span class="gutschein-summe-betrag">{formatCurrency(summeOffen)}</span>
               </td>
             </tr>
-          ))}
-        </tbody>
-        <tfoot>
-          <tr class="gutschein-summe">
-            <td colspan="3" aria-hidden="true"></td>
-            <td class="gutschein-summe-zelle">
-              <span class="gutschein-summe-betrag">{formatCurrency(summeVerkauft)}</span>
-            </td>
-            <td class="gutschein-summe-zelle">
-              <span class="gutschein-summe-betrag">{formatCurrency(summeOffen)}</span>
-            </td>
-          </tr>
-        </tfoot>
-      </table>
+          </tfoot>
+        </table>
+      </div>
     ) : (
       <p class="leer">Noch keine Gutscheine erfasst.</p>
     )}
