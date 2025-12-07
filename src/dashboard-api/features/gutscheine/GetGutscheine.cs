@@ -25,7 +25,7 @@ public sealed class GetGutscheine
     }
 
     public sealed record Query;
-    public sealed record GutscheinResult(string Gutscheinnummer, string Kaufdatum, double Betrag, string? EingeloestAm);
+    public sealed record GutscheinResult(string Gutscheinnummer, string Kaufdatum, double Betrag, string? EingeloestAm, string? VerkauftAn);
 
     public sealed class Handler(IGutscheinStore store)
     {
@@ -42,7 +42,8 @@ public sealed class GetGutscheine
                     voucher.Gutscheinnummer,
                     voucher.Kaufdatum.ToString("yyyy-MM-dd"),
                     voucher.Betrag,
-                    voucher.EingeloestAm?.ToString("yyyy-MM-dd")))
+                    voucher.EingeloestAm?.ToString("yyyy-MM-dd"),
+                    voucher.VerkauftAn))
                 .ToList();
         }
     }

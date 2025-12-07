@@ -60,7 +60,8 @@ public sealed class AddGutschein
             payload.Gutscheinnummer,
             payload.Kaufdatum ?? string.Empty,
             payload.Betrag,
-            payload.EingeloestAm);
+            payload.EingeloestAm,
+            payload.VerkauftAn);
 
         var (result, error) = await _handler.HandleAsync(command, req.FunctionContext.CancellationToken);
         if (error is not null)
@@ -80,7 +81,7 @@ public sealed class AddGutschein
         return created;
     }
 
-    public sealed record AddCommand(string? Gutscheinnummer, string Kaufdatum, double? Betrag, string? EingeloestAm);
+    public sealed record AddCommand(string? Gutscheinnummer, string Kaufdatum, double? Betrag, string? EingeloestAm, string? VerkauftAn);
     public sealed record AddResult(string Gutscheinnummer);
     public sealed record AddGutscheinRequest
     {
@@ -88,6 +89,7 @@ public sealed class AddGutschein
         public string? Kaufdatum { get; init; }
         public double? Betrag { get; init; }
         public string? EingeloestAm { get; init; }
+        public string? VerkauftAn { get; init; }
     }
 
     public sealed class Handler(IGutscheinStore store, ILogger<Handler> logger)
@@ -112,6 +114,14 @@ public sealed class AddGutschein
             if (!string.IsNullOrWhiteSpace(command.EingeloestAm) && !DateTimeOffset.TryParse(command.EingeloestAm, out _))
             {
                 return (null, "Das Einlösedatum ist ungültig.");
+            }
+
+            string? verkauftAn = string.IsNullOrWhiteSpace(command.VerkauftAn)
+                ? null
+                : command.VerkauftAn.Trim();
+            if (verkauftAn is not null && verkauftAn.Length > 200)
+            {
+                return (null, "Der Name des Käufers darf höchstens 200 Zeichen enthalten.");
             }
 
             DateTimeOffset? eingeloestAm = null;
@@ -151,6 +161,7 @@ public sealed class AddGutschein
                 Kaufdatum = kaufdatum.Date,
                 Betrag = command.Betrag.Value,
                 EingeloestAm = eingeloestAm,
+                VerkauftAn = verkauftAn,
                 PartitionKey = "GutscheinePartition",
                 RowKey = gutscheinnummer
             };
