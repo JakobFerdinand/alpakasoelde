@@ -14,7 +14,10 @@ export type EventListOptions = {
 const formatDate = (value: string) => {
   const date = new Date(value);
   if (Number.isNaN(date.valueOf())) return value;
-  return date.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`;
 };
 
 const formatCurrency = (value: number | string | null | undefined) => {
@@ -105,7 +108,7 @@ export const renderEventList = (
 
   const detailHeader = document.createElement('th');
   detailHeader.scope = 'col';
-  detailHeader.textContent = 'Details';
+  detailHeader.setAttribute('aria-label', 'Details');
   headerRow.appendChild(detailHeader);
 
   const costHeader = document.createElement('th');
@@ -146,15 +149,15 @@ export const renderEventList = (
     detailCell.className = 'event-details';
 
     if (showAlpakaNames && Array.isArray(item.alpakaNames) && item.alpakaNames.length > 0) {
-      const chips = document.createElement('div');
-      chips.className = 'alpaka-chips';
+      const list = document.createElement('ul');
+      list.className = 'alpaka-list';
       item.alpakaNames.forEach((name) => {
-        const chip = document.createElement('span');
-        chip.className = 'alpaka-chip';
-        chip.textContent = name;
-        chips.appendChild(chip);
+        const listItem = document.createElement('li');
+        listItem.className = 'alpaka-name';
+        listItem.textContent = name;
+        list.appendChild(listItem);
       });
-      detailCell.appendChild(chips);
+      detailCell.appendChild(list);
     }
 
     if (item.comment) {
