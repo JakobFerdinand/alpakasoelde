@@ -196,7 +196,11 @@ export const renderEventList = (
     table.appendChild(footer);
   }
 
-  container.appendChild(table);
+  const wrapper = document.createElement('div');
+  wrapper.className = 'event-table-wrapper';
+  wrapper.appendChild(table);
+
+  container.appendChild(wrapper);
 };
 
 export const renderLoadingState = (container: HTMLElement | null, loadingText: string) => {

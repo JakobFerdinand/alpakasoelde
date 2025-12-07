@@ -38,11 +38,18 @@ const { id, loadingText = 'Lade Ereignisse...', emptyText = 'Keine Ereignisse vo
     padding: 1.25rem;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     min-height: 120px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .event-table-wrapper {
+    width: 100%;
   }
 
   .event-table {
     width: 100%;
     border-collapse: collapse;
+    min-width: 520px;
   }
 
   .event-table th,
@@ -119,6 +126,8 @@ const { id, loadingText = 'Lade Ereignisse...', emptyText = 'Keine Ereignisse vo
     padding: 0.25rem 0.6rem;
     border-radius: 999px;
     font-size: 0.9rem;
+    white-space: normal;
+    word-break: break-word;
   }
 
   .event-comment {
@@ -162,6 +171,10 @@ const { id, loadingText = 'Lade Ereignisse...', emptyText = 'Keine Ereignisse vo
     .event-table th,
     .event-table td {
       padding: 0.65rem 0.25rem;
+    }
+
+    .event-table {
+      min-width: 460px;
     }
 
     .event-date,
