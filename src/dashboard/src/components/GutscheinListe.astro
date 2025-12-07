@@ -4,10 +4,12 @@ interface Gutschein {
   kaufdatum?: string;
   betrag?: number | string | null;
   eingeloestAm?: string | null;
+  verkauftAn?: string | null;
   Gutscheinnummer?: string;
   Kaufdatum?: string;
   Betrag?: number | string | null;
   EingeloestAm?: string | null;
+  VerkauftAn?: string | null;
 }
 
 interface Props {
@@ -41,7 +43,8 @@ const normalizeGutschein = (gutschein: Gutschein) => {
     gutscheinnummer: gutschein.gutscheinnummer ?? (uppercase.Gutscheinnummer as string) ?? '',
     kaufdatum: gutschein.kaufdatum ?? (uppercase.Kaufdatum as string) ?? '',
     betrag: gutschein.betrag ?? (uppercase.Betrag as number | string | null) ?? null,
-    eingeloestAm: gutschein.eingeloestAm ?? (uppercase.EingeloestAm as string | null) ?? null
+    eingeloestAm: gutschein.eingeloestAm ?? (uppercase.EingeloestAm as string | null) ?? null,
+    verkauftAn: gutschein.verkauftAn ?? (uppercase.VerkauftAn as string | null) ?? null
   };
 };
 
@@ -74,6 +77,7 @@ const summeOffen = normalisierteGutscheine.reduce(
             <th scope="col">Gutscheinnummer</th>
             <th scope="col">Kaufdatum</th>
             <th scope="col">Betrag</th>
+            <th scope="col">Verkauft an</th>
             <th scope="col">Eingelöst am</th>
           </tr>
         </thead>
@@ -83,6 +87,7 @@ const summeOffen = normalisierteGutscheine.reduce(
               <td>{gutschein.gutscheinnummer || '—'}</td>
               <td>{formatDate(gutschein.kaufdatum)}</td>
               <td>{formatCurrency(gutschein.betrag)}</td>
+              <td>{gutschein.verkauftAn || '—'}</td>
               <td>
                 {gutschein.eingeloestAm ? (
                   formatDate(gutschein.eingeloestAm)
@@ -97,7 +102,7 @@ const summeOffen = normalisierteGutscheine.reduce(
         </tbody>
         <tfoot>
           <tr class="gutschein-summe">
-            <td colspan="2" aria-hidden="true"></td>
+            <td colspan="3" aria-hidden="true"></td>
             <td class="gutschein-summe-zelle">
               <span class="gutschein-summe-betrag">{formatCurrency(summeVerkauft)}</span>
             </td>

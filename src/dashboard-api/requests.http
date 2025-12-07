@@ -47,7 +47,8 @@ Content-Type: application/json
   "gutscheinnummer": "202501",
   "kaufdatum": "2025-01-05",
   "betrag": 120,
-  "eingeloestAm": null
+  "eingeloestAm": null,
+  "verkauftAn": "Max Muster"
 }
 
 ###

@@ -29,6 +29,11 @@ const gutscheine = null;
               <input id="betrag" name="betrag" type="number" step="0.01" min="0.01" required />
             </div>
             <div class="form-field">
+              <label for="verkauftAn">Verkauft an (optional)</label>
+              <input id="verkauftAn" name="verkauftAn" type="text" inputmode="text" />
+              <p class="form-hint">Optional: Name oder Kontakt des Käufers.</p>
+            </div>
+            <div class="form-field">
               <label for="eingeloestAm">Eingelöst am (optional)</label>
               <input id="eingeloestAm" name="eingeloestAm" type="date" />
               <p class="form-hint">Nur ausfüllen, wenn der Gutschein bereits eingelöst wurde.</p>
@@ -99,7 +104,8 @@ const gutscheine = null;
       gutscheinnummer: gutschein?.gutscheinnummer ?? uppercase.Gutscheinnummer ?? '',
       kaufdatum: gutschein?.kaufdatum ?? uppercase.Kaufdatum ?? '',
       betrag: gutschein?.betrag ?? uppercase.Betrag ?? null,
-      eingeloestAm: gutschein?.eingeloestAm ?? uppercase.EingeloestAm ?? null
+      eingeloestAm: gutschein?.eingeloestAm ?? uppercase.EingeloestAm ?? null,
+      verkauftAn: gutschein?.verkauftAn ?? uppercase.VerkauftAn ?? ''
     };
   };
 
@@ -161,7 +167,7 @@ const gutscheine = null;
     const thead = document.createElement('thead');
     const kopfZeile = document.createElement('tr');
     kopfZeile.className = 'gutschein-kopf';
-    ['Gutscheinnummer', 'Kaufdatum', 'Betrag', 'Eingelöst am'].forEach((titel) => {
+    ['Gutscheinnummer', 'Kaufdatum', 'Betrag', 'Verkauft an', 'Eingelöst am'].forEach((titel) => {
       const zelle = document.createElement('th');
       zelle.scope = 'col';
       zelle.textContent = titel;
@@ -197,6 +203,10 @@ const gutscheine = null;
         summeOffen += aktuellerBetrag;
       }
 
+      const verkauftAn = document.createElement('td');
+      verkauftAn.textContent = normalisiert.verkauftAn || '—';
+      zeile.appendChild(verkauftAn);
+
       const eingeloest = document.createElement('td');
       if (normalisiert.eingeloestAm) {
         eingeloest.textContent = datumFormatieren(normalisiert.eingeloestAm);
@@ -220,7 +230,7 @@ const gutscheine = null;
     summenZeile.className = 'gutschein-summe';
 
     const leereZelle = document.createElement('td');
-    leereZelle.colSpan = 2;
+    leereZelle.colSpan = 3;
     leereZelle.setAttribute('aria-hidden', 'true');
     summenZeile.appendChild(leereZelle);
 
@@ -350,6 +360,7 @@ const gutscheine = null;
     const kaufdatum = gutscheinFormular.kaufdatum.value;
     const betrag = Number(gutscheinFormular.betrag.value);
     const eingeloestAm = gutscheinFormular.eingeloestAm.value || null;
+    const verkauftAn = gutscheinFormular.verkauftAn.value.trim();
 
     if (!kaufdatum || !betrag) {
       statusAnzeigen('Bitte Kaufdatum und Betrag ausfüllen.', true);
@@ -363,7 +374,13 @@ const gutscheine = null;
       const antwort = await fetch('/api/gutscheine', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gutscheinnummer: gutscheinnummer || undefined, kaufdatum, betrag, eingeloestAm })
+        body: JSON.stringify({
+          gutscheinnummer: gutscheinnummer || undefined,
+          kaufdatum,
+          betrag,
+          eingeloestAm,
+          verkauftAn: verkauftAn || undefined
+        })
       });
 
       if (!antwort.ok) {
@@ -552,6 +569,7 @@ const gutscheine = null;
     padding: 1rem;
     min-height: 120px;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .gutschein-liste.ladezustand {
@@ -563,7 +581,7 @@ const gutscheine = null;
   .gutschein-tabelle {
     width: 100%;
     border-collapse: collapse;
-    min-width: 520px;
+    min-width: 640px;
   }
 
   .gutschein-tabelle th,
@@ -624,10 +642,6 @@ const gutscheine = null;
     .listen-kopf {
       flex-direction: column;
       align-items: flex-start;
-    }
-
-    .gutschein-tabelle {
-      min-width: 100%;
     }
 
     .gutschein-tabelle th,
