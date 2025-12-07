@@ -78,38 +78,72 @@ export const renderEventList = (
     return;
   }
 
-  const list = document.createElement('ul');
-  list.className = 'event-list';
+  const table = document.createElement('table');
+  table.className = 'event-table';
+
+  const hasCosts = events.some((event) => !Number.isNaN(Number(event.cost)));
+  const totalCost = events.reduce((sum, event) => {
+    const value = Number(event.cost);
+    if (Number.isNaN(value)) return sum;
+    return sum + value;
+  }, 0);
+
+  const header = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+
+  const dateHeader = document.createElement('th');
+  dateHeader.scope = 'col';
+  dateHeader.setAttribute('aria-label', 'Datum');
+  dateHeader.className = 'event-date-header';
+  headerRow.appendChild(dateHeader);
+
+  const typeHeader = document.createElement('th');
+  typeHeader.scope = 'col';
+  typeHeader.className = 'event-type-header';
+  typeHeader.setAttribute('aria-label', 'Ereignistyp');
+  headerRow.appendChild(typeHeader);
+
+  const detailHeader = document.createElement('th');
+  detailHeader.scope = 'col';
+  detailHeader.textContent = 'Details';
+  headerRow.appendChild(detailHeader);
+
+  const costHeader = document.createElement('th');
+  costHeader.scope = 'col';
+  costHeader.className = 'event-cost-header';
+  costHeader.textContent = 'Kosten';
+  headerRow.appendChild(costHeader);
+
+  header.appendChild(headerRow);
+  table.appendChild(header);
+
+  const body = document.createElement('tbody');
 
   events.forEach((item) => {
-    const entry = document.createElement('li');
-    entry.className = 'event-item';
+    const row = document.createElement('tr');
 
-    const header = document.createElement('div');
-    header.className = 'event-header';
+    const dateCell = document.createElement('td');
+    dateCell.className = 'event-date';
+    dateCell.textContent = formatDate(item.eventDate);
+    row.appendChild(dateCell);
 
-    const titleGroup = document.createElement('div');
-    titleGroup.className = 'event-title-group';
-
+    const typeCell = document.createElement('td');
+    typeCell.className = 'event-type';
+    const iconWrapper = document.createElement('span');
+    iconWrapper.className = 'event-icon-wrapper';
+    iconWrapper.title = item.eventType || 'Ereignis';
+    iconWrapper.setAttribute('aria-label', item.eventType || 'Ereignis');
     const icon = cloneIconTemplate(resolveIconKey(item.eventType));
-
-    const title = document.createElement('div');
-    title.className = 'event-title';
-    title.textContent = item.eventType || 'Ereignis';
-
     if (icon) {
       icon.classList.add('event-icon');
-      titleGroup.appendChild(icon);
+      icon.setAttribute('aria-hidden', 'true');
+      iconWrapper.appendChild(icon);
     }
-    titleGroup.appendChild(title);
+    typeCell.appendChild(iconWrapper);
+    row.appendChild(typeCell);
 
-    const date = document.createElement('div');
-    date.className = 'event-date';
-    date.textContent = formatDate(item.eventDate);
-
-    header.appendChild(titleGroup);
-    header.appendChild(date);
-    entry.appendChild(header);
+    const detailCell = document.createElement('td');
+    detailCell.className = 'event-details';
 
     if (showAlpakaNames && Array.isArray(item.alpakaNames) && item.alpakaNames.length > 0) {
       const chips = document.createElement('div');
@@ -120,28 +154,49 @@ export const renderEventList = (
         chip.textContent = name;
         chips.appendChild(chip);
       });
-      entry.appendChild(chips);
+      detailCell.appendChild(chips);
     }
 
     if (item.comment) {
       const comment = document.createElement('p');
       comment.className = 'event-comment';
       comment.textContent = item.comment;
-      entry.appendChild(comment);
+      detailCell.appendChild(comment);
     }
 
+    row.appendChild(detailCell);
+
+    const costCell = document.createElement('td');
+    costCell.className = 'event-cost';
     const formattedCost = formatCurrency(item.cost as any);
-    if (formattedCost) {
-      const cost = document.createElement('p');
-      cost.className = 'event-cost';
-      cost.textContent = `Kosten: ${formattedCost}`;
-      entry.appendChild(cost);
-    }
+    costCell.textContent = formattedCost || '—';
+    row.appendChild(costCell);
 
-    list.appendChild(entry);
+    body.appendChild(row);
   });
 
-  container.appendChild(list);
+  table.appendChild(body);
+
+  if (hasCosts) {
+    const footer = document.createElement('tfoot');
+    const footerRow = document.createElement('tr');
+
+    const label = document.createElement('td');
+    label.className = 'event-total-label';
+    label.colSpan = 3;
+    label.textContent = 'Summe';
+    footerRow.appendChild(label);
+
+    const total = document.createElement('td');
+    total.className = 'event-cost event-total';
+    total.textContent = formatCurrency(totalCost);
+    footerRow.appendChild(total);
+
+    footer.appendChild(footerRow);
+    table.appendChild(footer);
+  }
+
+  container.appendChild(table);
 };
 
 export const renderLoadingState = (container: HTMLElement | null, loadingText: string) => {
