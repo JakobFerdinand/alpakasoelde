@@ -32,8 +32,26 @@ updates:
         patterns:
           - "*"
 
+  - package-ecosystem: "npm"
+    directory: "/src/dashboard/"
+    schedule:
+      interval: weekly
+    groups:
+      npm-all:
+        patterns:
+          - "*"
+
   - package-ecosystem: "nuget"
     directory: "/src/website-api/"
+    schedule:
+      interval: weekly
+    groups:
+      nuget-all:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/dashboard-api/"
     schedule:
       interval: weekly
     groups:
