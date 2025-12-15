@@ -1,0 +1,119 @@
+---
+interface Gutschein {
+  gutscheinnummer?: string;
+  kaufdatum?: string;
+  betrag?: number | string | null;
+  eingeloestAm?: string | null;
+  verkauftAn?: string | null;
+  Gutscheinnummer?: string;
+  Kaufdatum?: string;
+  Betrag?: number | string | null;
+  EingeloestAm?: string | null;
+  VerkauftAn?: string | null;
+}
+
+interface Props {
+  gutscheine?: Gutschein[] | null;
+}
+
+const gutscheineProp = Astro.props.gutscheine ?? null;
+const gutscheine = Array.isArray(gutscheineProp) ? gutscheineProp : [];
+
+const formatDate = (value?: string | null) => {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.valueOf())) return value;
+  return date.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
+};
+
+const formatCurrency = (value?: number | string | null) => {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
+  return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
+};
+
+const normalizeAmount = (value?: number | string | null) => {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+};
+
+const normalizeGutschein = (gutschein: Gutschein) => {
+  const uppercase = gutschein as Record<string, unknown>;
+
+  return {
+    gutscheinnummer: gutschein.gutscheinnummer ?? (uppercase.Gutscheinnummer as string) ?? '',
+    kaufdatum: gutschein.kaufdatum ?? (uppercase.Kaufdatum as string) ?? '',
+    betrag: gutschein.betrag ?? (uppercase.Betrag as number | string | null) ?? null,
+    eingeloestAm: gutschein.eingeloestAm ?? (uppercase.EingeloestAm as string | null) ?? null,
+    verkauftAn: gutschein.verkauftAn ?? (uppercase.VerkauftAn as string | null) ?? null
+  };
+};
+
+const normalisierteGutscheine = gutscheine.map(normalizeGutschein);
+const hatGutscheine = normalisierteGutscheine.length > 0;
+const wirdGeladen = gutscheineProp === null;
+const summeVerkauft = normalisierteGutscheine.reduce((summe, gutschein) => summe + normalizeAmount(gutschein.betrag), 0);
+const summeOffen = normalisierteGutscheine.reduce(
+  (summe, gutschein) => (!gutschein.eingeloestAm ? summe + normalizeAmount(gutschein.betrag) : summe),
+  0
+);
+---
+
+<div class="gutschein-karte" data-gutschein-liste data-initial-gutscheine={JSON.stringify(gutscheineProp)}>
+  <div class="listen-kopf">
+    <div>
+      <p class="eyebrow">Übersicht</p>
+      <h2>Verkaufte Gutscheine</h2>
+      <p class="card-subtitle">Alle Gutscheine mit Kauf- und Einlösedaten.</p>
+    </div>
+    <button id="aktualisieren-button" type="button" class="ghost-button">Aktualisieren</button>
+  </div>
+  <div id="gutschein-liste" class={`gutschein-liste${wirdGeladen ? ' ladezustand' : ''}`}>
+    {wirdGeladen ? (
+      <p class="lade-text">Lade Gutscheine...</p>
+    ) : hatGutscheine ? (
+      <table class="gutschein-tabelle" aria-label="Gutscheinliste">
+        <thead>
+          <tr class="gutschein-kopf">
+            <th scope="col">Gutscheinnummer</th>
+            <th scope="col">Kaufdatum</th>
+            <th scope="col">Betrag</th>
+            <th scope="col">Verkauft an</th>
+            <th scope="col">Eingelöst am</th>
+          </tr>
+        </thead>
+        <tbody>
+          {normalisierteGutscheine.map((gutschein) => (
+            <tr class="gutschein-zeile">
+              <td>{gutschein.gutscheinnummer || '—'}</td>
+              <td>{formatDate(gutschein.kaufdatum)}</td>
+              <td>{formatCurrency(gutschein.betrag)}</td>
+              <td>{gutschein.verkauftAn || '—'}</td>
+              <td>
+                {gutschein.eingeloestAm ? (
+                  formatDate(gutschein.eingeloestAm)
+                ) : (
+                  <button type="button" class="link-button" data-gutscheinnummer={gutschein.gutscheinnummer}>
+                    Einlösen
+                  </button>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr class="gutschein-summe">
+            <td colspan="3" aria-hidden="true"></td>
+            <td class="gutschein-summe-zelle">
+              <span class="gutschein-summe-betrag">{formatCurrency(summeVerkauft)}</span>
+            </td>
+            <td class="gutschein-summe-zelle">
+              <span class="gutschein-summe-betrag">{formatCurrency(summeOffen)}</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    ) : (
+      <p class="leer">Noch keine Gutscheine erfasst.</p>
+    )}
+  </div>
+</div>

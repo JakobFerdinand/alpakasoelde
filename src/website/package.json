@@ -11,14 +11,14 @@
     "test": "playwright test"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.5",
+    "@astrojs/ts-plugin": "^1.10.6",
     "@fontsource/bricolage-grotesque": "^5.2.10",
-    "astro": "^5.15.8"
+    "astro": "^5.16.4"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.5",
-    "@playwright/test": "^1.56.1",
-    "@types/node": "^22.7.4",
+    "@astrojs/check": "^0.9.6",
+    "@playwright/test": "^1.57.0",
+    "@types/node": "^24.10.1",
     "typescript": "^5.9.3"
   }
 }

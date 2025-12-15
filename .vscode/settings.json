@@ -5,7 +5,7 @@
     "debug.internalConsoleOptions": "neverOpen",
     "azureFunctions.preDeployTask": "publish (functions)",
     "[astro]": {
-      "editor.tabSize": 2
+        "editor.tabSize": 2
     },
     "[json]": {
         "editor.tabSize": 2,
@@ -17,5 +17,16 @@
         "editor.detectIndentation": false,
         "editor.insertSpaces": true
     },
-    "typescript.inlayHints.parameterNames.enabled": "all"
+    "typescript.inlayHints.parameterNames.enabled": "all",
+    "chat.promptFilesRecommendations": {
+        "speckit.constitution": true,
+        "speckit.specify": true,
+        "speckit.plan": true,
+        "speckit.tasks": true,
+        "speckit.implement": true
+    },
+    "chat.tools.terminal.autoApprove": {
+        ".specify/scripts/bash/": true,
+        ".specify/scripts/powershell/": true
+    }
 }

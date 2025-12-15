@@ -32,4 +32,32 @@ Content-Type: application/json
 
 ###
 
-GET {{devbase}}/api/alpakas/{{alpakaId}}/events
+GET {{devbase}}/api/events
+
+###
+
+GET {{devbase}}/api/gutscheine
+
+###
+
+POST {{devbase}}/api/gutscheine
+Content-Type: application/json
+
+{
+  "gutscheinnummer": "202501",
+  "kaufdatum": "2025-01-05",
+  "betrag": 120,
+  "eingeloestAm": null,
+  "verkauftAn": "Max Muster"
+}
+
+###
+
+@gutscheinnummer=202501
+
+POST {{devbase}}/api/gutscheine/{{gutscheinnummer}}/einloesen
+Content-Type: application/json
+
+{
+  "eingeloestAm": "2025-02-15"
+}

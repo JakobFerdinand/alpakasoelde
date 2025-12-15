@@ -27,7 +27,7 @@ const { title, navTransparentOnHero = false, hideLogoOnTransparent = false } = A
   data-nav-hide-logo={hideLogoOnTransparent}
 >
   <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
-  <Navbar />
+  <Navbar initialTransparent={navTransparentOnHero} hideLogo={hideLogoOnTransparent} />
   <main id="main-content">
     <slot />
   </main>
