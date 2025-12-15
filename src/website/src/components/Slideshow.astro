@@ -9,16 +9,18 @@ const { images } = Astro.props as Props;
 ---
 
 <div class="slideshow">
-  <div class="carousel">
-    {images.map((src, i) => (
+  <div class="carousel" style={`--count:${images.length};`}>
+    {images.map((src) => (
       <div class="card">
         <Image
           src={src}
-        alt="Alpaka auf der Alpakasölde Farm"
-        class="image"
-      />
-    </div>
-  ))}
+          alt="Alpaka auf der Alpakasölde Farm"
+          class="image"
+        />
+        {/* The animated snap target (no JS) */}
+        <span class="snapper" aria-hidden="true"></span>
+      </div>
+    ))}
   </div>
 </div>
 
@@ -31,11 +33,14 @@ const { images } = Astro.props as Props;
   }
 
   .carousel {
+    --gap: 1em;
+    --interval: 2s;
+
     width: 100%;
     overflow-x: auto;
     margin: 3em auto;
     display: flex;
-    gap: 1em;
+    gap: var(--gap);
     scroll-behavior: smooth;
     anchor-name: --carousel;
     scroll-snap-type: x mandatory;
@@ -82,12 +87,18 @@ const { images } = Astro.props as Props;
   }
 
   .card {
-    scroll-snap-align: start;
+    /* keep your layout */
     flex: 0 0 20em;
     aspect-ratio: 1 / 1;
     text-align: center;
     align-content: center;
     border-radius: .5em;
+
+    /* needed for the snapper */
+    position: relative;
+
+    /* IMPORTANT: autoplay is driven by the inner snapper */
+    scroll-snap-align: none;
   }
 
   .card::scroll-marker {
@@ -100,6 +111,73 @@ const { images } = Astro.props as Props;
 
   .card::scroll-marker:target-current {
     background-color: var(--bluetenhonig);
+  }
+
+  .snapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    /* this is the real snap target */
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+
+    /* don’t block pointer interaction */
+    pointer-events: none;
+  }
+
+  /* Autoplay keyframes (based on the “moving snap points” approach) */
+  @keyframes tonext {
+    75% { left: 0; }
+    95% { left: calc(100% + var(--gap)); }
+    98% { left: calc(100% + var(--gap)); }
+    99% { left: 0; }
+  }
+
+  @keyframes tostart {
+    75% { left: 0; }
+    95% {
+      left: calc((var(--count) - 1) * -100% - (var(--count) - 1) * var(--gap));
+    }
+    98% {
+      left: calc((var(--count) - 1) * -100% - (var(--count) - 1) * var(--gap));
+    }
+    99% { left: 0; }
+  }
+
+  @keyframes snap {
+    96% { scroll-snap-align: start; }
+    97% { scroll-snap-align: none; }
+    99% { scroll-snap-align: none; }
+    100% { scroll-snap-align: start; }
+  }
+
+  /* Run autoplay (pause on interaction; respect reduced motion) */
+  @media (prefers-reduced-motion: reduce) {
+    .snapper { animation: none !important; }
+    .carousel { scroll-behavior: auto; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .snapper {
+      animation-name: tonext, snap;
+      animation-timing-function: ease;
+      animation-duration: var(--interval);
+      animation-iteration-count: infinite;
+    }
+
+    .card:last-child .snapper {
+      animation-name: tostart, snap;
+    }
+
+    /* stop autoplay when the user interacts */
+    .carousel:hover .snapper,
+    .carousel:focus-within .snapper {
+      animation-name: none;
+    }
   }
 
   .image {
