@@ -4,11 +4,7 @@ import EventList from './EventList.astro';
 <section class="dashboard-events section">
   <div class="container">
     <div class="events-header">
-      <div>
-        <p class="card-eyebrow">Überblick</p>
-        <h2>Letzte Ereignisse</h2>
-        <p class="events-subtitle">Alle Ereignisse der Herde in chronologischer Reihenfolge.</p>
-      </div>
+      <h2>Letzte Ereignisse</h2>
     </div>
     <EventList id="events-content" emptyText="Noch keine Ereignisse vorhanden." />
   </div>
@@ -52,14 +48,7 @@ import EventList from './EventList.astro';
   .events-header {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .events-subtitle {
-    margin: 0.25rem 0 0;
-    color: var(--taubenblau);
-    opacity: 0.85;
+    align-items: center;
+    margin-bottom: 2rem;
   }
 </style>
