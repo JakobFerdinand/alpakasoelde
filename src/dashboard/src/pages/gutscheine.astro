@@ -1,6 +1,8 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 import GutscheinListe from '../components/GutscheinListe.astro';
+import Card from '../components/Card.astro';
+import FormField from '../components/FormField.astro';
 
 const gutscheine = null;
 ---
@@ -8,53 +10,41 @@ const gutscheine = null;
 <DashboardLayout title="Gutscheine">
   <section class="gutscheine section">
     <div class="container">
-      <a class="zurueck-link" href="/">← Zurück zur Übersicht</a>
+      <a class="back-link" href="/">&larr; Zurück zur Übersicht</a>
       <div class="gutscheine-grid">
-        <div class="gutschein-karte">
-          <p class="eyebrow">Neu</p>
-          <h2>Gutschein erfassen</h2>
-          <p class="card-subtitle">Verkäufe dokumentieren und optional das Einlösedatum festhalten.</p>
+        <Card eyebrow="Neu" title="Gutschein erfassen" subtitle="Verkäufe dokumentieren und optional das Einlösedatum festhalten.">
           <form id="gutschein-formular" class="gutschein-formular">
-            <div class="form-field">
-              <label for="gutscheinnummer">Gutscheinnummer</label>
+            <FormField label="Gutscheinnummer" id="gutscheinnummer" hint="Standardmäßig wird die nächste Nummer vorgeschlagen. Bei Bedarf überschreiben.">
               <input id="gutscheinnummer" name="gutscheinnummer" type="text" inputmode="numeric" placeholder="z. B. 202501" />
-              <p class="form-hint">Standardmäßig wird die nächste Nummer vorgeschlagen. Bei Bedarf überschreiben.</p>
-            </div>
-            <div class="form-field">
-              <label for="kaufdatum">Kaufdatum*</label>
+            </FormField>
+            <FormField label="Kaufdatum" id="kaufdatum" required>
               <input id="kaufdatum" name="kaufdatum" type="date" required />
-            </div>
-            <div class="form-field">
-              <label for="betrag">Betrag (EUR)*</label>
+            </FormField>
+            <FormField label="Betrag (EUR)" id="betrag" required>
               <input id="betrag" name="betrag" type="number" step="0.01" min="0.01" required />
-            </div>
-            <div class="form-field">
-              <label for="verkauftAn">Verkauft an (optional)</label>
+            </FormField>
+            <FormField label="Verkauft an (optional)" id="verkauftAn" hint="Optional: Name oder Kontakt des Käufers.">
               <input id="verkauftAn" name="verkauftAn" type="text" inputmode="text" />
-              <p class="form-hint">Optional: Name oder Kontakt des Käufers.</p>
-            </div>
-            <div class="form-field">
-              <label for="eingeloestAm">Eingelöst am (optional)</label>
+            </FormField>
+            <FormField label="Eingelöst am (optional)" id="eingeloestAm" hint="Nur ausfüllen, wenn der Gutschein bereits eingelöst wurde.">
               <input id="eingeloestAm" name="eingeloestAm" type="date" />
-              <p class="form-hint">Nur ausfüllen, wenn der Gutschein bereits eingelöst wurde.</p>
-            </div>
+            </FormField>
             <button id="senden-button" type="submit" class="primary-button">Gutschein speichern</button>
             <p id="gutschein-status" class="status-message" hidden></p>
           </form>
-        </div>
+        </Card>
         <GutscheinListe gutscheine={gutscheine} />
       </div>
 
-      <dialog id="gutschein-einloesen-dialog" class="gutschein-dialog">
-        <form id="gutschein-einloesen-form" class="gutschein-dialog-inhalt">
-          <p class="eyebrow">Gutschein einlösen</p>
+      <dialog id="gutschein-einloesen-dialog" class="modal">
+        <form id="gutschein-einloesen-form" class="dialog-content">
+          <p class="card-eyebrow">Gutschein einlösen</p>
           <h3 id="gutschein-einloesen-nummer">Gutscheinnummer</h3>
-          <div class="form-field">
-            <label for="gutschein-einloesen-datum">Eingelöst am*</label>
+          <FormField label="Eingelöst am" id="gutschein-einloesen-datum" required>
             <input id="gutschein-einloesen-datum" name="eingeloestAm" type="date" required />
-          </div>
+          </FormField>
           <p id="gutschein-einloesen-status" class="status-message error" hidden></p>
-          <div class="dialog-aktionen">
+          <div class="dialog-actions">
             <button id="gutschein-einloesen-abbrechen" type="button" class="ghost-button">Abbrechen</button>
             <button id="gutschein-einloesen-speichern" type="submit" class="primary-button">Gutschein einlösen</button>
           </div>
@@ -65,49 +55,23 @@ const gutscheine = null;
 </DashboardLayout>
 
 <script>
-  const gutscheinFormular = document.getElementById('gutschein-formular');
+  import { formatDate, formatCurrency, toNumber } from '../utils/formatters';
+  import { normalizeGutschein, suggestNextGutscheinnummer, type Gutschein, type GutscheinRaw } from '../utils/gutschein';
+
+  const gutscheinFormular = document.getElementById('gutschein-formular') as HTMLFormElement | null;
   const gutscheinListe = document.getElementById('gutschein-liste');
   const statusNachricht = document.getElementById('gutschein-status');
-  const sendenButton = document.getElementById('senden-button');
+  const sendenButton = document.getElementById('senden-button') as HTMLButtonElement | null;
   const aktualisierenButton = document.getElementById('aktualisieren-button');
-  const gutscheinnummerEingabe = document.getElementById('gutscheinnummer');
-  const einloesenDialog = document.getElementById('gutschein-einloesen-dialog');
-  const einloesenForm = document.getElementById('gutschein-einloesen-form');
-  const einloesenDatum = document.getElementById('gutschein-einloesen-datum');
+  const gutscheinnummerEingabe = document.getElementById('gutscheinnummer') as HTMLInputElement | null;
+  const einloesenDialog = document.getElementById('gutschein-einloesen-dialog') as HTMLDialogElement | null;
+  const einloesenForm = document.getElementById('gutschein-einloesen-form') as HTMLFormElement | null;
+  const einloesenDatum = document.getElementById('gutschein-einloesen-datum') as HTMLInputElement | null;
   const einloesenStatus = document.getElementById('gutschein-einloesen-status');
   const einloesenNummer = document.getElementById('gutschein-einloesen-nummer');
   const einloesenAbbrechen = document.getElementById('gutschein-einloesen-abbrechen');
-  const einloesenSpeichern = document.getElementById('gutschein-einloesen-speichern');
-  let aktuellerEinloeseGutschein = null;
-
-  const datumFormatieren = (wert) => {
-    if (!wert) return '—';
-    const datum = new Date(wert);
-    if (Number.isNaN(datum.valueOf())) return wert;
-    return datum.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
-  };
-
-  const betragFormatieren = (wert) => {
-    if (wert === null || wert === undefined || Number.isNaN(Number(wert))) return '—';
-    return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(wert));
-  };
-
-  const betragAlsZahl = (wert) => {
-    const betrag = Number(wert);
-    return Number.isFinite(betrag) ? betrag : 0;
-  };
-
-  const gutscheinNormieren = (gutschein) => {
-    const uppercase = gutschein ?? {};
-
-    return {
-      gutscheinnummer: gutschein?.gutscheinnummer ?? uppercase.Gutscheinnummer ?? '',
-      kaufdatum: gutschein?.kaufdatum ?? uppercase.Kaufdatum ?? '',
-      betrag: gutschein?.betrag ?? uppercase.Betrag ?? null,
-      eingeloestAm: gutschein?.eingeloestAm ?? uppercase.EingeloestAm ?? null,
-      verkauftAn: gutschein?.verkauftAn ?? uppercase.VerkauftAn ?? ''
-    };
-  };
+  const einloesenSpeichern = document.getElementById('gutschein-einloesen-speichern') as HTMLButtonElement | null;
+  let aktuellerEinloeseGutschein: Gutschein | null = null;
 
   const einloesenStatusZuruecksetzen = () => {
     if (!einloesenStatus) return;
@@ -125,7 +89,7 @@ const gutscheine = null;
     einloesenDialog?.close();
   };
 
-  const einloesenDialogOeffnen = (gutschein) => {
+  const einloesenDialogOeffnen = (gutschein: Gutschein) => {
     if (!gutschein?.gutscheinnummer) {
       statusAnzeigen('Die Gutscheinnummer fehlt.', true);
       return;
@@ -149,13 +113,14 @@ const gutscheine = null;
     }
   };
 
-  const listeRendern = (gutscheine) => {
+  const listeRendern = (gutscheine: Gutschein[]) => {
+    if (!gutscheinListe) return;
     gutscheinListe.classList.remove('ladezustand');
     gutscheinListe.innerHTML = '';
 
     if (!gutscheine || gutscheine.length === 0) {
       const leer = document.createElement('p');
-      leer.className = 'leer';
+      leer.className = 'empty';
       leer.textContent = 'Noch keine Gutscheine erfasst.';
       gutscheinListe.appendChild(leer);
       return;
@@ -181,41 +146,40 @@ const gutscheine = null;
     let summeOffen = 0;
 
     gutscheine.forEach((gutschein) => {
-      const normalisiert = gutscheinNormieren(gutschein);
       const zeile = document.createElement('tr');
       zeile.className = 'gutschein-zeile';
 
       const nummer = document.createElement('td');
-      nummer.textContent = normalisiert.gutscheinnummer || '—';
+      nummer.textContent = gutschein.gutscheinnummer || '—';
       zeile.appendChild(nummer);
 
       const kaufdatum = document.createElement('td');
-      kaufdatum.textContent = datumFormatieren(normalisiert.kaufdatum);
+      kaufdatum.textContent = formatDate(gutschein.kaufdatum);
       zeile.appendChild(kaufdatum);
 
       const betrag = document.createElement('td');
-      betrag.textContent = betragFormatieren(normalisiert.betrag);
+      betrag.textContent = formatCurrency(gutschein.betrag);
       zeile.appendChild(betrag);
 
-      const aktuellerBetrag = betragAlsZahl(normalisiert.betrag);
+      const aktuellerBetrag = toNumber(gutschein.betrag);
       summeVerkauft += aktuellerBetrag;
-      if (!normalisiert.eingeloestAm) {
+      if (!gutschein.eingeloestAm) {
         summeOffen += aktuellerBetrag;
       }
 
       const verkauftAn = document.createElement('td');
-      verkauftAn.textContent = normalisiert.verkauftAn || '—';
+      verkauftAn.textContent = gutschein.verkauftAn || '—';
       zeile.appendChild(verkauftAn);
 
       const eingeloest = document.createElement('td');
-      if (normalisiert.eingeloestAm) {
-        eingeloest.textContent = datumFormatieren(normalisiert.eingeloestAm);
+      if (gutschein.eingeloestAm) {
+        eingeloest.textContent = formatDate(gutschein.eingeloestAm);
       } else {
         const einloesenButton = document.createElement('button');
         einloesenButton.type = 'button';
         einloesenButton.className = 'link-button';
         einloesenButton.textContent = 'Einlösen';
-        einloesenButton.addEventListener('click', () => einloesenDialogOeffnen(normalisiert));
+        einloesenButton.addEventListener('click', () => einloesenDialogOeffnen(gutschein));
         eingeloest.appendChild(einloesenButton);
       }
       zeile.appendChild(eingeloest);
@@ -238,7 +202,7 @@ const gutscheine = null;
     summeVerkauftZelle.className = 'gutschein-summe-zelle';
     const summeVerkauftWert = document.createElement('span');
     summeVerkauftWert.className = 'gutschein-summe-betrag';
-    summeVerkauftWert.textContent = betragFormatieren(summeVerkauft);
+    summeVerkauftWert.textContent = formatCurrency(summeVerkauft);
     summeVerkauftZelle.append(summeVerkauftWert);
     summenZeile.appendChild(summeVerkauftZelle);
 
@@ -246,7 +210,7 @@ const gutscheine = null;
     summeOffenZelle.className = 'gutschein-summe-zelle';
     const summeOffenWert = document.createElement('span');
     summeOffenWert.className = 'gutschein-summe-betrag';
-    summeOffenWert.textContent = betragFormatieren(summeOffen);
+    summeOffenWert.textContent = formatCurrency(summeOffen);
     summeOffenZelle.append(summeOffenWert);
     summenZeile.appendChild(summeOffenZelle);
 
@@ -255,18 +219,9 @@ const gutscheine = null;
     gutscheinListe.appendChild(tabelle);
   };
 
-  const naechsteNummerVorschlagen = (gutscheine) => {
+  const naechsteNummerVorschlagen = (gutscheine: Gutschein[]) => {
     if (!gutscheinnummerEingabe) return;
-
-    const jahresPraefix = new Date().getFullYear().toString();
-    const hoechsteEndung = gutscheine
-      .map((gutschein) => gutscheinNormieren(gutschein).gutscheinnummer)
-      .filter((nummer) => nummer?.startsWith(jahresPraefix))
-      .map((nummer) => nummer?.slice(jahresPraefix.length) ?? '0')
-      .map((endung) => (Number.isNaN(Number(endung)) ? 0 : Number(endung)))
-      .reduce((max, aktuell) => Math.max(max, aktuell), 0);
-
-    const naechsteNummer = `${jahresPraefix}${String(hoechsteEndung + 1).padStart(2, '0')}`;
+    const naechsteNummer = suggestNextGutscheinnummer(gutscheine);
     if (!gutscheinnummerEingabe.value) {
       gutscheinnummerEingabe.value = naechsteNummer;
     }
@@ -275,13 +230,13 @@ const gutscheine = null;
   const gutscheineLaden = async () => {
     if (!gutscheinListe) return;
     gutscheinListe.classList.add('ladezustand');
-    gutscheinListe.innerHTML = '<p class="lade-text">Lade Gutscheine...</p>';
+    gutscheinListe.innerHTML = '<p class="loading-text">Lade Gutscheine...</p>';
 
     try {
       const antwort = await fetch('/api/gutscheine');
       if (!antwort.ok) throw new Error('Fehler beim Laden der Gutscheine');
-      const daten = await antwort.json();
-      const gutscheine = Array.isArray(daten) ? daten : [];
+      const daten: GutscheinRaw[] = await antwort.json();
+      const gutscheine = Array.isArray(daten) ? daten.map(normalizeGutschein) : [];
       listeRendern(gutscheine);
       naechsteNummerVorschlagen(gutscheine);
     } catch (fehler) {
@@ -291,7 +246,7 @@ const gutscheine = null;
     }
   };
 
-  const statusAnzeigen = (nachricht, istFehler = false) => {
+  const statusAnzeigen = (nachricht: string, istFehler = false) => {
     if (!statusNachricht) return;
     statusNachricht.hidden = false;
     statusNachricht.textContent = nachricht;
@@ -342,7 +297,7 @@ const gutscheine = null;
       console.error(fehler);
       if (einloesenStatus) {
         einloesenStatus.hidden = false;
-        einloesenStatus.textContent = fehler.message || 'Gutschein konnte nicht eingelöst werden.';
+        einloesenStatus.textContent = fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht eingelöst werden.';
       }
     } finally {
       if (einloesenSpeichern) {
@@ -356,19 +311,22 @@ const gutscheine = null;
     ereignis.preventDefault();
     statusZuruecksetzen();
 
-    const gutscheinnummer = gutscheinFormular.gutscheinnummer.value.trim();
-    const kaufdatum = gutscheinFormular.kaufdatum.value;
-    const betrag = Number(gutscheinFormular.betrag.value);
-    const eingeloestAm = gutscheinFormular.eingeloestAm.value || null;
-    const verkauftAn = gutscheinFormular.verkauftAn.value.trim();
+    const formData = new FormData(gutscheinFormular);
+    const gutscheinnummer = (formData.get('gutscheinnummer') as string)?.trim();
+    const kaufdatum = formData.get('kaufdatum') as string;
+    const betrag = Number(formData.get('betrag'));
+    const eingeloestAm = (formData.get('eingeloestAm') as string) || null;
+    const verkauftAn = (formData.get('verkauftAn') as string)?.trim();
 
     if (!kaufdatum || !betrag) {
       statusAnzeigen('Bitte Kaufdatum und Betrag ausfüllen.', true);
       return;
     }
 
-    sendenButton.disabled = true;
-    sendenButton.textContent = 'Speichern...';
+    if (sendenButton) {
+      sendenButton.disabled = true;
+      sendenButton.textContent = 'Speichern...';
+    }
 
     try {
       const antwort = await fetch('/api/gutscheine', {
@@ -395,10 +353,12 @@ const gutscheine = null;
       await gutscheineLaden();
     } catch (fehler) {
       console.error(fehler);
-      statusAnzeigen(fehler.message || 'Gutschein konnte nicht gespeichert werden.', true);
+      statusAnzeigen(fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht gespeichert werden.', true);
     } finally {
-      sendenButton.disabled = false;
-      sendenButton.textContent = 'Gutschein speichern';
+      if (sendenButton) {
+        sendenButton.disabled = false;
+        sendenButton.textContent = 'Gutschein speichern';
+      }
     }
   });
 
@@ -425,143 +385,10 @@ const gutscheine = null;
     margin-top: 1rem;
   }
 
-  .gutschein-karte {
-    background: #fff;
-    border-radius: 0.75rem;
-    padding: 1.5rem;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-    min-width: 0;
-  }
-
-  .zurueck-link {
-    display: inline-block;
-    margin-bottom: 0.5rem;
-  }
-
-  .eyebrow {
-    font-size: 0.9rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--sahlchen);
-    margin: 0 0 0.25rem;
-  }
-
-  .card-subtitle {
-    margin: 0.25rem 0 1rem;
-    color: rgba(0, 32, 73, 0.7);
-  }
-
   .gutschein-formular {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-
-  .form-field label {
-    font-weight: 600;
-    color: var(--taubenblau);
-  }
-
-  .form-field input {
-    padding: 0.75rem 0.85rem;
-    border: 1px solid rgba(0, 32, 73, 0.15);
-    border-radius: 0.5rem;
-    font-size: 1rem;
-  }
-
-  .form-hint {
-    margin: 0;
-    color: rgba(0, 32, 73, 0.6);
-    font-size: 0.9rem;
-  }
-
-  .primary-button {
-    background-color: var(--taubenblau);
-    color: #fff;
-    border: none;
-    padding: 0.85rem 1rem;
-    border-radius: 0.6rem;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .primary-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  .link-button {
-    background: none;
-    border: none;
-    color: var(--taubenblau);
-    text-decoration: underline;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .link-button:focus-visible {
-    outline: 2px solid var(--taubenblau);
-    outline-offset: 2px;
-  }
-
-  .ghost-button {
-    background: transparent;
-    border: 1px solid rgba(0, 32, 73, 0.15);
-    padding: 0.65rem 0.9rem;
-    border-radius: 0.6rem;
-    color: var(--taubenblau);
-    cursor: pointer;
-  }
-
-  .status-message {
-    margin: 0;
-    font-weight: 600;
-    color: var(--weidegruen);
-  }
-
-  .status-message.error {
-    color: #b00020;
-  }
-
-  .gutschein-dialog::backdrop {
-    background: rgba(0, 0, 0, 0.35);
-  }
-
-  .gutschein-dialog {
-    border: none;
-    border-radius: 0.75rem;
-    padding: 0;
-    max-width: 480px;
-    width: 100%;
-  }
-
-  .gutschein-dialog-inhalt {
-    padding: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    color: var(--taubenblau);
-  }
-
-  .dialog-aktionen {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-  }
-
-  .listen-kopf {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
   }
 
   .gutschein-liste {
@@ -620,24 +447,16 @@ const gutscheine = null;
     color: var(--taubenblau);
   }
 
-  .gutschein-summe-label {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: rgba(0, 32, 73, 0.75);
-  }
-
   .gutschein-summe-betrag {
     font-size: 1rem;
   }
 
-  .lade-text,
-  .error,
-  .leer {
-    margin: 0;
-  }
-
-  .error {
-    color: #b00020;
+  .listen-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
   }
 
   @media (max-width: 720px) {

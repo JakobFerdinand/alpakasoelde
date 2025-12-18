@@ -1,12 +1,11 @@
 ---
 import EventList from './EventList.astro';
-import { normalizeEvents, renderEventList, renderLoadingState } from './event-list';
 ---
 <section class="dashboard-events section">
   <div class="container">
     <div class="events-header">
       <div>
-        <p class="eyebrow">Überblick</p>
+        <p class="card-eyebrow">Überblick</p>
         <h2>Letzte Ereignisse</h2>
         <p class="events-subtitle">Alle Ereignisse der Herde in chronologischer Reihenfolge.</p>
       </div>
@@ -56,14 +55,6 @@ import { normalizeEvents, renderEventList, renderLoadingState } from './event-li
     align-items: baseline;
     gap: 1rem;
     margin-bottom: 1.5rem;
-  }
-
-  .eyebrow {
-    font-size: 0.85rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--sahlchen);
-    margin-bottom: 0.25rem;
   }
 
   .events-subtitle {

@@ -1,9 +1,16 @@
+---
+import Modal from './Modal.astro';
+import FormField from './FormField.astro';
+---
+
 <section class="dashboard-alpaka section">
   <div class="container">
     <div class="alpaka-header">
       <h2>Alpakas</h2>
       <div class="alpaka-actions">
-        <button id="add-event-toggle" class="add-btn" aria-label="Neues Ereignis erfassen" title="Ereignis erfassen">🗓️</button>
+        <button id="add-event-toggle" class="add-btn" aria-label="Neues Ereignis erfassen" title="Ereignis erfassen">
+          <span aria-hidden="true">&#128197;</span>
+        </button>
         <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen">+</button>
       </div>
     </div>
@@ -23,72 +30,57 @@
     </table>
   </div>
 
-  <div id="alpaka-lightbox" class="lightbox" hidden>
-    <div class="lightbox-content">
-      <button type="button" id="close-alpaka-form" class="close-btn" aria-label="Schließen">×</button>
-      <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" enctype="multipart/form-data">
-        <div class="form-field">
-          <label for="alpaka-name">Name*</label>
-          <input id="alpaka-name" name="name" type="text" maxlength="100" required />
-        </div>
-        <div class="form-field">
-          <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
-          <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
-        </div>
-        <div class="form-field">
-          <label for="alpaka-photo">Foto</label>
-          <input id="alpaka-photo" name="photo" type="file" accept=".png,.jpg,.jpeg" />
-        </div>
-        <button type="submit" class="btn">Neues Alpaka anlegen</button>
-      </form>
-    </div>
-  </div>
+  <Modal id="alpaka-lightbox" label="Neues Alpaka hinzufügen">
+    <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" enctype="multipart/form-data">
+      <FormField label="Name" id="alpaka-name" required>
+        <input id="alpaka-name" name="name" type="text" maxlength="100" required />
+      </FormField>
+      <FormField label="Geburtsdatum" id="alpaka-geburtsdatum" required>
+        <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required />
+      </FormField>
+      <FormField label="Foto" id="alpaka-photo">
+        <input id="alpaka-photo" name="photo" type="file" accept=".png,.jpg,.jpeg" />
+      </FormField>
+      <button type="submit" class="primary-button">Neues Alpaka anlegen</button>
+    </form>
+  </Modal>
 
-  <div id="event-lightbox" class="lightbox" hidden>
-    <div class="lightbox-content">
-      <button type="button" id="close-event-form" class="close-btn" aria-label="Schließen">×</button>
-      <form id="add-event-form" class="alpaka-form" novalidate>
-        <div class="form-field">
-          <label for="event-type">Ereignis*</label>
-          <select id="event-type" name="eventType" required>
-            <option value="">Bitte auswählen</option>
-            <option value="Entwurmen">Entwurmen</option>
-            <option value="Nägel schneiden">Nägel schneiden</option>
-            <option value="Impfen">Impfen</option>
-            <option value="Gesundheitscheck">Gesundheitscheck</option>
-            <option value="Sonstiges">Sonstiges</option>
-          </select>
-        </div>
-        <div class="form-field">
-          <label for="event-alpakas">Alpakas*</label>
-          <select id="event-alpakas" name="alpakaIds" multiple size="5" required></select>
-          <small class="field-hint">Mit gedrückter STRG/Cmd Taste mehrere Alpakas auswählen.</small>
-        </div>
-        <div class="form-field">
-          <label for="event-date">Datum*</label>
-          <input id="event-date" name="eventDate" type="date" required />
-        </div>
-        <div class="form-field">
-          <label for="event-cost">Kosten (optional)</label>
-          <input id="event-cost" name="cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
-        </div>
-        <div class="form-field">
-          <label for="event-comment">Notiz</label>
-          <textarea id="event-comment" name="comment" rows="3" placeholder="Details zum Ereignis"></textarea>
-        </div>
-        <button type="submit" class="btn">Ereignis speichern</button>
-      </form>
-    </div>
-  </div>
+  <Modal id="event-lightbox" label="Neues Ereignis erfassen">
+    <form id="add-event-form" class="alpaka-form" novalidate>
+      <FormField label="Ereignis" id="event-type" required>
+        <select id="event-type" name="eventType" required>
+          <option value="">Bitte auswählen</option>
+          <option value="Entwurmen">Entwurmen</option>
+          <option value="Nägel schneiden">Nägel schneiden</option>
+          <option value="Impfen">Impfen</option>
+          <option value="Gesundheitscheck">Gesundheitscheck</option>
+          <option value="Sonstiges">Sonstiges</option>
+        </select>
+      </FormField>
+      <FormField label="Alpakas" id="event-alpakas" hint="Mit gedrückter STRG/Cmd Taste mehrere Alpakas auswählen." required>
+        <select id="event-alpakas" name="alpakaIds" multiple size="5" required></select>
+      </FormField>
+      <FormField label="Datum" id="event-date" required>
+        <input id="event-date" name="eventDate" type="date" required />
+      </FormField>
+      <FormField label="Kosten (optional)" id="event-cost">
+        <input id="event-cost" name="cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" />
+      </FormField>
+      <FormField label="Notiz" id="event-comment">
+        <textarea id="event-comment" name="comment" rows="3" placeholder="Details zum Ereignis"></textarea>
+      </FormField>
+      <button type="submit" class="primary-button">Ereignis speichern</button>
+    </form>
+  </Modal>
 </section>
 
 <script>
+  import { calculateAge } from '../utils/formatters';
+
   const toggle = document.getElementById('add-alpaka-toggle');
   const eventToggle = document.getElementById('add-event-toggle');
-  const lightbox = document.getElementById('alpaka-lightbox');
-  const eventLightbox = document.getElementById('event-lightbox');
-  const closeBtn = document.getElementById('close-alpaka-form');
-  const closeEventBtn = document.getElementById('close-event-form');
+  const lightbox = document.getElementById('alpaka-lightbox') as any;
+  const eventLightbox = document.getElementById('event-lightbox') as any;
   const form = document.getElementById('add-alpaka-form') as HTMLFormElement | null;
   const eventForm = document.getElementById('add-event-form') as HTMLFormElement | null;
   const imageUploadInput = document.getElementById('alpaka-photo') as HTMLInputElement | null;
@@ -97,6 +89,7 @@
   const eventDateInput = document.getElementById('event-date') as HTMLInputElement | null;
   const eventCostInput = document.getElementById('event-cost') as HTMLInputElement | null;
   const eventCommentInput = document.getElementById('event-comment') as HTMLTextAreaElement | null;
+
   const ensureAlpakaSelection = () => {
     if (!eventAlpakasSelect) return;
     const options = Array.from(eventAlpakasSelect.options);
@@ -106,18 +99,6 @@
     }
   };
 
-  const setLightboxVisibility = (targetLightbox: HTMLElement | null, visible: boolean) => {
-    if (!targetLightbox) return;
-    targetLightbox.hidden = !visible;
-    targetLightbox.classList.toggle('is-visible', visible);
-    targetLightbox.setAttribute('aria-hidden', visible ? 'false' : 'true');
-    if (document.body) {
-      document.body.style.overflow = visible ? 'hidden' : '';
-    }
-  };
-
-  [lightbox, eventLightbox].forEach((lb) => lb?.setAttribute('aria-hidden', 'true'));
-
   const openEventLightbox = () => {
     if (eventDateInput) {
       const today = new Date();
@@ -125,31 +106,15 @@
       eventDateInput.value = formatted;
     }
     ensureAlpakaSelection();
-    setLightboxVisibility(eventLightbox, true);
+    eventLightbox?.openModal?.();
   };
 
   toggle?.addEventListener('click', () => {
-    setLightboxVisibility(lightbox, true);
+    lightbox?.openModal?.();
   });
 
   eventToggle?.addEventListener('click', () => {
     openEventLightbox();
-  });
-
-  closeBtn?.addEventListener('click', () => {
-    setLightboxVisibility(lightbox, false);
-  });
-
-  closeEventBtn?.addEventListener('click', () => {
-    setLightboxVisibility(eventLightbox, false);
-  });
-
-  [lightbox, eventLightbox].forEach((lb) => {
-    lb?.addEventListener('click', (e) => {
-      if (e.target === lb) {
-        setLightboxVisibility(lb, false);
-      }
-    });
   });
 
   const limits: { [key: string]: number } = { 'alpaka-name': 100 };
@@ -185,9 +150,9 @@
       const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)
       if (file.size > maxFileSize) {
         alert(`File is too large. Maximum size is ${maxFileSize / (1024 * 1024)}MB.`);
-        e.preventDefault(); // Prevent form submission
+        e.preventDefault();
         if (submitButton) {
-            submitButton.disabled = false; // Re-enable button
+            submitButton.disabled = false;
             submitButton.classList.remove('loading');
         }
         return;
@@ -249,7 +214,7 @@
       }
 
       eventForm.reset();
-      setLightboxVisibility(eventLightbox, false);
+      eventLightbox?.closeModal?.();
       alert('Ereignis erfolgreich gespeichert.');
     } catch (error) {
       console.error('Fehler beim Speichern des Ereignisses', error);
@@ -273,7 +238,7 @@
       const res = await fetch('/api/alpakas');
       if (!res.ok) return;
       const alpacas = await res.json();
-      list.innerHTML = ''; // Clear existing rows before adding new ones
+      list.innerHTML = '';
 
       populateEventAlpakaOptions(alpacas);
 
@@ -298,13 +263,13 @@
         const avatarCell = document.createElement('td');
         if (alpaca.ImageUrl) {
           const img = document.createElement('img');
-          img.className = 'dashboard-alpaka-profile-photo'; 
+          img.className = 'alpaka-profile-photo';
           img.src = alpaca.ImageUrl;
           img.alt = alpaca.Name;
           avatarCell.appendChild(img);
         } else {
           const placeholder = document.createElement('div');
-          placeholder.className = 'dashboard-alpaka-profile-placeholder'; // Uses global style
+          placeholder.className = 'alpaka-profile-placeholder';
           placeholder.textContent = alpaca.Name.charAt(0).toUpperCase();
           avatarCell.appendChild(placeholder);
         }
@@ -329,31 +294,7 @@
     }
   }
 
-  function calculateAge(dateString: string): string {
-    const birthDate = new Date(dateString);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    if (Number.isNaN(age) || age < 0) {
-      return 'Unbekannt';
-    }
-    return `${age} Jahr${age === 1 ? '' : 'e'}`;
-  }
-
   loadAlpakas();
-
-  // Lightbox keyboard accessibility
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && lightbox && !lightbox.hidden) {
-      setLightboxVisibility(lightbox, false);
-    }
-    if (event.key === 'Escape' && eventLightbox && !eventLightbox.hidden) {
-      setLightboxVisibility(eventLightbox, false);
-    }
-  });
 
   function populateEventAlpakaOptions(alpacas: { Id: string; Name: string }[]) {
     if (!eventAlpakasSelect) return;
@@ -415,106 +356,15 @@
     text-align: center;
   }
 
-  .add-btn {
-    background-color: var(--weidegruen);
-    color: var(--schurwolle);
-    border: none;
-    border-radius: 50%;
-    width: 2.75rem;
-    height: 2.75rem;
-    font-size: 1.75rem;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
-
   .alpaka-actions {
     display: flex;
     gap: 0.5rem;
-  }
-
-  .alpaka-actions .add-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .add-btn:hover {
-    transform: scale(1.05);
-  }
-
-  .lightbox {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    z-index: 1000;
-  }
-
-  .lightbox.is-visible {
-    display: flex;
-  }
-
-  .lightbox-content {
-    background-color: var(--schurwolle);
-    color: var(--taubenblau);
-    border-radius: 0.5rem;
-    padding: 2rem;
-    width: 100%;
-    max-width: 28rem;
-    position: relative;
-  }
-
-  .close-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--taubenblau);
-    cursor: pointer;
   }
 
   .alpaka-form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-  }
-
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .form-field label {
-    font-weight: 600;
-  }
-
-  .form-field input,
-  .form-field textarea {
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    border: 1px solid var(--taubenblau);
-    font-family: inherit;
-    font-size: 1rem;
-  }
-
-  .form-field select {
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    border: 1px solid var(--taubenblau);
-    font-family: inherit;
-    font-size: 1rem;
-    background-color: var(--schurwolle);
-  }
-
-  .form-field small {
-    color: var(--taubenblau);
-    opacity: 0.8;
   }
 
   .alpaka-item {
@@ -532,44 +382,6 @@
     outline-offset: -2px;
   }
 
-  .loading::after {
-    content: "";
-    display: inline-block;
-    width: 1em;
-    height: 1em;
-    margin-left: 0.5rem;
-    border-radius: 50%;
-    border: 2px solid currentColor;
-    border-right-color: transparent;
-    animation: spin 0.75s linear infinite;
-  }
-
-  :global(.dashboard-alpaka-profile-photo) {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    object-fit: cover;
-  }
-
-  :global(.dashboard-alpaka-profile-placeholder) {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--weidegruen);
-    color: var(--schurwolle);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
   @media (max-width: 768px) {
     .alpaka-header {
       flex-direction: column;
@@ -583,10 +395,6 @@
 
     .alpaka-age {
       text-align: left;
-    }
-
-    .lightbox-content {
-      padding: 1.5rem;
     }
   }
 </style>
