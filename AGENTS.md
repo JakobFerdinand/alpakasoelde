@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `src/website`: Astro marketing site with pages in `src/pages`, shared UI in `src/components`, and static assets under `public/`.
 - `src/dashboard`: Internal Astro dashboard; place screens in `src/pages` and reusable pieces in `src/components`.
-- `src/dashboard-api`: .NET 9 isolated Azure Functions for data ingestion and storage, co-locating triggers with their entity models.
+- `src/dashboard-api`: .NET 10 isolated Azure Functions for data ingestion and storage, co-locating triggers with their entity models.
 - `src/website-api`: Public-facing Azure Functions that mirror the patterns from `src/dashboard-api`.
 - `infrastructure/table-storage.bicep`: Bicep template that provisions the shared Azure Table Storage resources.
 - `.slnx` solution: use `alpakasoelde.slnx` to open all projects together; `global.json` pins .NET SDK 10.0.0 with the new test runner.
