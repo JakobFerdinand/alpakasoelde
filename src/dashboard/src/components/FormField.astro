@@ -1,0 +1,20 @@
+---
+/**
+ * A reusable form field component with label, input slot, and optional hint.
+ * Uses CSS classes from global.css for styling.
+ */
+export interface Props {
+  label: string;
+  id: string;
+  hint?: string;
+  required?: boolean;
+}
+
+const { label, id, hint, required } = Astro.props;
+---
+
+<div class="form-field">
+  <label for={id}>{label}{required && '*'}</label>
+  <slot />
+  {hint && <p class="form-hint">{hint}</p>}
+</div>

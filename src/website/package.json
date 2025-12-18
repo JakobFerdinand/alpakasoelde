@@ -4,7 +4,8 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro build",
+    "check": "astro check",
     "preview": "astro preview",
     "astro": "astro",
     "pretest": "playwright install chromium",

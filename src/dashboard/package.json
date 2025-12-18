@@ -5,12 +5,19 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "check": "astro check",
     "preview": "astro preview",
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/ts-plugin": "^1.10.6",
     "astro": "^5.16.5",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@types/node": "^25.0.2",
+    "typescript": "^5.9.3"
   }
 }
