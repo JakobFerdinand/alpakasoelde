@@ -25,6 +25,17 @@
 - Prefer modern CSS capabilities (e.g., `:has`, form/visibility toggles) over JavaScript for UI state where possible; keep client-side scripts lean.
 - Dashboard UI: whenever an icon is needed, use the installed Astro Lucide icon pack instead of introducing other icon sources.
 
+## Astro Best Practices (website & dashboard)
+- Use `.astro` components exclusively; do not introduce React, Vue, Svelte, or other framework components. Ship zero client JS by default.
+- Use scoped `<style>` blocks inside each component; avoid global CSS except for design tokens and resets in `global.css`.
+- Ensure colour contrast meets WCAG AA; explicitly set foreground colours when backgrounds change to prevent inheritance issues.
+- Keep visual patterns consistent: when multiple sections share a layout (headers, cards, lists), extract or align their markup and styles so they match.
+- Validate props with TypeScript interfaces (`export interface Props { ... }`) at the top of the frontmatter.
+- Minimise client-side `<script>` tags; prefer Astro's static rendering and use `client:*` directives only when necessary.
+- Use Astro's `<Image />` component for optimised image delivery; avoid raw `<img>` tags for local assets.
+- Leverage Astro content collections for structured data (blog posts, product catalogues) instead of loose JSON or frontmatter duplication.
+- Run `astro check` (via `npm run build`) before committing to catch type and template errors early.
+
 ## Testing Guidelines
 - Frontend validation comes from `astro check` during `npm run build`; run it before opening a PR.
 - Exercise Azure Functions with the REST samples in each `requests.http`; extend them alongside new endpoints.
