@@ -11,13 +11,13 @@
   },
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.6",
-    "astro": "^5.16.15",
+    "astro": "^5.17.1",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.6",
-    "@types/node": "^25.0.10",
+    "@types/node": "^25.2.0",
     "typescript": "^5.9.3"
   }
 }
