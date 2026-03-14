@@ -238,7 +238,7 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
     line-height: 1.7;
   }
 
-  .details__grid a {
+  .details__grid a:not(.btn) {
     color: inherit;
     text-decoration: underline;
     text-underline-offset: 2px;
@@ -256,9 +256,8 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
     margin: 0;
   }
 
-  .details__contact-row .btn {
+  .details__contact-row :global(.btn) {
     flex-shrink: 0;
-    text-decoration: none;
   }
 
 
