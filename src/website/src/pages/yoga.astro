@@ -70,16 +70,15 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
           <p>45&euro;</p>
         </div>
 
-        <div class="details__block">
+        <div class="details__block details__block--cta">
           <h2>Anmeldung und Infos:</h2>
-          <p>
-            Marlene Diermair&ensp;|&ensp;<a href="tel:+4306605568338">06605568338</a>&ensp;|&ensp;<a href="https://alpakasoelde.at">alpakasoelde.at</a>
-          </p>
+          <div class="details__contact-row">
+            <p>
+              Marlene Diermair&ensp;|&ensp;<a href="tel:+4306605568338">06605568338</a>&ensp;|&ensp;<a href="https://alpakasoelde.at">alpakasoelde.at</a>
+            </p>
+            <a href="/#kontakt" class="btn">Jetzt anmelden</a>
+          </div>
         </div>
-      </div>
-
-      <div class="details__cta">
-				<a href="/#kontakt" class="btn">Jetzt anmelden</a>
       </div>
     </div>
   </section>
@@ -245,10 +244,23 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
     text-underline-offset: 2px;
   }
 
-  .details__cta {
-    text-align: center;
-    margin-top: 2.5rem;
+  .details__contact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
   }
+
+  .details__contact-row p {
+    margin: 0;
+  }
+
+  .details__contact-row .btn {
+    flex-shrink: 0;
+    text-decoration: none;
+  }
+
 
   /* ---- Responsive ---- */
   @media (max-width: 480px) {
