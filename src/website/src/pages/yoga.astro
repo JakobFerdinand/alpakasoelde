@@ -74,7 +74,7 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
           <h2>Anmeldung und Infos:</h2>
           <div class="details__contact-row">
             <p>
-              Marlene Diermair&ensp;|&ensp;<a href="tel:+4306605568338">06605568338</a>&ensp;|&ensp;<a href="https://alpakasoelde.at">alpakasoelde.at</a>
+              Marlene Diermair&ensp;|&ensp;<a href="tel:+4306605568338">06605568338</a>
             </p>
             <a href="/#kontakt" class="btn">Jetzt anmelden</a>
           </div>
@@ -264,7 +264,9 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
 
 
   /* ---- Responsive ---- */
-  @media (max-width: 480px) {
+
+  @media (max-width: 600px) {
+    /* Keep the same grid arrangement, just tighten spacing */
     .photo-hero__grid {
       gap: 0.5rem;
     }
@@ -273,17 +275,40 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
       padding: 1rem 0.75rem;
     }
 
+    .photo-hero__day {
+      font-size: clamp(2.5rem, 12vw, 4.5rem);
+    }
+
     .title-banner__logo :global(svg) {
       width: 52px;
       height: 52px;
     }
 
+    /* Location: scale font so the single line fits without wrapping */
     .details__location {
+      font-size: clamp(0.75rem, 3.5vw, 1rem);
       padding: 1.25rem 1.25rem 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .details__grid {
       padding: 1.25rem;
+    }
+
+    /* Contact row: stack button below the text */
+    .details__contact-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Keep phone/link/site on one line, clip if truly too narrow */
+    .details__contact-row p {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
   }
 </style>
