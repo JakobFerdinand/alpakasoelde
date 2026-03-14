@@ -1,12 +1,12 @@
 ---
-import Layout from "../layouts/Layout.astro";
+import WorkshopLayout from "../layouts/WorkshopLayout.astro";
 import { Image } from "astro:assets";
 import sophieImage from "../images/Sophie.jpg";
 import heroImage from "../images/hero.jpg";
 import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
 ---
 
-<Layout title="Alpaka Yoga">
+<WorkshopLayout title="Alpaka Yoga">
   <!-- Hero photo grid -->
   <section class="photo-hero">
     <div class="container photo-hero__grid">
@@ -79,11 +79,11 @@ import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
       </div>
 
       <div class="details__cta">
-        <a href="tel:+4306605568338" class="btn">Jetzt anmelden</a>
+				<a href="/#kontakt" class="btn">Jetzt anmelden</a>
       </div>
     </div>
   </section>
-</Layout>
+</WorkshopLayout>
 
 <style>
   /* ---- Photo hero ---- */
