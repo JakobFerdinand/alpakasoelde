@@ -1,0 +1,314 @@
+---
+import WorkshopLayout from "../layouts/WorkshopLayout.astro";
+import { Image } from "astro:assets";
+import sophieImage from "../images/Sophie.jpg";
+import heroImage from "../images/hero.jpg";
+import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
+---
+
+<WorkshopLayout title="Alpaka Yoga">
+  <!-- Hero photo grid -->
+  <section class="photo-hero">
+    <div class="container photo-hero__grid">
+      <div class="photo-hero__date">
+        <span class="photo-hero__month">MAI</span>
+        <span class="photo-hero__day">30</span>
+      </div>
+      <div class="photo-hero__alpakas">
+        <Image
+          src={heroImage}
+          alt="Alpakas auf der Weide der Alpakasölde"
+          widths={[480, 720, 1080]}
+          sizes="(max-width: 768px) 60vw, 500px"
+        />
+      </div>
+      <div class="photo-hero__sophie">
+        <Image
+          src={sophieImage}
+          alt="Sophie bei der Yoga-Meditation am Wasser bei Sonnenuntergang"
+          widths={[320, 480, 640]}
+          sizes="(max-width: 768px) 40vw, 250px"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Title banner -->
+  <section class="title-banner">
+    <div class="container title-banner__inner">
+      <h1>Alpaka Yoga</h1>
+      <div class="title-banner__logo">
+        <AlpakaLogo aria-hidden="true" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Event details -->
+  <section class="details section">
+    <div class="container details__inner">
+      <p class="details__location">
+        Alpakasölde&ensp;|&ensp;Frauenstein 12&ensp;|&ensp;9:00-12:00
+      </p>
+
+      <div class="details__grid">
+        <div class="details__block">
+          <h2>Das erwartet dich:</h2>
+          <ul>
+            <li>Meditation & Yoga mit Sophie</li>
+            <li>Alpakaspaziergang</li>
+            <li>Gemütlicher Ausklang mit der Möglichkeit selber Wolle zu filzen</li>
+          </ul>
+        </div>
+
+        <div class="details__block">
+          <h2>Mitzubringen:</h2>
+          <p>Eigene Yogamatte</p>
+        </div>
+
+        <div class="details__block">
+          <h2>Kosten:</h2>
+          <p>45&euro;</p>
+        </div>
+
+        <div class="details__block details__block--cta">
+          <h2>Anmeldung und Infos:</h2>
+          <div class="details__contact-row">
+            <p>
+              Marlene Diermair&ensp;|&ensp;<a href="tel:+4306605568338">06605568338</a>
+            </p>
+            <a href="/#kontakt" class="btn">Jetzt anmelden</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</WorkshopLayout>
+
+<style>
+  /* ---- Photo hero ---- */
+  .photo-hero {
+    padding: 2rem 0 0;
+  }
+
+  .photo-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto auto;
+    gap: 0.75rem;
+    max-width: 800px;
+  }
+
+  .photo-hero__date {
+    grid-column: 1;
+    grid-row: 1;
+    background-color: var(--taubenblau);
+    color: var(--schurwolle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem 1rem;
+    line-height: 1;
+  }
+
+  .photo-hero__month {
+    font-size: 1.1rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .photo-hero__day {
+    font-size: clamp(3rem, 8vw, 4.5rem);
+    font-weight: 300;
+    margin-top: 0.15rem;
+  }
+
+  .photo-hero__alpakas {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    overflow: hidden;
+  }
+
+  .photo-hero__sophie {
+    grid-column: 1;
+    grid-row: 2;
+    overflow: hidden;
+  }
+
+  .photo-hero__sophie :global(img),
+  .photo-hero__alpakas :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ---- Title banner ---- */
+  .title-banner {
+    padding: 0.75rem 0 0;
+  }
+
+  .title-banner__inner {
+    display: flex;
+    align-items: stretch;
+    gap: 0.75rem;
+    max-width: 800px;
+  }
+
+  .title-banner h1 {
+    flex: 1;
+    background-color: var(--bluetenhonig);
+    color: var(--schurwolle);
+    font-size: clamp(1.75rem, 5vw, 2.75rem);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.6rem 1.5rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .title-banner__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .title-banner__logo :global(svg) {
+    width: 68px;
+    height: 68px;
+  }
+
+  /* ---- Details section ---- */
+  .details {
+    padding-top: 0.75rem;
+    padding-bottom: 3rem;
+  }
+
+  .details__inner {
+    max-width: 800px;
+  }
+
+  .details__location {
+    background-color: var(--auwasser);
+    color: var(--taubenblau);
+    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-weight: 400;
+    margin: 0;
+    padding: 1.75rem 2rem 0;
+  }
+
+  .details__grid {
+    background-color: var(--auwasser);
+    color: var(--taubenblau);
+    padding: 1.5rem 2rem 2rem;
+  }
+
+  .details__block {
+    margin-bottom: 1.25rem;
+  }
+
+  .details__block:last-child {
+    margin-bottom: 0;
+  }
+
+  .details__block h2 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+    color: var(--taubenblau);
+    text-align: left;
+  }
+
+  .details__block p {
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .details__block ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .details__grid a:not(.btn) {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .details__contact-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .details__contact-row p {
+    margin: 0;
+  }
+
+  .details__contact-row :global(.btn) {
+    flex-shrink: 0;
+    background-color: var(--taubenblau);
+    color: var(--schurwolle);
+  }
+
+
+  /* ---- Responsive ---- */
+
+  @media (max-width: 600px) {
+    /* Keep the same grid arrangement, just tighten spacing */
+    .photo-hero__grid {
+      gap: 0.5rem;
+    }
+
+    .photo-hero__date {
+      padding: 1rem 0.75rem;
+    }
+
+    .photo-hero__day {
+      font-size: clamp(2.5rem, 12vw, 4.5rem);
+    }
+
+    .title-banner__logo :global(svg) {
+      width: 52px;
+      height: 52px;
+    }
+
+    /* Location: scale font so the single line fits without wrapping */
+    .details__location {
+      font-size: clamp(0.75rem, 3.5vw, 1rem);
+      padding: 1.25rem 1.25rem 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .details__grid {
+      padding: 1.25rem;
+    }
+
+    /* Contact row: stack button below the text */
+    .details__contact-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    /* Keep phone/link/site on one line, clip if truly too narrow */
+    .details__contact-row p {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+  }
+</style>
