@@ -3,7 +3,7 @@ import Layout from "../layouts/Layout.astro";
 import { Image } from "astro:assets";
 import sophieImage from "../images/Sophie.jpg";
 import heroImage from "../images/hero.jpg";
-import AlpakaLogo from "../images/AS_Symbolik_Schurwolle.svg";
+import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
 ---
 
 <Layout title="Alpaka Yoga">
@@ -169,21 +169,20 @@ import AlpakaLogo from "../images/AS_Symbolik_Schurwolle.svg";
     margin: 0;
     display: flex;
     align-items: center;
+    justify-content: center;
+    text-align: center;
   }
 
   .title-banner__logo {
-    background-color: var(--taubenblau);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0.625rem;
     flex-shrink: 0;
-    aspect-ratio: 1;
   }
 
   .title-banner__logo :global(svg) {
-    width: 52px;
-    height: 52px;
+    width: 68px;
+    height: 68px;
   }
 
   /* ---- Details section ---- */
@@ -262,8 +261,8 @@ import AlpakaLogo from "../images/AS_Symbolik_Schurwolle.svg";
     }
 
     .title-banner__logo :global(svg) {
-      width: 40px;
-      height: 40px;
+      width: 52px;
+      height: 52px;
     }
 
     .details__location {
