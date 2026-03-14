@@ -1,0 +1,243 @@
+---
+import WorkshopLayout from "../layouts/WorkshopLayout.astro";
+import { Image } from "astro:assets";
+import sophieImage from "../images/Sophie.jpg";
+import heroImage from "../images/hero.jpg";
+import AlpakaLogo from "../images/AS_Symbolik_Taubenblau.svg";
+---
+
+<WorkshopLayout title="Alpaka Yoga">
+  <div class="flyer">
+    <section class="photos">
+      <div class="date-badge">
+        <span class="date-month">MAI</span>
+        <span class="date-day">30</span>
+      </div>
+      <div class="photo-sophie">
+        <Image src={sophieImage} alt="Sophie bei der Yoga-Meditation am Wasser bei Sonnenuntergang" widths={[400, 600]} sizes="(max-width: 768px) 40vw, 250px" />
+      </div>
+      <div class="photo-alpakas">
+        <Image src={heroImage} alt="Alpakas auf der Weide der Alpakasölde" widths={[600, 900]} sizes="(max-width: 768px) 60vw, 500px" />
+      </div>
+    </section>
+
+    <section class="title-bar">
+      <h1>Alpaka Yoga</h1>
+      <div class="title-logo">
+        <AlpakaLogo width={72} height={72} fill="white" aria-hidden="true" />
+      </div>
+    </section>
+
+    <section class="info">
+      <div class="info__content">
+        <p class="info__location">
+          Alpakasölde&ensp;|&ensp;Frauenstein 12&ensp;|&ensp;9:00-12:00
+        </p>
+
+        <h2>Das erwartet dich:</h2>
+        <p>
+          Meditation & Yoga mit Sophie<br />
+          Alpakaspaziergang<br />
+          Gemütlicher Ausklang mit der Möglichkeit selber Wolle zu filzen
+        </p>
+
+        <h2>Mitzubringen:</h2>
+        <p>Eigene Yogamatte</p>
+
+        <h2>Kosten:</h2>
+        <p>45&euro;</p>
+
+        <h2>Anmeldung und Infos:</h2>
+        <p>
+          Marlene Diermair&ensp;|&ensp;<a href="tel:+4306605568338">06605568338</a>&ensp;|&ensp;<a href="https://alpakasoelde.at">alpakasoelde.at</a>
+        </p>
+      </div>
+    </section>
+  </div>
+</WorkshopLayout>
+
+<style>
+  :global(body.event-page-body) {
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+  }
+
+  .flyer {
+    max-width: 700px;
+    margin: 0 auto;
+    font-family: "Bricolage Grotesque", sans-serif;
+  }
+
+  /* ---- Photo grid ---- */
+  .photos {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: auto auto;
+    gap: 0.75rem;
+    padding: 1.5rem 1.5rem 0;
+    position: relative;
+  }
+
+  .date-badge {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    z-index: 2;
+    background-color: var(--taubenblau);
+    color: var(--schurwolle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.25rem;
+    line-height: 1;
+  }
+
+  .date-month {
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .date-day {
+    font-size: 3.5rem;
+    font-weight: 300;
+    margin-top: 0.15rem;
+  }
+
+  .photo-sophie {
+    grid-column: 1;
+    grid-row: 2;
+    overflow: hidden;
+  }
+
+  .photo-alpakas {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    overflow: hidden;
+  }
+
+  .photo-sophie :global(img),
+  .photo-alpakas :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ---- Title banner ---- */
+  .title-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0 1.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .title-bar h1 {
+    flex: 1;
+    background-color: var(--bluetenhonig);
+    color: var(--schurwolle);
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+  }
+
+  .title-logo {
+    background-color: var(--taubenblau);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    flex-shrink: 0;
+    aspect-ratio: 1;
+    width: 72px;
+  }
+
+  .title-logo :global(svg) {
+    width: 56px;
+    height: 56px;
+  }
+
+  /* ---- Info section ---- */
+  .info {
+    background-color: var(--auwasser);
+    color: var(--taubenblau);
+    margin: 0.75rem 1.5rem 1.5rem;
+    padding: 2rem 2rem 2.5rem;
+  }
+
+  .info__location {
+    font-size: clamp(1.1rem, 3vw, 1.5rem);
+    font-weight: 400;
+    margin: 0 0 1.5rem;
+  }
+
+  .info h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin: 1.5rem 0 0.25rem;
+    color: var(--taubenblau);
+  }
+
+  .info h2:first-of-type {
+    margin-top: 0;
+  }
+
+  .info p {
+    margin: 0;
+    line-height: 1.7;
+  }
+
+  .info a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ---- Responsive tweaks ---- */
+  @media (max-width: 480px) {
+    .flyer {
+      max-width: 100%;
+    }
+
+    .photos {
+      padding: 1rem 1rem 0;
+      gap: 0.5rem;
+    }
+
+    .date-badge {
+      top: 1rem;
+      left: 1rem;
+      padding: 0.5rem 0.75rem;
+    }
+
+    .date-day {
+      font-size: 2.5rem;
+    }
+
+    .title-bar {
+      padding: 0 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .title-logo {
+      width: 56px;
+    }
+
+    .title-logo :global(svg) {
+      width: 40px;
+      height: 40px;
+    }
+
+    .info {
+      margin: 0.5rem 1rem 1rem;
+      padding: 1.5rem;
+    }
+  }
+</style>
