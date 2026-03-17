@@ -41,6 +41,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+        working-directory: ./src/website
 
       - name: PNPM Install
         run: pnpm install
