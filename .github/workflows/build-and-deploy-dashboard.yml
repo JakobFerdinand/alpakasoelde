@@ -36,6 +36,7 @@ jobs:
         name: Install pnpm
         with:
           version: 10
+        working-directory: ./src/dashboard
 
       - uses: actions/setup-node@v4
         with:
