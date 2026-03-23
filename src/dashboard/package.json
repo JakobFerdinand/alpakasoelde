@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.7",
-    "astro": "^6.0.5",
+    "astro": "^6.0.8",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.34.5"
   },
