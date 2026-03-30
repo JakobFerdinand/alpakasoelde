@@ -14,13 +14,13 @@
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.7",
     "@fontsource/bricolage-grotesque": "^5.2.10",
-    "astro": "^6.0.8",
+    "astro": "^6.1.1",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.8",
     "@playwright/test": "^1.58.2",
     "@types/node": "^25.5.0",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.2"
   }
 }
