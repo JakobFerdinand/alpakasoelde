@@ -14,15 +14,12 @@
         <label for="message">Nachricht*</label>
         <textarea id="message" name="message" required placeholder="Deine Nachricht" maxlength="2000"></textarea>
       </div>
-      <div class="form-field checkbox-field">
-        <input id="privacy-consent" type="checkbox" name="privacyConsent" required />
-        <label for="privacy-consent" class="checkbox-label">
-          Ich habe die
-          <a href="/datenschutzerklaerung">Datenschutzerklärung</a>
-          gelesen und verstanden
-          <span class="required-mark" aria-hidden="true">*</span>
-          <span class="sr-only">Pflichtfeld</span>
-        </label>
+      <div class="form-field">
+        <p class="privacy-notice">
+          <a href="/datenschutzerklaerung" target="_blank" rel="noopener noreferrer">
+            Informationspflicht zum Datenschutz laut Art. 13 DSGVO
+          </a>
+        </p>
       </div>
       <button type="submit" class="btn">Senden</button>
     </form>
@@ -105,12 +102,21 @@
     gap: 0.25rem;
   }
 
-  .checkbox-field {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    width: fit-content;
-    max-width: 100%;
+  .privacy-notice {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--taubenblau);
+    line-height: 1.4;
+  }
+
+  .privacy-notice a {
+    color: var(--taubenblau);
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  .privacy-notice a:hover {
+    color: var(--jungtrieb);
   }
 
   .checkbox-field input {

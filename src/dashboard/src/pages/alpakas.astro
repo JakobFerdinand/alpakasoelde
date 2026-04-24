@@ -6,7 +6,7 @@ import EventList from '../components/EventList.astro';
 <DashboardLayout title="Alpaka Detail">
   <section class="alpaka-detail section">
     <div class="container">
-      <a class="back-link" href="/">← Zurück zur Übersicht</a>
+      <a class="back-link" href="/">&larr; Zurück zur Übersicht</a>
         <div id="alpaka-detail-card" class="alpaka-detail-card loading">
           <div class="alpaka-detail-header">
             <p class="alpaka-detail-title">Alpaka Details</p>
@@ -53,24 +53,26 @@ import EventList from '../components/EventList.astro';
 </DashboardLayout>
 
 <script>
+  import { calculateAge, formatDateLong, formatDateForInput } from '../utils/formatters';
   import { normalizeEvents, renderEventList } from '../components/event-list';
+
   const detailCard = document.getElementById('alpaka-detail-card');
   const eventsSection = document.getElementById('alpaka-events');
   const eventsContent = document.getElementById('alpaka-events-content');
   const detailContent = document.getElementById('alpaka-detail-content');
-  const editButton = document.getElementById('edit-alpaka-button');
-  let editForm = null;
-  let cancelEditButton = null;
-  let editStatus = null;
-  let nameInput = null;
-  let geburtsdatumInput = null;
-  let photoInput = null;
-  let submitEditButton = null;
-  let currentAlpaka = null;
+  const editButton = document.getElementById('edit-alpaka-button') as HTMLButtonElement | null;
+  let editForm: HTMLFormElement | null = null;
+  let cancelEditButton: HTMLButtonElement | null = null;
+  let editStatus: HTMLParagraphElement | null = null;
+  let nameInput: HTMLInputElement | null = null;
+  let geburtsdatumInput: HTMLInputElement | null = null;
+  let photoInput: HTMLInputElement | null = null;
+  let submitEditButton: HTMLButtonElement | null = null;
+  let currentAlpaka: any = null;
   const searchParams = new URLSearchParams(window.location.search);
   const alpakaId = searchParams.get('id');
 
-  const renderError = (message) => {
+  const renderError = (message: string) => {
     if (!detailCard || !detailContent) return;
     detailCard.classList.remove('loading');
     detailContent.innerHTML = '';
@@ -80,40 +82,7 @@ import EventList from '../components/EventList.astro';
     detailContent.appendChild(errorMessage);
   };
 
-  const calculateAge = (dateString) => {
-    const birthDate = new Date(dateString);
-    const today = new Date();
-    if (Number.isNaN(birthDate.valueOf())) {
-      return 'Unbekannt';
-    }
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age < 0 ? 'Unbekannt' : `${age} Jahr${age === 1 ? '' : 'e'}`;
-  };
-
-  const formatDate = (dateString) => {
-    const birthDate = new Date(dateString);
-    if (Number.isNaN(birthDate.valueOf())) {
-      return 'Unbekannt';
-    }
-    return birthDate.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
-  };
-
-  const formatDateForInput = (dateString) => {
-    const birthDate = new Date(dateString);
-    if (Number.isNaN(birthDate.valueOf())) {
-      return '';
-    }
-    const year = birthDate.getFullYear();
-    const month = String(birthDate.getMonth() + 1).padStart(2, '0');
-    const day = String(birthDate.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  const createPhotoElement = (alpaka) => {
+  const createPhotoElement = (alpaka: any) => {
     if (alpaka.ImageUrl) {
       const photo = document.createElement('img');
       photo.className = 'alpaka-photo';
@@ -128,7 +97,7 @@ import EventList from '../components/EventList.astro';
     return placeholder;
   };
 
-  const renderReadOnlyAlpaka = (alpaka) => {
+  const renderReadOnlyAlpaka = (alpaka: any) => {
     if (!detailCard || !detailContent) return;
     detailCard.classList.remove('editing');
     detailContent.hidden = false;
@@ -147,11 +116,11 @@ import EventList from '../components/EventList.astro';
 
     const birthDate = document.createElement('p');
     birthDate.className = 'alpaka-meta';
-    birthDate.textContent = `Geburtsdatum: ${formatDate(alpaka.Geburtsdatum)}`;
+    birthDate.textContent = `Geburtsdatum: ${formatDateLong(alpaka.Geburtsdatum)}`;
     detailContent.appendChild(birthDate);
   };
 
-  const buildEditForm = (alpaka) => {
+  const buildEditForm = (alpaka: any) => {
     if (!detailContent) return null;
 
     editForm = document.createElement('form');
@@ -207,12 +176,12 @@ import EventList from '../components/EventList.astro';
     formActions.className = 'form-actions';
     cancelEditButton = document.createElement('button');
     cancelEditButton.id = 'cancel-edit';
-    cancelEditButton.className = 'btn secondary';
+    cancelEditButton.className = 'ghost-button';
     cancelEditButton.type = 'button';
     cancelEditButton.textContent = 'Abbrechen';
     submitEditButton = document.createElement('button');
     submitEditButton.id = 'submit-edit';
-    submitEditButton.className = 'btn';
+    submitEditButton.className = 'primary-button';
     submitEditButton.type = 'submit';
     submitEditButton.textContent = 'Änderungen speichern';
     formActions.appendChild(cancelEditButton);
@@ -238,7 +207,7 @@ import EventList from '../components/EventList.astro';
     return editForm;
   };
 
-  const renderEditableAlpaka = (alpaka) => {
+  const renderEditableAlpaka = (alpaka: any) => {
     if (!detailContent || !editButton || !detailCard) return;
     detailCard.classList.add('editing');
     detailContent.hidden = false;
@@ -256,7 +225,7 @@ import EventList from '../components/EventList.astro';
     }
   };
 
-  const setEditMode = (active) => {
+  const setEditMode = (active: boolean) => {
     if (!detailContent || !editButton || !detailCard) return;
     editButton.disabled = active;
 
@@ -281,7 +250,7 @@ import EventList from '../components/EventList.astro';
     }
   };
 
-  const renderAlpaka = (alpaka) => {
+  const renderAlpaka = (alpaka: any) => {
     if (!detailCard || !detailContent || !editButton) return;
     currentAlpaka = alpaka;
     detailCard.classList.remove('loading');
@@ -289,7 +258,7 @@ import EventList from '../components/EventList.astro';
     editButton.hidden = false;
   };
 
-  const loadAlpaka = async (id) => {
+  const loadAlpaka = async (id: string) => {
     if (!detailCard) return;
     try {
       const response = await fetch(`/api/alpakas/${encodeURIComponent(id)}`);
@@ -317,7 +286,7 @@ import EventList from '../components/EventList.astro';
 
   const maxFileSize = 15 * 1024 * 1024; // 15 MB (must match backend)
 
-  const submitEdit = async (event) => {
+  const submitEdit = async (event: Event) => {
     if (!alpakaId || !editForm || !submitEditButton) return;
     event.preventDefault();
 
@@ -382,20 +351,6 @@ import EventList from '../components/EventList.astro';
     color: var(--schurwolle);
   }
 
-  .back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    color: inherit;
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .back-link:hover {
-    text-decoration: underline;
-  }
-
   .alpaka-detail-card {
     background-color: var(--schurwolle);
     color: var(--taubenblau);
@@ -440,17 +395,6 @@ import EventList from '../components/EventList.astro';
   :global(.alpaka-meta) {
     margin: 0.25rem 0;
     font-weight: 500;
-  }
-
-  :global(.loading-text) {
-    margin: 0;
-    font-weight: 600;
-  }
-
-  :global(.error) {
-    margin: 0;
-    color: var(--backstein);
-    font-weight: 600;
   }
 
   .alpaka-events {
@@ -512,25 +456,6 @@ import EventList from '../components/EventList.astro';
     display: flex;
     flex-direction: column;
     gap: 1rem;
-  }
-
-  .form-hint {
-    margin: 0.25rem 0 0;
-    font-size: 0.9rem;
-    color: var(--taubenblau);
-  }
-
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    align-items: center;
-  }
-
-  .btn.secondary {
-    background: transparent;
-    color: var(--taubenblau);
-    border: 1px solid var(--taubenblau);
   }
 
   .edit-status {

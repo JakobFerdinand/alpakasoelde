@@ -32,16 +32,11 @@ public sealed class SendMessage
 		_logger.LogInformation("Received data: {Body}", body);
 
 		var parsedForm = HttpUtility.ParseQueryString(body);
-		string? name = parsedForm["name"]?.Trim();
-		string? email = parsedForm["email"]?.Trim();
-		string? messageContent = parsedForm["message"]?.Trim();
-		bool privacyAccepted = parsedForm["privacyConsent"]?.Trim().ToLowerInvariant() switch
-		{
-			"on" or "true" or "1" => true,
-			_ => false
-		};
+string? name = parsedForm["name"]?.Trim();
+			string? email = parsedForm["email"]?.Trim();
+			string? messageContent = parsedForm["message"]?.Trim();
 
-		var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty, privacyAccepted), req.FunctionContext.CancellationToken);
+		var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty), req.FunctionContext.CancellationToken);
 		if (validation is not null)
 		{
 			_logger.LogWarning("Form submission validation failed: {Detail}", validation.Detail);
@@ -60,7 +55,7 @@ public sealed class SendMessage
 		return response;
 	}
 
-	public sealed record Command(string Name, string Email, string Message, bool PrivacyAccepted);
+	public sealed record Command(string Name, string Email, string Message);
 
 	public sealed record Result(string RedirectLocation);
 
@@ -136,12 +131,7 @@ public sealed class SendMessage
 			if (command.Email.Length > EmailMaxLength) errors.Add($"Email exceeds {EmailMaxLength} characters.");
 			if (command.Message.Length > MessageMaxLength) errors.Add($"Message exceeds {MessageMaxLength} characters.");
 
-			if (!command.PrivacyAccepted)
-			{
-				errors.Add("Bitte bestätige, dass du die Datenschutzerklärung gelesen hast.");
-			}
-
-			if (errors.Count > 0)
+if (errors.Count > 0)
 			{
 				return (null, new ValidationProblem(errors, string.Join(" ", errors)));
 			}
@@ -151,7 +141,6 @@ public sealed class SendMessage
 				Name = command.Name.Trim(),
 				Email = command.Email.Trim(),
 				Message = command.Message.Trim(),
-				PrivacyPolicyAccepted = command.PrivacyAccepted
 			};
 
 			await _store.AddAsync(messageEntity, cancellationToken).ConfigureAwait(false);

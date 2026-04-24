@@ -1,3 +1,5 @@
+import { formatDate, formatCurrency } from '../utils/formatters';
+
 export type EventListItem = {
   eventType: string;
   eventDate: string;
@@ -9,20 +11,6 @@ export type EventListItem = {
 export type EventListOptions = {
   emptyText?: string;
   showAlpakaNames?: boolean;
-};
-
-const formatDate = (value: string) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return value;
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  return `${day}.${month}.${year}`;
-};
-
-const formatCurrency = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return '';
-  return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
 };
 
 export const normalizeEvents = (events: unknown): EventListItem[] => {
@@ -172,7 +160,7 @@ export const renderEventList = (
     const costCell = document.createElement('td');
     costCell.className = 'event-cost';
     const formattedCost = formatCurrency(item.cost as any);
-    costCell.textContent = formattedCost || '—';
+    costCell.textContent = formattedCost;
     row.appendChild(costCell);
 
     body.appendChild(row);

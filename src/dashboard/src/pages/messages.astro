@@ -8,7 +8,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     <div class="container">
       <h2>Eingegangene Nachrichten</h2>
       <div class="table-wrapper">
-        <table class="message-table">
+        <table class="message-table data-table">
           <thead>
             <tr>
               <th>Name</th>
@@ -34,6 +34,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 </DashboardLayout>
 
 <script>
+  import { formatTimestamp } from '../utils/formatters';
+
   const columnCount = 5;
   const trashIconTemplate = document.getElementById('trash-icon') as HTMLTemplateElement | null;
 
@@ -91,9 +93,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
         msgs.forEach((msg: Message) => {
           const tr = document.createElement('tr');
-          const time = new Date(msg.Timestamp).toLocaleString('de-AT', {
-            timeZone: 'Europe/Vienna'
-          });
+          const time = formatTimestamp(msg.Timestamp);
           tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
 
           const actionCell = document.createElement('td');
@@ -125,47 +125,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     color: var(--taubenblau);
   }
 
-  .table-wrapper {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 0.5rem;
-    margin: 1rem 0;
-  }
-
   .message-table {
-    width: 100%;
     min-width: 40rem;
-    border-collapse: collapse;
-    background-color: var(--schurwolle);
-    color: var(--taubenblau);
-    border-radius: 0.5rem;
-    overflow: hidden;
-    text-align: left;
   }
 
   .message-table th {
-    padding: 0.75rem 0.5rem;
-    background-color: var(--weidegruen);
-    color: var(--schurwolle);
-    text-align: left;
     position: sticky;
     top: 0;
     z-index: 1;
-  }
-
-  .message-table td {
-    padding: 0.75rem 0.5rem;
-    text-align: left;
-    border-bottom: 1px solid var(--taubenblau);
-    transition: background-color 0.2s ease;
-  }
-
-  .message-table tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  .message-table tbody tr:hover > td {
-    background-color: var(--auwasser);
   }
 
   .message-cell {
@@ -177,29 +144,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .action-cell {
     text-align: center;
     width: 5rem;
-  }
-
-  .icon-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0.25rem;
-    color: var(--taubenblau);
-    transition: color 0.2s ease, transform 0.1s ease;
-  }
-
-  .icon-button:hover,
-  .icon-button:focus-visible {
-    color: var(--weidegruen);
-    transform: scale(1.05);
-    outline: none;
-  }
-
-  .icon-button svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    stroke: currentColor;
-    fill: none;
   }
 
   @media (max-width: 600px) {

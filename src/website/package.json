@@ -4,21 +4,23 @@
   "version": "0.0.1",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro build",
+    "check": "astro check",
     "preview": "astro preview",
     "astro": "astro",
     "pretest": "playwright install chromium",
     "test": "playwright test"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.6",
+    "@astrojs/ts-plugin": "^1.10.7",
     "@fontsource/bricolage-grotesque": "^5.2.10",
-    "astro": "^5.16.4"
+    "astro": "^6.1.8",
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.6",
-    "@playwright/test": "^1.57.0",
-    "@types/node": "^24.10.1",
-    "typescript": "^5.9.3"
+    "@astrojs/check": "^0.9.8",
+    "@playwright/test": "^1.59.1",
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
   }
 }

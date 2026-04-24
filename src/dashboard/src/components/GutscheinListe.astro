@@ -1,75 +1,36 @@
 ---
-interface Gutschein {
-  gutscheinnummer?: string;
-  kaufdatum?: string;
-  betrag?: number | string | null;
-  eingeloestAm?: string | null;
-  verkauftAn?: string | null;
-  Gutscheinnummer?: string;
-  Kaufdatum?: string;
-  Betrag?: number | string | null;
-  EingeloestAm?: string | null;
-  VerkauftAn?: string | null;
-}
+import Card from './Card.astro';
+import { formatDate, formatCurrency, toNumber } from '../utils/formatters';
+import { normalizeGutschein, type GutscheinRaw } from '../utils/gutschein';
 
 interface Props {
-  gutscheine?: Gutschein[] | null;
+  gutscheine?: GutscheinRaw[] | null;
 }
 
 const gutscheineProp = Astro.props.gutscheine ?? null;
-const gutscheine = Array.isArray(gutscheineProp) ? gutscheineProp : [];
+const gutscheine = Array.isArray(gutscheineProp) ? gutscheineProp.map(normalizeGutschein) : [];
 
-const formatDate = (value?: string | null) => {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.valueOf())) return value;
-  return date.toLocaleDateString('de-AT', { year: 'numeric', month: '2-digit', day: '2-digit' });
-};
-
-const formatCurrency = (value?: number | string | null) => {
-  if (value === null || value === undefined || Number.isNaN(Number(value))) return '—';
-  return new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(Number(value));
-};
-
-const normalizeAmount = (value?: number | string | null) => {
-  const amount = Number(value);
-  return Number.isFinite(amount) ? amount : 0;
-};
-
-const normalizeGutschein = (gutschein: Gutschein) => {
-  const uppercase = gutschein as Record<string, unknown>;
-
-  return {
-    gutscheinnummer: gutschein.gutscheinnummer ?? (uppercase.Gutscheinnummer as string) ?? '',
-    kaufdatum: gutschein.kaufdatum ?? (uppercase.Kaufdatum as string) ?? '',
-    betrag: gutschein.betrag ?? (uppercase.Betrag as number | string | null) ?? null,
-    eingeloestAm: gutschein.eingeloestAm ?? (uppercase.EingeloestAm as string | null) ?? null,
-    verkauftAn: gutschein.verkauftAn ?? (uppercase.VerkauftAn as string | null) ?? null
-  };
-};
-
-const normalisierteGutscheine = gutscheine.map(normalizeGutschein);
-const hatGutscheine = normalisierteGutscheine.length > 0;
+const hatGutscheine = gutscheine.length > 0;
 const wirdGeladen = gutscheineProp === null;
-const summeVerkauft = normalisierteGutscheine.reduce((summe, gutschein) => summe + normalizeAmount(gutschein.betrag), 0);
-const summeOffen = normalisierteGutscheine.reduce(
-  (summe, gutschein) => (!gutschein.eingeloestAm ? summe + normalizeAmount(gutschein.betrag) : summe),
+const summeVerkauft = gutscheine.reduce((summe, g) => summe + toNumber(g.betrag), 0);
+const summeOffen = gutscheine.reduce(
+  (summe, g) => (!g.eingeloestAm ? summe + toNumber(g.betrag) : summe),
   0
 );
 ---
 
-<div class="gutschein-karte" data-gutschein-liste data-initial-gutscheine={JSON.stringify(gutscheineProp)}>
+<Card class="gutschein-liste-card" data-gutschein-liste data-initial-gutscheine={JSON.stringify(gutscheineProp)}>
   <div class="listen-kopf">
     <div>
-      <p class="eyebrow">Übersicht</p>
-      <h2>Verkaufte Gutscheine</h2>
+      <p class="card-eyebrow">Übersicht</p>
+      <h2 class="card-title">Verkaufte Gutscheine</h2>
       <p class="card-subtitle">Alle Gutscheine mit Kauf- und Einlösedaten.</p>
     </div>
     <button id="aktualisieren-button" type="button" class="ghost-button">Aktualisieren</button>
   </div>
   <div id="gutschein-liste" class={`gutschein-liste${wirdGeladen ? ' ladezustand' : ''}`}>
     {wirdGeladen ? (
-      <p class="lade-text">Lade Gutscheine...</p>
+      <p class="loading-text">Lade Gutscheine...</p>
     ) : hatGutscheine ? (
       <table class="gutschein-tabelle" aria-label="Gutscheinliste">
         <thead>
@@ -82,7 +43,7 @@ const summeOffen = normalisierteGutscheine.reduce(
           </tr>
         </thead>
         <tbody>
-          {normalisierteGutscheine.map((gutschein) => (
+          {gutscheine.map((gutschein) => (
             <tr class="gutschein-zeile">
               <td>{gutschein.gutscheinnummer || '—'}</td>
               <td>{formatDate(gutschein.kaufdatum)}</td>
@@ -113,7 +74,94 @@ const summeOffen = normalisierteGutscheine.reduce(
         </tfoot>
       </table>
     ) : (
-      <p class="leer">Noch keine Gutscheine erfasst.</p>
+      <p class="empty">Noch keine Gutscheine erfasst.</p>
     )}
   </div>
-</div>
+</Card>
+
+<style>
+  .gutschein-liste-card {
+    min-width: 0;
+  }
+
+  .listen-kopf {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .gutschein-liste {
+    border: 1px solid rgba(0, 32, 73, 0.08);
+    border-radius: 0.75rem;
+    padding: 1rem;
+    min-height: 120px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .gutschein-liste.ladezustand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .gutschein-tabelle {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+
+  .gutschein-tabelle th,
+  .gutschein-tabelle td {
+    text-align: left;
+    padding: 0.6rem 0.4rem;
+  }
+
+  .gutschein-kopf th {
+    font-weight: 700;
+    color: var(--taubenblau);
+    border-bottom: 2px solid rgba(0, 32, 73, 0.15);
+  }
+
+  .gutschein-zeile td {
+    border-bottom: 1px solid rgba(0, 32, 73, 0.08);
+  }
+
+  .gutschein-zeile:last-child td {
+    border-bottom: none;
+  }
+
+  .gutschein-summe td {
+    border-top: 2px solid rgba(0, 32, 73, 0.15);
+    padding-top: 0.85rem;
+  }
+
+  .gutschein-summe-zelle {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.1rem;
+    font-weight: 700;
+    color: var(--taubenblau);
+  }
+
+  .gutschein-summe-betrag {
+    font-size: 1rem;
+  }
+
+  @media (max-width: 720px) {
+    .listen-kopf {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .gutschein-tabelle th,
+    .gutschein-tabelle td {
+      padding: 0.5rem;
+      font-size: 0.95rem;
+    }
+  }
+</style>

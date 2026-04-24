@@ -1,0 +1,22 @@
+---
+/**
+ * A reusable card component with optional eyebrow, title, and subtitle.
+ * Uses CSS classes from global.css for styling.
+ */
+export interface Props {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  class?: string;
+}
+
+const { eyebrow, title, subtitle, class: className } = Astro.props;
+const cardClasses = ['card', className].filter(Boolean).join(' ');
+---
+
+<div class={cardClasses}>
+  {eyebrow && <p class="card-eyebrow">{eyebrow}</p>}
+  {title && <h2 class="card-title">{title}</h2>}
+  {subtitle && <p class="card-subtitle">{subtitle}</p>}
+  <slot />
+</div>

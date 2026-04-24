@@ -1,0 +1,64 @@
+---
+/**
+ * A reusable modal/lightbox component.
+ * Uses CSS classes from global.css for styling.
+ */
+export interface Props {
+  id: string;
+  label?: string;
+}
+
+const { id, label } = Astro.props;
+---
+
+<div
+  id={id}
+  class="modal-backdrop"
+  hidden
+  aria-hidden="true"
+  role="dialog"
+  aria-modal="true"
+  aria-label={label}
+>
+  <div class="modal-content">
+    <button type="button" class="modal-close" aria-label="Schließen" data-modal-close>&times;</button>
+    <slot />
+  </div>
+</div>
+
+<script>
+  function initModal(modal: HTMLElement) {
+    const closeBtn = modal.querySelector('[data-modal-close]');
+
+    const setVisibility = (visible: boolean) => {
+      modal.hidden = !visible;
+      modal.classList.toggle('is-visible', visible);
+      modal.setAttribute('aria-hidden', visible ? 'false' : 'true');
+      document.body.style.overflow = visible ? 'hidden' : '';
+    };
+
+    // Close button
+    closeBtn?.addEventListener('click', () => setVisibility(false));
+
+    // Click on backdrop
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        setVisibility(false);
+      }
+    });
+
+    // Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.hidden) {
+        setVisibility(false);
+      }
+    });
+
+    // Expose open/close methods on the element
+    (modal as any).openModal = () => setVisibility(true);
+    (modal as any).closeModal = () => setVisibility(false);
+  }
+
+  // Initialize all modals
+  document.querySelectorAll<HTMLElement>('.modal-backdrop').forEach(initModal);
+</script>

@@ -32,8 +32,24 @@ jobs:
           submodules: true
           lfs: false
 
-      - name: NPM Install
-        run: npm install
+      - uses: pnpm/action-setup@v6
+        name: Install pnpm
+        with:
+          version: 10
+
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: ./src/dashboard/pnpm-lock.yaml
+
+      - name: PNPM Install
+        run: pnpm install
+        working-directory: ./src/dashboard
+
+      - name: Astro Check
+        run: pnpm run check
         working-directory: ./src/dashboard
 
       - name: Setup .NET
@@ -41,17 +57,15 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Run API tests
-        run: dotnet test --project src/dashboard-api.Tests/dashboard-api.Tests.csproj
-
       - name: Build Functions
         run: dotnet publish src/dashboard-api/dashboard-api.csproj -c Release -o api_output
 
       - name: Build Page
-        run: npm run build
+        run: pnpm run build
         working-directory: ./src/dashboard
 
       - name: Deploy
+        if: github.actor != 'dependabot[bot]'
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:

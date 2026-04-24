@@ -9,18 +9,70 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      github-actions-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "devcontainers"
     directory: "/"
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      devcontainers-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "npm"
     directory: "/src/website/"
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      npm-all:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "npm"
+    directory: "/src/dashboard/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      npm-all:
+        patterns:
+          - "*"
 
   - package-ecosystem: "nuget"
     directory: "/src/website-api/"
     schedule:
       interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      nuget-all:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/dashboard-api/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      nuget-all:
+        patterns:
+          - "*"
