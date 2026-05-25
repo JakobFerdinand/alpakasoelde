@@ -10,14 +10,14 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/ts-plugin": "^1.10.7",
-    "astro": "^6.3.1",
+    "@astrojs/ts-plugin": "^1.10.9",
+    "astro": "^6.3.7",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "@types/node": "^25.6.2",
+    "@types/node": "^25.9.1",
     "typescript": "^6.0.3"
   }
 }
