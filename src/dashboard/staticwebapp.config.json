@@ -1,9 +1,4 @@
 {
-  "auth": {
-    "identityProviders": {
-      "github": {}
-    }
-  },
   "routes": [
     {
       "route": "/*",
