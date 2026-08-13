@@ -38,11 +38,11 @@ Checkboxes are updated as work progresses.
 - [x] Write infrastructure plan (`plan.md`)
 - [x] Finalize plan decisions (Key Vault name, budget values, seed script,
       storage-key rotation, `what-if` PR job)
-- [ ] Scaffold Bicep templates (`main.bicep`, `main-subscription.bicep`, modules,
+- [x] Scaffold Bicep templates (`main.bicep`, `main-subscription.bicep`, modules,
       `*.bicepparam`, `bicepconfig.json`)
-- [ ] Validate templates locally (`az bicep build` + `az deployment group what-if`)
-- [ ] Write `infrastructure/scripts/seed-keyvault.sh`
-- [ ] Write `.github/workflows/infra-deploy.yml` (`what-if` PR job + deploy on main)
+- [x] Validate templates locally (`az bicep build` + `az deployment group what-if`)
+- [x] Write `infrastructure/scripts/seed-keyvault.sh`
+- [x] Write `.github/workflows/infra-deploy.yml` (`what-if` PR job + deploy on main)
 - [ ] Manual: create service principal + OIDC federated credential, add GitHub
       secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`)
 - [ ] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
