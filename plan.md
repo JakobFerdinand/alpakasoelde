@@ -39,6 +39,8 @@ infrastructure/
   main-subscription.bicep # subscription-scoped deployment (cost budget)
   main-subscription.bicepparam
   bicepconfig.json        # lint rules
+  scripts/
+    seed-keyvault.sh      # one-off: reads existing SWA settings into kv-alpakasoelde (no output of secrets)
   modules/
     storage.bicep         # storage account + tables + blob containers (adopt in place)
     communication.bicep   # CommunicationServices + EmailServices + 2 domains
@@ -68,12 +70,18 @@ Details:
 
 Static Web App app settings do not support Key Vault references, so:
 
-- `kv-alpakasoelde` (new resource) is created and seeded with the existing secrets:
-  `StorageConnection`, `AZURE_STORAGE_ACCOUNT_KEY`, `EmailConnection`,
-  `EmailSenderAddress`, `ReceiverEmailAddresses`.
+- A new **Key Vault `kv-alpakasoelde`** is created and seeded with the existing
+  secrets: `StorageConnection`, `AZURE_STORAGE_ACCOUNT_KEY`, `EmailConnection`,
+  `EmailSenderAddress`, `ReceiverEmailAddresses`, `AZURE_STORAGE_ACCOUNT_NAME`.
+- A documented one-off **seed script** (`infrastructure/scripts/seed-keyvault.sh`)
+  reads the current SWA app settings and writes them into the Key Vault, without
+  printing secret values to the console.
 - The infra workflow reads the secrets from Key Vault and sets the full SWA app
   settings after each deployment (`az staticwebapp appsettings set` is a full
   overwrite, so the complete current settings are reproduced to avoid wiping them).
+- As a hardening step after the switchover, the **storage account key is rotated**
+  and the new key synced into the Key Vault, so legacy key copies in the SWA
+  settings become stale.
 - Secrets live in Key Vault, never in Bicep files or in the repository.
 
 ## 3. GitHub Actions – infra auto-deploy
@@ -98,14 +106,17 @@ New workflow `.github/workflows/infra-deploy.yml`:
 ## 4. Rollout order (safe, no downtime)
 
 1. **One-time prep:** create service principal + OIDC credential, add GitHub
-   secrets; create `kv-alpakasoelde` and copy existing secrets from the SWA app
-   settings into it.
+   secrets; run `infrastructure/scripts/seed-keyvault.sh` to populate
+   `kv-alpakasoelde` with the existing SWA settings.
 2. Commit the Bicep templates plus `infra-deploy.yml`; run a `workflow_dispatch`-ed
    `what-if` to confirm no destructive changes on the Static Web Apps or storage
    (the adoption hotspot).
 3. Deploy; verify the sites stay live, app settings are restored, and the function
    APIs still answer.
-4. Update `AGENTS.md` (fix the old `infrastructure/table-storage.bicep` reference and
+4. **Rotate** the storage account key, update the `StorageConnection` /
+   `AZURE_STORAGE_ACCOUNT_KEY` secrets in Key Vault, and let the infra workflow
+   re-apply the new values to the SWA app settings.
+5. Update `AGENTS.md` (fix the old `infrastructure/table-storage.bicep` reference and
    add the `az deployment group/sub …` commands) and README.
 
 ## 5. Known limitations (kept manual, documented)
@@ -116,8 +127,16 @@ New workflow `.github/workflows/infra-deploy.yml`:
 
 ## Decisions
 
-- **Budget:** included in IaC via a subscription-scoped deployment.
+- **Bicep** (RG-scoped `main.bicep` + subscription-scoped `main-subscription.bicep`),
+  adopting existing resources in place.
+- **Key Vault:** named `kv-alpakasoelde`; all existing SWA app settings migrate in
+  via the seed script; infra workflow re-applies them after each deploy.
 - **App settings:** sourced from Key Vault and applied by the infra workflow;
   existing app build-and-deploy workflows stay untouched.
+- **Budget:** included in IaC; adopts the existing `Alpakasoelde-Budget` —
+  €3/month, monthly grain, notifications at 20/80/100% to
+  `alpakasoelde-budget-actions`.
+- **Storage key rotation:** rotate after migration and sync the new key into Key
+  Vault so legacy copies go stale.
 - **Pull requests:** infra changes run a `what-if` job that posts the diff as a PR
   comment.
