@@ -5,7 +5,7 @@
 - `src/dashboard`: Internal Astro dashboard; place screens in `src/pages` and reusable pieces in `src/components`.
 - `src/dashboard-api`: .NET 10 isolated Azure Functions for data ingestion and storage, co-locating triggers with their entity models.
 - `src/website-api`: Public-facing Azure Functions that mirror the patterns from `src/dashboard-api`.
-- `infrastructure/table-storage.bicep`: Bicep template that provisions the shared Azure Table Storage resources.
+- `infrastructure/`: Bicep templates that adopt the whole Azure estate in place (storage, Key Vault `kv-alpakasoelde`, Communication/Email services, both Static Web Apps, observability). `main.bicep` is resource-group scoped; `main-subscription.bicep` covers the cost budget. Secrets live in the Key Vault; `scripts/seed-keyvault.sh` migrates existing SWA app settings once, and `scripts/sync-swappsettings.sh` re-applies them from the vault after deploys.
 - `.slnx` solution: use `alpakasoelde.slnx` to open all projects together; `global.json` pins .NET SDK 10.0.0 with the new test runner.
 
 ## Build, Test, and Development Commands
@@ -15,6 +15,7 @@
 - `dotnet build src/dashboard-api/dashboard-api.csproj` then `cd src/dashboard-api && func start` — compile and serve the dashboard API locally (Azure Functions Core Tools required).
 - `dotnet build src/website-api/website-api.csproj` then `cd src/website-api && func start` — same workflow for the public API facade.
 - Tests: `dotnet test src/dashboard-api.Tests/dashboard-api.Tests.csproj` and `dotnet test src/website-api.Tests/website-api.Tests.csproj`; extend the slice-specific test suites when adding handlers or stores.
+- Infrastructure: `az bicep build --file infrastructure/main.bicep` and `az bicep build --file infrastructure/main-subscription.bicep` validate the templates; `az deployment group what-if --resource-group RG-Alpakasoelde --template-file infrastructure/main.bicep --parameters infrastructure/main.bicepparam` previews resource-group changes. Deploy with `az deployment group create ...` and `az deployment sub create --location westeurope --template-file infrastructure/main-subscription.bicep --parameters infrastructure/main-subscription.bicepparam`; the `infra-deploy.yml` workflow runs these on `main`. After deploys (or after rotating the storage key), re-apply SWA settings with `bash infrastructure/scripts/sync-swappsettings.sh`.
 
 ## Coding Style & Naming Conventions
 - Use two-space indentation in Astro/TS files, PascalCase component filenames, and keep copy in dedicated `.astro` or `.md` fragments.
@@ -49,5 +50,5 @@
 ## Environment & Configuration
 - Never commit secrets; supply `StorageConnection`, `AZURE_STORAGE_ACCOUNT_NAME`, and `AZURE_STORAGE_ACCOUNT_KEY` via `local.settings.json` or user secrets.
 - Website email settings: `EmailSenderAddress`, `ReceiverEmailAddresses` (semicolon-separated), and `EmailConnection`.
-- Table usage: `alpakas`, `events`, and `messages` tables with partition keys `AlpakaPartition` (alpakas), `ContactPartition` (messages), and AlpakaId per row for events; ensure the storage account from `infrastructure/table-storage.bicep` exists or is mocked locally.
-- Ensure the storage resources from `infrastructure/table-storage.bicep` exist (or are substituted) before running the functions locally.
+- Table usage: `alpakas`, `events`, and `messages` tables with partition keys `AlpakaPartition` (alpakas), `ContactPartition` (messages), and AlpakaId per row for events; storage is provisioned via `infrastructure/modules/storage.bicep` (adopted in place).
+- Ensure the storage resources from `infrastructure/modules/storage.bicep` exist (or are substituted) before running the functions locally.

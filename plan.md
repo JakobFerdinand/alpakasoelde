@@ -48,8 +48,8 @@ Checkboxes are updated as work progresses.
 - [x] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
 - [x] First deploy: review `what-if` → apply → verify sites stay live and app
       settings are restored
-- [ ] Rotate storage account key; sync new key into Key Vault; re-apply SWA settings
-- [ ] Update `AGENTS.md` and README (fix stale `table-storage.bicep` reference, add
+- [x] Rotate storage account key; sync new key into Key Vault; re-apply SWA settings
+- [x] Update `AGENTS.md` and README (fix stale `table-storage.bicep` reference, add
       deployment commands)
 - [ ] Open pull request and merge to `main`
 
