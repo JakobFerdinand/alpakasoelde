@@ -36,6 +36,8 @@ downtime. `what-if` is used to verify this before applying.
 infrastructure/
   main.bicep              # RG-scoped orchestrator (targetScope = resourceGroup)
   main.bicepparam         # values: RG name, location, resource names, custom domains
+  main-subscription.bicep # subscription-scoped deployment (cost budget)
+  main-subscription.bicepparam
   bicepconfig.json        # lint rules
   modules/
     storage.bicep         # storage account + tables + blob containers (adopt in place)
@@ -43,6 +45,7 @@ infrastructure/
     static-sites.bicep    # both SWAs + customDomains + Application Insights wiring
     keyvault.bicep        # NEW kv-alpakasoelde (secrets for app settings)
     observability.bicep   # Log Analytics workspace + App Insights component + action groups
+    budget.bicep          # subscription cost budget + `alpakasoelde-budget-actions` action group
 ```
 
 Details:
@@ -58,6 +61,8 @@ Details:
   they are left out of IaC initially and stay portal-managed (they are already
   configured).
 - A new Key Vault `kv-alpakasoelde` is introduced as the secret source.
+- The subscription-scoped deployment `main-subscription.bicep` provisions the cost
+  budget and its action group via `az deployment sub create`.
 
 ## 2. Secret management
 
@@ -75,15 +80,20 @@ Static Web App app settings do not support Key Vault references, so:
 
 New workflow `.github/workflows/infra-deploy.yml`:
 
-- **Triggers:** `push` to `main` with paths `infrastructure/**`, plus
-  `workflow_dispatch`.
+- **Triggers:** `push` to `main` with paths `infrastructure/**`, and `pull_request`
+  for a `what-if` preview job; both also support `workflow_dispatch`.
 - **Deploy identity (one-time setup):**
   1. Create a service principal for the repo.
   2. Add an OIDC federated credential for this GitHub repository.
   3. Grant `Contributor` on `RG-Alpakasoelde` and Key Vault secret-read access.
   4. Store `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` in repo secrets.
-- **Steps:** `Azure/login@v2` (OIDC) → `az bicep build` → `az deployment group what-if`
-  → `az deployment group create --confirm-with-what-if` → set SWA app settings from Key Vault.
+- **Jobs:**
+  - `what-if` (pull requests): `Azure/login@v2` → `az bicep build` →
+    `az deployment group what-if` → post the diff as a PR comment, so infra PRs
+    show their impact before merge.
+  - `deploy` (main): `Azure/login@v2` → `az bicep build` →
+    `az deployment group what-if` → `az deployment group create --confirm-with-what-if`
+    → `az deployment sub create` for the budget → set SWA app settings from Key Vault.
 
 ## 4. Rollout order (safe, no downtime)
 
@@ -96,20 +106,18 @@ New workflow `.github/workflows/infra-deploy.yml`:
 3. Deploy; verify the sites stay live, app settings are restored, and the function
    APIs still answer.
 4. Update `AGENTS.md` (fix the old `infrastructure/table-storage.bicep` reference and
-   add the `az deployment group …` commands) and README.
+   add the `az deployment group/sub …` commands) and README.
 
 ## 5. Known limitations (kept manual, documented)
 
 - Dashboard GitHub auth provider and the `admin`/`collaborator` role-to-user mapping
   are portal-managed and cannot be fully configured via Bicep.
 - Email domain DNS verification records.
-- Subscription cost budget (optional stretch; requires a second
-  `az deployment sub create`).
 
-## Open choices
+## Decisions
 
-- Include the subscription cost budget in IaC or leave it as-is?
-- App settings source: keep them restored from Key Vault via the infra workflow
-  (recommended), or also let the existing app-deploy workflows pull from Key Vault?
-  (App workflows stay untouched by default.)
-- Add a `what-if` → pull-request-comment job, or keep infra deploy main-only?
+- **Budget:** included in IaC via a subscription-scoped deployment.
+- **App settings:** sourced from Key Vault and applied by the infra workflow;
+  existing app build-and-deploy workflows stay untouched.
+- **Pull requests:** infra changes run a `what-if` job that posts the diff as a PR
+  comment.
