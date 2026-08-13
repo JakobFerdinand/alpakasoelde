@@ -44,7 +44,7 @@ resource insights 'Microsoft.Insights/components@2020-02-02' = {
 
 resource budgetActionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
   name: budgetActionGroupName
-  location: 'global'
+  location: location
   properties: {
     groupShortName: 'Alpakasoelde'
     enabled: true
