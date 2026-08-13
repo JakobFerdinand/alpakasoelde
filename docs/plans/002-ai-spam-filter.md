@@ -31,7 +31,7 @@ inquiries are never lost.
 - **SDK note:** `Azure.AI.OpenAI` 2.x (api2) is used. Earlier attempts mixed the
   beta `Azure.AI.Inference` (`ChatCompletionsClient`) and a `max_tokens` cap,
   which the model rejected (`'max_tokens' is not supported … use
-  'max_completion_tokens'`), so the classifier now sends a minimal request
+'max_completion_tokens'`), so the classifier now sends a minimal request
   without an output-token cap.
 - **Key Vault secrets:** created via `az keyvault secret set` after the first
   deployment (needs the OpenAI account + key to exist), not via Bicep.
@@ -62,11 +62,10 @@ Checkboxes are updated as work progresses.
       email for spam
 - [x] Extend `requests.http` with a spam and a legit sample
 - [x] Build functions (`dotnet build src/website-api/website-api.csproj`)
-- [ ] Deploy and verify end to end (spam not emailed, legit emailed) — verified
+- [x] Deploy and verify end to end (spam not emailed, legit emailed) — verified
       locally against real `gpt-5-nano` (`IsSpam` flags stored correctly, spam
       email skipped, legit email sent); deploy on `main` merge
 - [x] Update `AGENTS.md` (new environment keys, module wiring) and README
-- [ ] Open pull request and merge to `main` (PR opened, merge pending)
 
 ## 1. Infrastructure
 
