@@ -43,7 +43,7 @@ Checkboxes are updated as work progresses.
 - [x] Validate templates locally (`az bicep build` + `az deployment group what-if`)
 - [x] Write `infrastructure/scripts/seed-keyvault.sh`
 - [x] Write `.github/workflows/infra-deploy.yml` (`what-if` PR job + deploy on main)
-- [ ] Manual: create service principal + OIDC federated credential, add GitHub
+- [x] Manual: create service principal + OIDC federated credential, add GitHub
       secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`)
 - [ ] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
 - [ ] First deploy: review `what-if` → apply → verify sites stay live and app
