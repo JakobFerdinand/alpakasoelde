@@ -1,8 +1,9 @@
 using System.Text.RegularExpressions;
 using Azure;
-using Azure.AI.Inference;
+using Azure.AI.OpenAI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using OpenAI.Chat;
 using WebsiteApi.Shared;
 
 namespace WebsiteApi.Features.Messages;
@@ -40,29 +41,22 @@ public sealed class OpenAiSpamClassifier(IConfiguration configuration, ILogger<O
 
 		try
 		{
-			ChatCompletionsClient client = new(new Uri(endpoint), new AzureKeyCredential(apiKey));
+			AzureOpenAIClient client = new(new Uri(endpoint), new AzureKeyCredential(apiKey));
+			ChatClient chat = client.GetChatClient(deployment);
 
-			ChatCompletionsOptions options = new()
-			{
-				Model = deployment,
-				MaxTokens = 200,
-				ResponseFormat = new ChatCompletionsResponseFormatJsonObject(),
-				Messages =
-				{
-					new ChatRequestSystemMessage(SystemPrompt),
-					new ChatRequestUserMessage($"""
+			ChatCompletion completion = await chat.CompleteChatAsync(
+				[
+					new SystemChatMessage(SystemPrompt),
+					new UserChatMessage($"""
                     Name: {name}
                     E-Mail: {email}
                     Nachricht:
                     {message}
                     """)
-				}
-			};
-			// gpt-5 are reasoning models; pin effort low to keep the call fast and cheap.
-			options.AdditionalProperties["reasoning_effort"] = BinaryData.FromString("\"low\"");
+				],
+				cancellationToken: cancellationToken).ConfigureAwait(false);
 
-			ChatCompletions response = await client.CompleteAsync(options, cancellationToken).ConfigureAwait(false);
-			string? content = response.Content;
+			string? content = completion.Content[0].Text;
 
 			if (string.IsNullOrWhiteSpace(content))
 			{
