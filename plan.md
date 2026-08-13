@@ -22,16 +22,21 @@ inquiries are never lost.
   `IsSpam = true` flag in the `messages` table; keep the same
   `/nachricht-gesendet` redirect for bots.
 - **On AI error:** log a warning, treat as legit, send the email anyway.
-- **SDK:** `Azure.AI.Inference` (`ChatCompletionsClient`), prompt returns strict
-  JSON `{"isSpam": bool}`, `reasoning_effort` pinned to `low`, small `max_tokens`.
+- **SDK/API:** `Azure.AI.OpenAI` (`AzureOpenAIClient`), prompt returns strict
+  JSON `{"isSpam": bool}`; no output-token cap is sent because gpt-5 requires
+  `max_completion_tokens` (the classifier's output is tiny).
 - **Config:** `OpenAiEndpoint` + `OpenAiApiKey` + `OpenAiDeployment` live in
   `kv-alpakasoelde`, reach the Static Web App (and its Functions) via
   `sync-swappsettings.sh`.
-- **SDK note:** `Azure.AI.Inference` has no stable release yet; the plan
-  package is `1.0.0-beta.5` (Microsoft's current recommended Azure AI
-  Inference SDK, used with the Azure OpenAI endpoint).
+- **SDK note:** `Azure.AI.OpenAI` 2.x (api2) is used. Earlier attempts mixed the
+  beta `Azure.AI.Inference` (`ChatCompletionsClient`) and a `max_tokens` cap,
+  which the model rejected (`'max_tokens' is not supported … use
+  'max_completion_tokens'`), so the classifier now sends a minimal request
+  without an output-token cap.
 - **Key Vault secrets:** created via `az keyvault secret set` after the first
   deployment (needs the OpenAI account + key to exist), not via Bicep.
+  Confirmed present in `kv-alpakasoelde` (`OpenAiEndpoint`, `OpenAiApiKey`,
+  `OpenAiDeployment`).
 
 ## Milestones (tracked)
 
@@ -42,12 +47,13 @@ Checkboxes are updated as work progresses.
 - [x] Add `infrastructure/modules/openai.bicep` (account + `gpt-5-nano`
       Global Standard deployment) and wire it into `main.bicep`
 - [x] Validate templates locally (`az bicep build` + `az deployment group what-if`)
-- [ ] Add `OpenAiEndpoint` / `OpenAiApiKey` / `OpenAiDeployment` secrets to Key
-      Vault — **deploy-gated** (needs the OpenAI account + key to exist);
+- [x] Add `OpenAiEndpoint` / `OpenAiApiKey` / `OpenAiDeployment` secrets to Key
+      Vault (confirmed present in `kv-alpakasoelde`);
       `WEBSITE_KEYS` in `sync-swappsettings.sh` updated
 - [x] Add `OpenAiEndpoint` / `OpenAiApiKey` / `OpenAiDeployment` to
       `EnvironmentVariables.cs` and dev placeholders in `local.settings.json`
-- [x] Add `Azure.AI.Inference` package to `src/website-api/website-api.csproj`
+- [x] Add `Azure.AI.OpenAI` package (api2 `AzureOpenAIClient`) to
+      `src/website-api/website-api.csproj`
 - [x] Add `features/messages/SpamClassifier.cs` (`ISpamClassifier` +
       `OpenAiSpamClassifier`, fail-open)
 - [x] Register the classifier in `src/website-api/Program.cs`
@@ -56,9 +62,11 @@ Checkboxes are updated as work progresses.
       email for spam
 - [x] Extend `requests.http` with a spam and a legit sample
 - [x] Build functions (`dotnet build src/website-api/website-api.csproj`)
-- [ ] Deploy and verify end to end (spam not emailed, legit emailed)
-- [ ] Update `AGENTS.md` (new environment keys, module wiring) and README
-- [ ] Open pull request and merge to `main`
+- [ ] Deploy and verify end to end (spam not emailed, legit emailed) — verified
+      locally against real `gpt-5-nano` (`IsSpam` flags stored correctly, spam
+      email skipped, legit email sent); deploy on `main` merge
+- [x] Update `AGENTS.md` (new environment keys, module wiring) and README
+- [ ] Open pull request and merge to `main` (PR opened, merge pending)
 
 ## 1. Infrastructure
 
@@ -96,9 +104,10 @@ secrets:
 
 - `ISpamClassifier` interface, e.g.
   `Task<bool> IsSpamAsync(string name, string email, string message, CancellationToken ct)`.
-- `OpenAiSpamClassifier` implementation using `ChatCompletionsClient`, a German
-  system prompt asking for strict JSON `{"isSpam": bool}`, `reasoning_effort:
-  low`, and a tiny `max_tokens`.
+- `OpenAiSpamClassifier` implementation using `AzureOpenAIClient`
+  (`client.GetChatClient(deployment)`), a German system prompt asking for strict
+  JSON `{"isSpam": bool}`; no extra parameters — gpt-5 needs
+  `max_completion_tokens`, not `max_tokens`.
 
 `SendMessage.Handler` (after validation, before storing/emailing):
 
