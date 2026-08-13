@@ -35,7 +35,7 @@ downtime. `what-if` is used to verify this before applying.
 Checkboxes are updated as work progresses.
 
 - [x] Create git branch `feat/infrastructure-as-code`
-- [x] Write infrastructure plan (`plan.md`)
+- [x] Write infrastructure plan (`infrastructure/plan.md`)
 - [x] Finalize plan decisions (Key Vault name, budget values, seed script,
       storage-key rotation, `what-if` PR job)
 - [x] Scaffold Bicep templates (`main.bicep`, `main-subscription.bicep`, modules,
