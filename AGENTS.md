@@ -43,7 +43,8 @@
 - No coverage target exists yet, but add unit tests when introducing new services or parsers.
 
 ## Commit & Pull Request Guidelines
-- Follow the repo pattern: short, imperative commit subjects (e.g., “Add robots.txt configuration”) and append issue or PR numbers in parentheses when available.
+- Use Karma-style commit messages (also known as Conventional Commits): `<type>(<scope>): <subject>` with a lowercase, imperative subject without a trailing period, an optional body of bullet points, and a footer referencing issue/PR numbers. Allowed types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `perf`, `style`, `ci`, `build`, `revert`. Examples: `feat(website-api): add AI spam filter to contact form`, `fix(dashboard): correct event sorting`.
+- PR titles — and therefore the PR's merge/squash commit message — must follow the same Karma schema; use the branch's aggregate `<type>(<scope>): <summary>` as the squash-merge title.
 - PRs should summarise the change, call out deployment or infrastructure impacts, and attach screenshots or clips for UI tweaks.
 - Link Azure Boards or GitHub issues where relevant and confirm the commands above have been executed.
 
