@@ -7,6 +7,7 @@
 - `src/website-api`: Public-facing Azure Functions that mirror the patterns from `src/dashboard-api`.
 - `infrastructure/`: Bicep templates that adopt the whole Azure estate in place (storage, Key Vault `kv-alpakasoelde`, Communication/Email services, both Static Web Apps, Azure OpenAI `gpt-5-nano` for the contact-form spam filter, observability). `main.bicep` is resource-group scoped; `main-subscription.bicep` covers the cost budget. Secrets live in the Key Vault; `scripts/seed-keyvault.sh` migrates existing SWA app settings once, and `scripts/sync-swappsettings.sh` re-applies them from the vault after deploys.
 - `.slnx` solution: use `alpakasoelde.slnx` to open all projects together; `global.json` pins .NET SDK 10.0.0 with the new test runner.
+- `docs/plans/`: design/roadmap docs kept for reference, numbered in creation order (`001-infrastructure-as-code.md`, `002-ai-spam-filter.md`); add new plans here instead of the repository root.
 
 ## Build, Test, and Development Commands
 - `cd src/website && npm install && npm run dev` — launches the marketing site with hot reload.

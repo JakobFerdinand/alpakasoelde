@@ -26,5 +26,5 @@ to `infrastructure/**` deploy automatically via the `infra-deploy.yml` workflow,
 which previews with `what-if` on PRs and applies on `main`. This includes an
 Azure OpenAI `gpt-5-nano` deployment that classifies contact-form submissions
 (see `AGENTS.md` → *Environment & Configuration*). See
-`infrastructure/plan.md` for the adoption plan and `AGENTS.md` for the exact `az`
+`docs/plans/001-infrastructure-as-code.md` for the adoption plan and `AGENTS.md` for the exact `az`
 commands.

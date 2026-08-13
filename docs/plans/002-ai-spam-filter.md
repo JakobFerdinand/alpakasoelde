@@ -43,7 +43,7 @@ inquiries are never lost.
 Checkboxes are updated as work progresses.
 
 - [x] Create git branch `feat/ai-spam-filter`
-- [x] Write the plan (`plan.md`)
+- [x] Write the plan (`docs/plans/002-ai-spam-filter.md`)
 - [x] Add `infrastructure/modules/openai.bicep` (account + `gpt-5-nano`
       Global Standard deployment) and wire it into `main.bicep`
 - [x] Validate templates locally (`az bicep build` + `az deployment group what-if`)
