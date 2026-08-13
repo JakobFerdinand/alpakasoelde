@@ -30,6 +30,29 @@ Bicep declares all resources with their existing names, resource group, location
 and SKU, so the first deployment is an idempotent adopt with no recreation or
 downtime. `what-if` is used to verify this before applying.
 
+## Milestones (tracked)
+
+Checkboxes are updated as work progresses.
+
+- [x] Create git branch `feat/infrastructure-as-code`
+- [x] Write infrastructure plan (`plan.md`)
+- [x] Finalize plan decisions (Key Vault name, budget values, seed script,
+      storage-key rotation, `what-if` PR job)
+- [ ] Scaffold Bicep templates (`main.bicep`, `main-subscription.bicep`, modules,
+      `*.bicepparam`, `bicepconfig.json`)
+- [ ] Validate templates locally (`az bicep build` + `az deployment group what-if`)
+- [ ] Write `infrastructure/scripts/seed-keyvault.sh`
+- [ ] Write `.github/workflows/infra-deploy.yml` (`what-if` PR job + deploy on main)
+- [ ] Manual: create service principal + OIDC federated credential, add GitHub
+      secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`)
+- [ ] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
+- [ ] First deploy: review `what-if` → apply → verify sites stay live and app
+      settings are restored
+- [ ] Rotate storage account key; sync new key into Key Vault; re-apply SWA settings
+- [ ] Update `AGENTS.md` and README (fix stale `table-storage.bicep` reference, add
+      deployment commands)
+- [ ] Open pull request and merge to `main`
+
 ## 1. Bicep structure under `infrastructure/`
 
 ```
