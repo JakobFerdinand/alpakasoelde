@@ -17,3 +17,12 @@ The homepage of our alpaca farm.
 | #4b5b73 | Taubenblau  |
 | #698a6e | Weidegrün   |
 | #ffffff | Weiss       |
+
+## Infrastructure
+
+The Azure estate is managed with Bicep under `infrastructure/` (`main.bicep` is
+resource-group scoped, `main-subscription.bicep` covers the cost budget). Changes
+to `infrastructure/**` deploy automatically via the `infra-deploy.yml` workflow,
+which previews with `what-if` on PRs and applies on `main`. See
+`infrastructure/plan.md` for the adoption plan and `AGENTS.md` for the exact `az`
+commands.
