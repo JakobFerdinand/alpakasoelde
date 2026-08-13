@@ -29,3 +29,7 @@ bin/
 obj/
 
 test-results/
+
+# compiled bicep artifacts
+infrastructure/*.json
+infrastructure/modules/*.json
