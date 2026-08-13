@@ -1,0 +1,115 @@
+# Infrastructure as Code Plan
+
+## Goal
+
+Bring the Azure estate for Alpakasoelde under Infrastructure as Code using **Bicep**
+and auto-deploy infrastructure changes through **GitHub Actions**. Only changes to
+`infrastructure/**` trigger the infra deployment; the existing app build-and-deploy
+workflows stay untouched.
+
+## Current Azure estate (resource group `RG-Alpakasoelde`)
+
+| Resource | Name | Notes |
+| --- | --- | --- |
+| Static Web App (public) | `alpakasoelde` | Free, `westeurope`; custom domains `alpakasoelde.at` + `www.alpakasoelde.at`; built-in .NET isolated API; appsettings contain plain-text storage + ACS keys |
+| Static Web App (dashboard) | `alpakasoelde-dashboard` | Free, `westeurope`; domain `dashboard.alpakasoelde.at`; same storage appsettings |
+| Storage account | `alpakasoelde` | Standard_LRS / StorageV2, `germanywestcentral`; tables `alpakas`, `events`, `gutscheine`, `messages`; blob containers `alpakas`, `event-documents`; HTTPS-only |
+| Communication Services | `acs-alpakasoelde` | dataLocation `germany`; source of the `EmailConnection` used by the website API |
+| Email services | `alpakasoelde` | domains `AzureManagedDomain`, `kontakt.alpakasoelde.at`; sender `DoNotReply@kontakt.alpakasoelde.at` |
+| Application Insights | `alpakasoelde-insights` | linked to the Log Analytics workspace |
+| Log Analytics | `Alpakasoelde-LogAnalyticsWorkspace` | 30-day retention |
+| Action groups / budget | Smart Detection, `alpakasoelde-budget-actions` | subscription-level cost budget |
+
+Deployment today happens via the auto-generated Static Web App GitHub-integration
+workflows. There is no IaC in the repo yet (AGENTS.md references a
+`infrastructure/table-storage.bicep` that does not exist).
+
+## Approach: adopt existing resources in place
+
+Bicep declares all resources with their existing names, resource group, location,
+and SKU, so the first deployment is an idempotent adopt with no recreation or
+downtime. `what-if` is used to verify this before applying.
+
+## 1. Bicep structure under `infrastructure/`
+
+```
+infrastructure/
+  main.bicep              # RG-scoped orchestrator (targetScope = resourceGroup)
+  main.bicepparam         # values: RG name, location, resource names, custom domains
+  bicepconfig.json        # lint rules
+  modules/
+    storage.bicep         # storage account + tables + blob containers (adopt in place)
+    communication.bicep   # CommunicationServices + EmailServices + 2 domains
+    static-sites.bicep    # both SWAs + customDomains + Application Insights wiring
+    keyvault.bicep        # NEW kv-alpakasoelde (secrets for app settings)
+    observability.bicep   # Log Analytics workspace + App Insights component + action groups
+```
+
+Details:
+
+- Tables (`alpakas`, `events`, `gutscheine`, `messages`) and blob containers
+  (`alpakas`, `event-documents`) are declared via `tableServices/tables` and
+  `blobServices/containers`.
+- `communication.bicep` reproduces the email domains and the `linkedDomains`
+  wiring on the Communication Services resource. Domain DNS verification remains a
+  documented manual step; Bicep cannot verify DNS records.
+- Custom domains are declared as `staticSites/customDomains` child resources, but
+  gated on a `what-if` review first: if `what-if` reports a destructive `Replace`,
+  they are left out of IaC initially and stay portal-managed (they are already
+  configured).
+- A new Key Vault `kv-alpakasoelde` is introduced as the secret source.
+
+## 2. Secret management
+
+Static Web App app settings do not support Key Vault references, so:
+
+- `kv-alpakasoelde` (new resource) is created and seeded with the existing secrets:
+  `StorageConnection`, `AZURE_STORAGE_ACCOUNT_KEY`, `EmailConnection`,
+  `EmailSenderAddress`, `ReceiverEmailAddresses`.
+- The infra workflow reads the secrets from Key Vault and sets the full SWA app
+  settings after each deployment (`az staticwebapp appsettings set` is a full
+  overwrite, so the complete current settings are reproduced to avoid wiping them).
+- Secrets live in Key Vault, never in Bicep files or in the repository.
+
+## 3. GitHub Actions – infra auto-deploy
+
+New workflow `.github/workflows/infra-deploy.yml`:
+
+- **Triggers:** `push` to `main` with paths `infrastructure/**`, plus
+  `workflow_dispatch`.
+- **Deploy identity (one-time setup):**
+  1. Create a service principal for the repo.
+  2. Add an OIDC federated credential for this GitHub repository.
+  3. Grant `Contributor` on `RG-Alpakasoelde` and Key Vault secret-read access.
+  4. Store `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` in repo secrets.
+- **Steps:** `Azure/login@v2` (OIDC) → `az bicep build` → `az deployment group what-if`
+  → `az deployment group create --confirm-with-what-if` → set SWA app settings from Key Vault.
+
+## 4. Rollout order (safe, no downtime)
+
+1. **One-time prep:** create service principal + OIDC credential, add GitHub
+   secrets; create `kv-alpakasoelde` and copy existing secrets from the SWA app
+   settings into it.
+2. Commit the Bicep templates plus `infra-deploy.yml`; run a `workflow_dispatch`-ed
+   `what-if` to confirm no destructive changes on the Static Web Apps or storage
+   (the adoption hotspot).
+3. Deploy; verify the sites stay live, app settings are restored, and the function
+   APIs still answer.
+4. Update `AGENTS.md` (fix the old `infrastructure/table-storage.bicep` reference and
+   add the `az deployment group …` commands) and README.
+
+## 5. Known limitations (kept manual, documented)
+
+- Dashboard GitHub auth provider and the `admin`/`collaborator` role-to-user mapping
+  are portal-managed and cannot be fully configured via Bicep.
+- Email domain DNS verification records.
+- Subscription cost budget (optional stretch; requires a second
+  `az deployment sub create`).
+
+## Open choices
+
+- Include the subscription cost budget in IaC or leave it as-is?
+- App settings source: keep them restored from Key Vault via the infra workflow
+  (recommended), or also let the existing app-deploy workflows pull from Key Vault?
+  (App workflows stay untouched by default.)
+- Add a `what-if` → pull-request-comment job, or keep infra deploy main-only?
