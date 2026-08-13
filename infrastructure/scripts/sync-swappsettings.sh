@@ -47,7 +47,7 @@ apply_to_site() {
   az staticwebapp appsettings set \
     --resource-group "$RESOURCE_GROUP" \
     --name "$site" \
-    --settings "${args[@]}" \
+    --setting-names "${args[@]}" \
     --only-show-errors >/dev/null
 }
 
