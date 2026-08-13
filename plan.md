@@ -46,7 +46,7 @@ Checkboxes are updated as work progresses.
 - [x] Manual: create service principal + OIDC federated credential, add GitHub
       secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`)
 - [x] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
-- [ ] First deploy: review `what-if` → apply → verify sites stay live and app
+- [x] First deploy: review `what-if` → apply → verify sites stay live and app
       settings are restored
 - [ ] Rotate storage account key; sync new key into Key Vault; re-apply SWA settings
 - [ ] Update `AGENTS.md` and README (fix stale `table-storage.bicep` reference, add
