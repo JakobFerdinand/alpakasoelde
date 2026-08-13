@@ -39,3 +39,6 @@ param websiteCustomDomains = [
 param dashboardCustomDomains = [
   'dashboard.alpakasoelde.at'
 ]
+
+param openAiName = 'openai-alpakasoelde'
+param openAiLocation = 'germanywestcentral'

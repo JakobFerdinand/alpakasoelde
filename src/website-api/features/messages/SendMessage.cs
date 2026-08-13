@@ -103,12 +103,13 @@ string? name = parsedForm["name"]?.Trim();
 		}
 	}
 
-	public sealed class Handler(IMessageWriteStore store, IEmailSender emailSender, ILogger<Handler> logger, IConfiguration configuration)
-	{
-		private readonly IMessageWriteStore _store = store;
-		private readonly IEmailSender _emailSender = emailSender;
-		private readonly ILogger<Handler> _logger = logger;
-		private readonly IConfiguration _configuration = configuration;
+public sealed class Handler(IMessageWriteStore store, IEmailSender emailSender, ISpamClassifier spamClassifier, ILogger<Handler> logger, IConfiguration configuration)
+{
+	private readonly IMessageWriteStore _store = store;
+	private readonly IEmailSender _emailSender = emailSender;
+	private readonly ISpamClassifier _spamClassifier = spamClassifier;
+	private readonly ILogger<Handler> _logger = logger;
+	private readonly IConfiguration _configuration = configuration;
 
 		private const int NameMaxLength = 100;
 		private const int EmailMaxLength = 254;
@@ -141,9 +142,16 @@ if (errors.Count > 0)
 				Name = command.Name.Trim(),
 				Email = command.Email.Trim(),
 				Message = command.Message.Trim(),
+				IsSpam = await _spamClassifier.IsSpamAsync(command.Name.Trim(), command.Email.Trim(), command.Message.Trim(), cancellationToken).ConfigureAwait(false),
 			};
 
 			await _store.AddAsync(messageEntity, cancellationToken).ConfigureAwait(false);
+
+			if (messageEntity.IsSpam)
+			{
+				_logger.LogInformation("Message from {Email} classified as spam; notification email not sent.", messageEntity.Email);
+				return (new Result("/nachricht-gesendet"), null);
+			}
 
 			string? senderEmail = _configuration[EnvironmentVariables.EmailSenderAddress];
 			var receiverEmails = (_configuration[EnvironmentVariables.ReceiverEmailAddresses] ?? string.Empty)

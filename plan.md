@@ -24,8 +24,14 @@ inquiries are never lost.
 - **On AI error:** log a warning, treat as legit, send the email anyway.
 - **SDK:** `Azure.AI.Inference` (`ChatCompletionsClient`), prompt returns strict
   JSON `{"isSpam": bool}`, `reasoning_effort` pinned to `low`, small `max_tokens`.
-- **Config:** `OpenAiEndpoint` + `OpenAiApiKey` live in `kv-alpakasoelde`,
-  reach the Static Web App (and its Functions) via `sync-swappsettings.sh`.
+- **Config:** `OpenAiEndpoint` + `OpenAiApiKey` + `OpenAiDeployment` live in
+  `kv-alpakasoelde`, reach the Static Web App (and its Functions) via
+  `sync-swappsettings.sh`.
+- **SDK note:** `Azure.AI.Inference` has no stable release yet; the plan
+  package is `1.0.0-beta.5` (Microsoft's current recommended Azure AI
+  Inference SDK, used with the Azure OpenAI endpoint).
+- **Key Vault secrets:** created via `az keyvault secret set` after the first
+  deployment (needs the OpenAI account + key to exist), not via Bicep.
 
 ## Milestones (tracked)
 
@@ -33,22 +39,23 @@ Checkboxes are updated as work progresses.
 
 - [x] Create git branch `feat/ai-spam-filter`
 - [x] Write the plan (`plan.md`)
-- [ ] Add `infrastructure/modules/openai.bicep` (account + `gpt-5-nano`
+- [x] Add `infrastructure/modules/openai.bicep` (account + `gpt-5-nano`
       Global Standard deployment) and wire it into `main.bicep`
-- [ ] Validate templates locally (`az bicep build` + `az deployment group what-if`)
-- [ ] Add `OpenAiEndpoint` / `OpenAiApiKey` secrets to Key Vault and to
-      `WEBSITE_KEYS` in `infrastructure/scripts/sync-swappsettings.sh`
-- [ ] Add `OpenAiEndpoint` / `OpenAiApiKey` to `EnvironmentVariables.cs` and dev
-      placeholders in `local.settings.json`
-- [ ] Add `Azure.AI.Inference` package to `src/website-api/website-api.csproj`
-- [ ] Add `features/messages/SpamClassifier.cs` (`ISpamClassifier` +
+- [x] Validate templates locally (`az bicep build` + `az deployment group what-if`)
+- [ ] Add `OpenAiEndpoint` / `OpenAiApiKey` / `OpenAiDeployment` secrets to Key
+      Vault — **deploy-gated** (needs the OpenAI account + key to exist);
+      `WEBSITE_KEYS` in `sync-swappsettings.sh` updated
+- [x] Add `OpenAiEndpoint` / `OpenAiApiKey` / `OpenAiDeployment` to
+      `EnvironmentVariables.cs` and dev placeholders in `local.settings.json`
+- [x] Add `Azure.AI.Inference` package to `src/website-api/website-api.csproj`
+- [x] Add `features/messages/SpamClassifier.cs` (`ISpamClassifier` +
       `OpenAiSpamClassifier`, fail-open)
-- [ ] Register the classifier in `src/website-api/Program.cs`
-- [ ] Add `IsSpam` to `shared/entities/MessageEntity.cs`
-- [ ] Update `SendMessage.Handler` to classify before emailing and skip the
+- [x] Register the classifier in `src/website-api/Program.cs`
+- [x] Add `IsSpam` to `shared/entities/MessageEntity.cs`
+- [x] Update `SendMessage.Handler` to classify before emailing and skip the
       email for spam
-- [ ] Extend `requests.http` with a spam and a legit sample
-- [ ] Build functions (`dotnet build src/website-api/website-api.csproj`)
+- [x] Extend `requests.http` with a spam and a legit sample
+- [x] Build functions (`dotnet build src/website-api/website-api.csproj`)
 - [ ] Deploy and verify end to end (spam not emailed, legit emailed)
 - [ ] Update `AGENTS.md` (new environment keys, module wiring) and README
 - [ ] Open pull request and merge to `main`
@@ -74,10 +81,12 @@ secrets:
 - `infrastructure/scripts/sync-swappsettings.sh`: add `OpenAiEndpoint` and
   `OpenAiApiKey` to `WEBSITE_KEYS` so the public SWA (and its .NET isolated
   API) receives them after each deploy.
-- Seed the two secrets into `kv-alpakasoelde` once:
+- Seed the three secrets into `kv-alpakasoelde` once (after the OpenAI account
+  exists):
   - `az keyvault secret set --vault-name kv-alpakasoelde --name OpenAiEndpoint --value ...`
   - `az keyvault secret set --vault-name kv-alpakasoelde --name OpenAiApiKey --value ...`
-- `src/website-api/shared/EnvironmentVariables.cs`: add the two keys.
+  - `az keyvault secret set --vault-name kv-alpakasoelde --name OpenAiDeployment --value gpt-5-nano`
+- `src/website-api/shared/EnvironmentVariables.cs`: add the three keys.
 - `src/website-api/local.settings.json`: dev placeholders (no real secrets).
 
 ## 3. Code (`src/website-api`)
