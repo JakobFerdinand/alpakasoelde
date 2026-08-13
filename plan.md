@@ -45,7 +45,7 @@ Checkboxes are updated as work progresses.
 - [x] Write `.github/workflows/infra-deploy.yml` (`what-if` PR job + deploy on main)
 - [x] Manual: create service principal + OIDC federated credential, add GitHub
       secrets (`AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`)
-- [ ] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
+- [x] Seed Key Vault with existing SWA settings (run `seed-keyvault.sh`)
 - [ ] First deploy: review `what-if` → apply → verify sites stay live and app
       settings are restored
 - [ ] Rotate storage account key; sync new key into Key Vault; re-apply SWA settings
@@ -130,7 +130,10 @@ New workflow `.github/workflows/infra-deploy.yml`:
 
 1. **One-time prep:** create service principal + OIDC credential, add GitHub
    secrets; run `infrastructure/scripts/seed-keyvault.sh` to populate
-   `kv-alpakasoelde` with the existing SWA settings.
+   `kv-alpakasoelde` with the existing SWA settings. If the subscription has
+   never used Key Vault, register the provider first (`az provider register -n
+   Microsoft.KeyVault`). Note: Key Vault secret names only allow alphanumerics
+   and hyphens, so setting names are stored with `_` replaced by `-`.
 2. Commit the Bicep templates plus `infra-deploy.yml`; run a `workflow_dispatch`-ed
    `what-if` to confirm no destructive changes on the Static Web Apps or storage
    (the adoption hotspot).

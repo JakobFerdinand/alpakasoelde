@@ -19,10 +19,16 @@ DASHBOARD_SITE="${DASHBOARD_SITE:-alpakasoelde-dashboard}"
 WEBSITE_KEYS=(StorageConnection AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_ACCOUNT_NAME APPLICATIONINSIGHTS_CONNECTION_STRING EmailConnection EmailSenderAddress ReceiverEmailAddresses)
 DASHBOARD_KEYS=(StorageConnection AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_ACCOUNT_NAME)
 
+# Key Vault secret names only allow alphanumerics and hyphens, so app setting
+# names are stored with '_' replaced by '-' (see seed-keyvault.sh).
+normalize_name() {
+  printf '%s' "$1" | tr '_' '-'
+}
+
 fetch_secret() {
   az keyvault secret show \
     --vault-name "$KEY_VAULT" \
-    --name "$1" \
+    --name "$(normalize_name "$1")" \
     --query value \
     -o tsv
 }

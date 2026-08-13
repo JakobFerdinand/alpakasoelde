@@ -22,6 +22,13 @@ keyvault_exists() {
   az keyvault show --name "$KEY_VAULT" --resource-group "$RESOURCE_GROUP" >/dev/null 2>&1
 }
 
+# Key Vault secret names only allow alphanumerics and hyphens, while Static Web
+# App setting names contain underscores. Replace '_' with '-' (lossless, since
+# app setting names never contain '-').
+normalize_name() {
+  printf '%s' "$1" | tr '_' '-'
+}
+
 ensure_keyvault_admin() {
   local principal
   principal="$(az ad signed-in-user show --query id -o tsv)"
@@ -61,7 +68,7 @@ seed_site() {
     value="$(jq -r --arg k "$key" '.[$k]' "$tmp_json")"
     az keyvault secret set \
       --vault-name "$KEY_VAULT" \
-      --name "$key" \
+      --name "$(normalize_name "$key")" \
       --value "$value" \
       --only-show-errors >/dev/null
     echo "  seeded: $key (from $site)"
@@ -78,7 +85,6 @@ if ! keyvault_exists; then
     --location "$KEY_VAULT_LOCATION" \
     --sku standard \
     --enable-rbac-authorization \
-    --enable-soft-delete \
     --retention-days 90 \
     --enable-purge-protection \
     --only-show-errors >/dev/null
