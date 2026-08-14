@@ -22,6 +22,7 @@
         </p>
       </div>
       <button type="submit" class="btn">Senden</button>
+      <p id="form-status" class="form-status" role="status" aria-live="polite" hidden></p>
     </form>
 
     <aside class="contact-address">
@@ -209,6 +210,27 @@
     cursor: not-allowed;
   }
 
+  .form-status {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid var(--taubenblau);
+    border-radius: 0.25rem;
+    color: var(--taubenblau);
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background-color: rgba(75, 91, 115, 0.06);
+  }
+
+  .form-status.success {
+    border-left-color: var(--weidegruen);
+    background-color: rgba(105, 138, 110, 0.08);
+  }
+
+  .form-status.error {
+    border-left-color: var(--backstein);
+    background-color: rgba(215, 133, 75, 0.1);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .contact button.loading::after {
       animation: none;
@@ -290,3 +312,56 @@
     color: var(--taubenblau);
   }
 </style>
+
+<script>
+  const form = document.querySelector('#contact-form');
+  const submitButton = form.querySelector('button[type="submit"]');
+  const status = document.querySelector('#form-status');
+
+  function setStatus(message, type) {
+    status.textContent = message;
+    status.classList.toggle('success', type === 'success');
+    status.classList.toggle('error', type === 'error');
+    status.hidden = message === null;
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (submitButton.disabled) return;
+
+    submitButton.disabled = true;
+    submitButton.classList.add('loading');
+    setStatus('Nachricht wird gesendet…', null);
+
+    try {
+      const body = new URLSearchParams(new FormData(form)).toString();
+      const response = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+        body,
+      });
+
+      if (!response.ok) {
+        let detail = null;
+        try {
+          const data = await response.json();
+          detail = data.detail;
+        } catch {
+          /* ignore non-JSON error bodies */
+        }
+        setStatus(
+          detail ? `Senden fehlgeschlagen: ${detail}` : 'Senden fehlgeschlagen. Bitte versuche es erneut.',
+          'error'
+        );
+        return;
+      }
+
+      window.location.assign(response.url);
+    } catch {
+      setStatus('Senden fehlgeschlagen. Bitte prüfe deine Verbindung und versuche es erneut.', 'error');
+    } finally {
+      submitButton.disabled = false;
+      submitButton.classList.remove('loading');
+    }
+  });
+</script>
