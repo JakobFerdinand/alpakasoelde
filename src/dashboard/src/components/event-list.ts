@@ -22,6 +22,7 @@ export const EVENT_TYPE_ICON_KEYS: Record<string, string> = {
   entwurmen: 'worm',
   'nägel schneiden': 'scissors',
   'naegel schneiden': 'scissors',
+  scheren: 'shears',
   impfen: 'syringe',
   gesundheitscheck: 'stethoscope'
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { CircleEllipsis, Scissors, Stethoscope, Syringe, Worm } from '@lucide/svelte';
+  import { CircleEllipsis, Scissors, ScissorsLineDashed, Stethoscope, Syringe, Worm } from '@lucide/svelte';
   import { formatCurrency, formatDate } from '../utils/formatters';
   import { EVENT_TYPE_ICON_KEYS, normalizeEvents, type EventListItem } from './event-list';
 
@@ -48,6 +48,8 @@
         return Worm;
       case 'scissors':
         return Scissors;
+      case 'shears':
+        return ScissorsLineDashed;
       case 'syringe':
         return Syringe;
       case 'stethoscope':

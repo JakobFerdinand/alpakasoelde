@@ -220,6 +220,7 @@
           <option value="">Bitte auswählen</option>
           <option value="Entwurmen">Entwurmen</option>
           <option value="Nägel schneiden">Nägel schneiden</option>
+          <option value="Scheren">Scheren</option>
           <option value="Impfen">Impfen</option>
           <option value="Gesundheitscheck">Gesundheitscheck</option>
           <option value="Sonstiges">Sonstiges</option>
