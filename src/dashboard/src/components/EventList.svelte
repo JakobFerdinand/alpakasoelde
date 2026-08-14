@@ -37,6 +37,10 @@
     }, 0),
   );
 
+  function hasCost(cost: number | string | null | undefined): boolean {
+    return !Number.isNaN(Number(cost));
+  }
+
   function eventIcon(eventType: string | undefined): typeof CircleEllipsis {
     const normalizedType = (eventType ?? '').trim().toLowerCase();
     switch (EVENT_TYPE_ICON_KEYS[normalizedType]) {
@@ -131,6 +135,44 @@
         {/if}
       </table>
     </div>
+
+    <div class="event-cards">
+      {#each items as item}
+        {@const Icon = eventIcon(item.eventType)}
+        <article class="event-card">
+          <div class="event-card-head">
+            <span class="event-icon-wrapper" title={item.eventType || 'Ereignis'} aria-label={item.eventType || 'Ereignis'}>
+              <Icon class="event-icon" aria-hidden="true" />
+            </span>
+            <div class="event-card-meta">
+              <p class="event-card-type">{item.eventType || 'Ereignis'}</p>
+              <p class="event-card-date">{formatDate(item.eventDate)}</p>
+            </div>
+            {#if hasCost(item.cost)}
+              <span class="event-cost event-card-cost">{formatCurrency(item.cost)}</span>
+            {/if}
+          </div>
+          <div class="event-card-body">
+            {#if showAlpakaNames && Array.isArray(item.alpakaNames) && item.alpakaNames.length > 0}
+              <ul class="alpaka-list">
+                {#each item.alpakaNames as name}
+                  <li class="alpaka-name">{name}</li>
+                {/each}
+              </ul>
+            {/if}
+            {#if item.comment}
+              <p class="event-comment">{item.comment}</p>
+            {/if}
+          </div>
+        </article>
+      {/each}
+      {#if hasCosts}
+        <div class="event-cards-total">
+          <span class="event-card-type">Summe</span>
+          <span class="event-cost">{formatCurrency(totalCost)}</span>
+        </div>
+      {/if}
+    </div>
   {/if}
 </div>
 
@@ -141,12 +183,12 @@
     padding: 1.25rem;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
     min-height: 120px;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
   }
 
   .event-table-wrapper {
     width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .event-table {
@@ -250,6 +292,71 @@
     padding-top: 0.75rem;
   }
 
+  .event-cards {
+    display: none;
+  }
+
+  .event-card {
+    border: 1px solid rgba(0, 32, 73, 0.08);
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+  }
+
+  .event-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .event-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .event-card-type {
+    margin: 0;
+    color: var(--taubenblau);
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .event-card-date {
+    margin: 0;
+    color: var(--taubenblau);
+    font-size: 0.85rem;
+    opacity: 0.7;
+  }
+
+  .event-card-cost {
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  .event-card-body {
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(0, 32, 73, 0.08);
+  }
+
+  .event-card-body .alpaka-list {
+    margin-bottom: 0;
+  }
+
+  .event-card-body .alpaka-list + .event-comment {
+    margin-top: 0.35rem;
+  }
+
+  .event-cards-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 2px solid rgba(0, 32, 73, 0.12);
+    padding: 0.75rem 1rem 0;
+    margin-top: 0.35rem;
+  }
+
   .loading-text,
   .error,
   .empty {
@@ -261,18 +368,14 @@
   }
 
   @media (max-width: 768px) {
-    .event-table th,
-    .event-table td {
-      padding: 0.65rem 0.25rem;
+    .event-table-wrapper {
+      display: none;
     }
 
-    .event-table {
-      min-width: 460px;
-    }
-
-    .event-date,
-    .event-cost {
-      white-space: normal;
+    .event-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
     }
   }
 </style>
