@@ -138,26 +138,29 @@ import { Inbox, MailCheck, ShieldAlert } from 'lucide-astro';
     content.setAttribute('aria-label', 'Nachrichteneingänge nach Woche, Legit und Spam getrennt');
 
     const maxTotal = Math.max(...data.Series.map((bucket) => bucket.Spam + bucket.Legit), 1);
-    const barHeightCap = 86;
+    const labelHeight = 20;
+    const availableHeight = Math.max((content.clientHeight || 192) - labelHeight, 20);
 
     data.Series.forEach((bucket) => {
       const total = bucket.Spam + bucket.Legit;
-      const column = document.createElement('a');
+      const barPx = Math.max(Math.round((total / maxTotal) * availableHeight), 1);
+
+      const column = document.createElement('div');
       column.className = 'chart-column';
-      column.href = '/messages';
 
       const bar = document.createElement('span');
       bar.className = 'chart-bar';
-      bar.style.height = `${Math.round((total / maxTotal) * barHeightCap)}%`;
+      bar.style.height = `${barPx}px`;
 
+      const legitPx = total > 0 ? Math.round((bucket.Legit / total) * barPx) : 0;
       const legit = document.createElement('span');
       legit.className = 'chart-segment segment-legit';
-      legit.style.height = total > 0 ? `${Math.round((bucket.Legit / total) * 100)}%` : '0';
+      legit.style.height = `${legitPx}px`;
       legit.title = `Legit: ${bucket.Legit}`;
 
       const spam = document.createElement('span');
       spam.className = 'chart-segment segment-spam';
-      spam.style.height = total > 0 ? `${Math.round((bucket.Spam / total) * 100)}%` : '0';
+      spam.style.height = `${barPx - legitPx}px`;
       spam.title = `Spam: ${bucket.Spam}`;
 
       bar.appendChild(legit);
