@@ -7,21 +7,29 @@
 
   type PeriodBucket = { Period: string; Count: number };
   type PathCount = { Path: string; Count: number };
+  type PathBucket = { Period: string; Path: string; Count: number };
   type StatsResult = {
     Total: number;
     UniquePaths: number;
     TopPaths: PathCount[];
     Series: PeriodBucket[];
+    PathSeries: PathBucket[];
   };
-  type KindRow = { Period: string; kind: 'views'; value: number };
+  type StackItem = { kind: string; value: number };
 
   const periods = [
     { label: '4 Wochen', days: 28 },
     { label: '3 Monate', days: 90 },
     { label: '6 Monate', days: 180 },
   ];
-  const colorKeys = ['views'];
-  const keyColors = ['var(--weidegruen)'];
+  const chartPalette = [
+    'var(--weidegruen)',
+    'var(--backstein)',
+    'var(--himmelblau)',
+    'var(--taubenblau)',
+    '#b3822a',
+    '#5f6b8a',
+  ];
 
   let days = $state(28);
   let loading = $state(true);
@@ -29,21 +37,15 @@
   let stats = $state<StatsResult | null>(null);
 
   const chartData = $derived.by(() =>
-    stats ? groupStackData(toLongRows(stats.Series), { xKey: 'Period', stackBy: 'kind' }) : [],
+    stats ? groupStackData(stats.PathSeries, { xKey: 'Period', stackBy: 'Path' }) : [],
   );
+  const colorKeys = $derived(Array.from(new Set(stats?.PathSeries.map((row) => row.Path) ?? [])));
+  const keyColors = $derived(colorKeys.map((_, index) => chartPalette[index % chartPalette.length]));
 
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
   const uniquePages = $derived(stats?.UniquePaths ?? 0);
   const hasData = $derived(Boolean(stats) && stats!.Series.length > 0);
-
-  function toLongRows(series: PeriodBucket[]): KindRow[] {
-    return series.map((bucket) => ({
-      Period: bucket.Period,
-      kind: 'views' as const,
-      value: bucket.Count,
-    }));
-  }
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
@@ -128,6 +130,15 @@
       {:else if !hasData}
         <p class="chart-message">Keine Seitenaufrufe im Zeitraum.</p>
       {:else}
+        <div class="chart-legend" aria-hidden="true">
+          {#each colorKeys as key, index}
+            <span class="legend-item">
+              <span class="legend-swatch" style="background-color: {keyColors[index]}"></span>
+              {key}
+            </span>
+          {/each}
+        </div>
+
         <div class="chart-wrap">
           <Chart
             data={chartData}
@@ -135,7 +146,7 @@
             xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
             y="values"
             yNice
-            c="kind"
+            c="Path"
             cDomain={colorKeys}
             cRange={keyColors}
             padding={{ left: 32, bottom: 20, top: 8 }}
@@ -156,7 +167,7 @@
                   <Tooltip.List>
                     {#each data.data as item}
                       <Tooltip.Item
-                        label={item.kind === 'views' ? 'Aufrufe' : item.kind}
+                        label={item.kind}
                         value={item.value}
                         color={context.cScale?.(item.kind)}
                         format="integer"
@@ -166,7 +177,7 @@
                     <Tooltip.Separator />
                     <Tooltip.Item
                       label="Gesamt"
-                      value={sum([...data.data], (d: KindRow) => d.value)}
+                      value={sum([...data.data], (d: StackItem) => d.value)}
                       format="integer"
                       valueAlign="right"
                     />
@@ -197,20 +208,25 @@
         </div>
       {/if}
 
-      <h3 class="sr-only">Seitenaufrufe nach Woche</h3>
+      <h3 class="sr-only">Seitenaufrufe nach Woche und Seite</h3>
       <table class="sr-only-table">
         <thead>
           <tr>
             <th scope="col">Woche</th>
+            <th scope="col">Seite</th>
             <th scope="col">Aufrufe</th>
           </tr>
         </thead>
         <tbody>
           {#each stats?.Series ?? [] as bucket}
-            <tr>
-              <th scope="row">{formatWeekLabel(bucket.Period)}</th>
-              <td>{formatCount(bucket.Count)}</td>
-            </tr>
+            {@const bucketRows = (stats?.PathSeries ?? []).filter((row) => row.Period === bucket.Period && row.Count > 0)}
+            {#each bucketRows as row}
+              <tr>
+                <th scope="row">{formatWeekLabel(bucket.Period)}</th>
+                <td>{row.Path}</td>
+                <td>{formatCount(row.Count)}</td>
+              </tr>
+            {/each}
           {/each}
         </tbody>
       </table>
@@ -340,6 +356,27 @@
     --color-surface-200: var(--schurwolle);
     --color-surface-300: rgba(0, 32, 73, 0.15);
     --color-surface-content: var(--taubenblau);
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    justify-content: flex-end;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .legend-swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.2rem;
   }
 
   .chart-loading {
