@@ -1,5 +1,5 @@
 ---
-import { ArrowDown, ArrowUp, ArrowUpDown, Trash2 } from 'lucide-astro';
+import { ArrowDown, ArrowUp, ArrowUpDown, Clock, ShieldAlert, Trash2 } from 'lucide-astro';
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
@@ -19,6 +19,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         <table class="message-table data-table">
           <thead>
             <tr>
+              <th scope="col" class="marker-header" aria-label="Markierungen"></th>
               <th scope="col" data-sort="name">
                 <button type="button" class="sort-button" data-sort="name">
                   Name <span class="sort-icon" aria-hidden="true"></span>
@@ -44,11 +45,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
                   Zeitpunkt <span class="sort-icon" aria-hidden="true"></span>
                 </button>
               </th>
-              <th scope="col" data-sort="status">
-                <button type="button" class="sort-button" data-sort="status">
-                  Status <span class="sort-icon" aria-hidden="true"></span>
-                </button>
-              </th>
               <th scope="col" class="actions-header">Aktionen</th>
             </tr>
           </thead>
@@ -64,6 +60,12 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 
   <template id="trash-icon">
     <Trash2 aria-hidden="true" class="delete-icon" />
+  </template>
+  <template id="spam-marker-icon">
+    <ShieldAlert aria-hidden="true" class="marker-svg" />
+  </template>
+  <template id="clock-marker-icon">
+    <Clock aria-hidden="true" class="marker-svg" />
   </template>
   <template id="sort-up-icon">
     <ArrowUp aria-hidden="true" class="sort-icon-svg" />
@@ -94,7 +96,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   };
 
   type FilterKey = 'all' | 'legit' | 'spam';
-  type SortKey = 'name' | 'message' | 'email' | 'phone' | 'timestamp' | 'status';
+  type SortKey = 'name' | 'message' | 'email' | 'phone' | 'timestamp';
   type SortDir = 'asc' | 'desc';
 
   let messages: Message[] = [];
@@ -103,6 +105,11 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   let sortDir: SortDir = 'desc';
 
   const collator = new Intl.Collator('de', { sensitivity: 'base', numeric: true });
+  const oldMessageAgeMs = 6 * 30 * 24 * 60 * 60 * 1000;
+
+  function isOldMessage(message: Message): boolean {
+    return new Date(message.Timestamp).getTime() < Date.now() - oldMessageAgeMs;
+  }
 
   function cloneIcon(templateId: string): Node | null {
     const template = document.getElementById(templateId) as HTMLTemplateElement | null;
@@ -132,9 +139,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         break;
       case 'timestamp':
         result = new Date(a.Timestamp).getTime() - new Date(b.Timestamp).getTime();
-        break;
-      case 'status':
-        result = Number(b.IsSpam) - Number(a.IsSpam);
         break;
     }
     return sortDir === 'asc' ? result : -result;
@@ -213,6 +217,33 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   function createRow(message: Message): HTMLTableRowElement {
     const tr = document.createElement('tr');
     tr.dataset.messageId = message.Id;
+    if (isOldMessage(message)) {
+      tr.classList.add('is-old');
+    }
+
+    const markerCell = document.createElement('td');
+    markerCell.className = 'marker-cell';
+    if (message.IsSpam) {
+      const marker = document.createElement('span');
+      marker.className = 'marker marker-spam';
+      marker.setAttribute('role', 'img');
+      marker.title = 'Als Spam eingestuft';
+      marker.setAttribute('aria-label', 'Als Spam eingestuft');
+      const markerIcon = cloneIcon('spam-marker-icon');
+      if (markerIcon) marker.appendChild(markerIcon);
+      markerCell.appendChild(marker);
+    }
+    if (isOldMessage(message)) {
+      const marker = document.createElement('span');
+      marker.className = 'marker marker-old';
+      marker.setAttribute('role', 'img');
+      marker.title = 'Älter als 6 Monate';
+      marker.setAttribute('aria-label', 'Älter als 6 Monate');
+      const markerIcon = cloneIcon('clock-marker-icon');
+      if (markerIcon) marker.appendChild(markerIcon);
+      markerCell.appendChild(marker);
+    }
+    tr.appendChild(markerCell);
 
     const nameCell = document.createElement('td');
     nameCell.textContent = message.Name;
@@ -235,21 +266,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     timeCell.className = 'nowrap';
     timeCell.textContent = formatTimestamp(message.Timestamp);
     tr.appendChild(timeCell);
-
-    const statusCell = document.createElement('td');
-    statusCell.className = 'status-cell';
-    if (message.IsSpam) {
-      const badge = document.createElement('span');
-      badge.className = 'badge badge-spam';
-      badge.textContent = 'Spam';
-      statusCell.appendChild(badge);
-    } else {
-      const badge = document.createElement('span');
-      badge.className = 'badge badge-ok';
-      badge.textContent = 'OK';
-      statusCell.appendChild(badge);
-    }
-    tr.appendChild(statusCell);
 
     const actionCell = document.createElement('td');
     actionCell.className = 'action-cell';
@@ -391,6 +407,43 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     z-index: 1;
   }
 
+  .message-table tbody tr.is-old td {
+    background-color: rgba(176, 0, 32, 0.1);
+  }
+
+  .marker-header,
+  .marker-cell {
+    width: 2.25rem;
+    vertical-align: top;
+    padding-left: 0.75rem;
+    padding-right: 0.25rem;
+  }
+
+  .marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .marker + .marker {
+    margin-left: 0.35rem;
+  }
+
+  .marker-svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    stroke: currentColor;
+    fill: none;
+  }
+
+  .marker-spam {
+    color: var(--backstein);
+  }
+
+  .marker-old {
+    color: #b00020;
+  }
+
   .message-cell {
     white-space: pre-wrap;
     word-break: break-word;
@@ -520,28 +573,6 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   .message-summary {
     margin: 0;
     font-weight: 600;
-  }
-
-  .status-cell {
-    white-space: nowrap;
-  }
-
-  .badge {
-    display: inline-block;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-
-  .badge-spam {
-    background-color: #b00020;
-    color: #ffffff;
-  }
-
-  .badge-ok {
-    background-color: var(--himmelblau);
-    color: var(--schwarz);
   }
 
   @media (max-width: 600px) {

@@ -30,9 +30,9 @@ status filtering, and polish the table UX end to end. Built on top of the idea i
 - [x] Write the plan (`docs/plans/003-message-inbox-ux.md`)
 - [x] Backend: add `IsSpam` to `dashboard-api/shared/entities/MessageEntity.cs`
   and to `DashboardMessage`/handler in `features/messages/GetMessages.cs`
-- [x] Frontend: rework `src/dashboard/src/pages/messages.astro` (badge, sortable
-      headers, Alle/Gesendet/Spam filter, summary line, expandable messages,
-      visible loading/empty/error states)
+- [x] Frontend: rework `src/dashboard/src/pages/messages.astro` (row markers,
+      sortable headers, Alle/Gesendet/Spam filter, summary line, expandable
+      messages, visible loading/empty/error states)
 - [x] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check`
 - [ ] Deploy on `main` merge
 
@@ -50,10 +50,13 @@ State-driven rework: keep the fetched `Message[]` in memory plus
 `filter`/`sortKey`/`sortDir`; a single `renderTable()` recomputes the visible,
 sorted rows. Delete mutates the array and re-renders.
 
-- **Status column** between `Zeitpunkt` and `Aktionen`: `Spam` badge (dark red
-  `#b00020` on white, WCAG AA) or `OK` badge for legit rows.
-- **Sortable headers** for `Name`, `Nachricht`, `Email`, `Telefon`, `Zeitpunkt`,
-  `Status` as `<button>` inside `<th>` with `aria-sort`; lucide
+- **Row markers** instead of a Status column: a narrow leading column shows
+  lucide icons at the top-left of matching rows — `ShieldAlert` (backstein) for
+  messages classified as spam and `Clock` (red) for messages older than six
+  months (same 30-day×6 threshold as `get-old-message-count`). Rows flagged as
+  old also get a light red background.
+- **Sortable headers** for `Name`, `Nachricht`, `Email`, `Telefon`, `Zeitpunkt`
+  as `<button>` inside `<th>` with `aria-sort`; lucide
   `ArrowUp`/`ArrowDown`/`ArrowUpDown` icons cloned from `<template>` (same
   pattern as `EventList.astro`). Default: `Zeitpunkt` descending; first click on
   other columns sorts ascending.
@@ -78,7 +81,7 @@ sorted rows. Delete mutates the array and re-renders.
 ## Known limitations / notes
 
 - Old messages (stored before the spam filter shipped) carry no `IsSpam` column
-  and render as `OK`.
+  and show no spam marker; the age marker still applies based on `Timestamp`.
 - The `dashboard-api.Tests`/`website-api.Tests` projects referenced in
   `alpakasoelde.slnx` and `AGENTS.md` are not present in the working tree, so
   verification relies on builds, `astro check`, and the `requests.http` samples.
