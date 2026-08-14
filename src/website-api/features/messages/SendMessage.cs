@@ -35,8 +35,9 @@ public sealed class SendMessage
 		string? name = parsedForm["name"]?.Trim();
 		string? email = parsedForm["email"]?.Trim();
 		string? messageContent = parsedForm["message"]?.Trim();
+		string? phone = parsedForm["phone"]?.Trim();
 
-		var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty), req.FunctionContext.CancellationToken);
+		var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty, phone ?? string.Empty), req.FunctionContext.CancellationToken);
 		if (validation is not null)
 		{
 			_logger.LogWarning("Form submission validation failed: {Detail}", validation.Detail);
@@ -55,7 +56,7 @@ public sealed class SendMessage
 		return response;
 	}
 
-	public sealed record Command(string Name, string Email, string Message);
+	public sealed record Command(string Name, string Email, string Message, string Phone);
 
 	public sealed record Result(string RedirectLocation);
 
@@ -113,6 +114,7 @@ public sealed class SendMessage
 
 		private const int NameMaxLength = 100;
 		private const int EmailMaxLength = 254;
+		private const int PhoneMaxLength = 30;
 		private const int MessageMaxLength = 2000;
 
 		public async Task<(Result? Result, ValidationProblem? Validation)> HandleAsync(Command command, CancellationToken cancellationToken)
@@ -130,6 +132,7 @@ public sealed class SendMessage
 			List<string> errors = [];
 			if (command.Name.Length > NameMaxLength) errors.Add($"Name exceeds {NameMaxLength} characters.");
 			if (command.Email.Length > EmailMaxLength) errors.Add($"Email exceeds {EmailMaxLength} characters.");
+			if (!string.IsNullOrEmpty(command.Phone) && command.Phone.Length > PhoneMaxLength) errors.Add($"Phone exceeds {PhoneMaxLength} characters.");
 			if (command.Message.Length > MessageMaxLength) errors.Add($"Message exceeds {MessageMaxLength} characters.");
 
 			if (errors.Count > 0)
@@ -142,6 +145,7 @@ public sealed class SendMessage
 				Name = command.Name.Trim(),
 				Email = command.Email.Trim(),
 				Message = command.Message.Trim(),
+				Phone = string.IsNullOrEmpty(command.Phone) ? null : command.Phone.Trim(),
 				IsSpam = await _spamClassifier.IsSpamAsync(command.Name.Trim(), command.Email.Trim(), command.Message.Trim(), cancellationToken).ConfigureAwait(false),
 			};
 
@@ -158,12 +162,14 @@ public sealed class SendMessage
 				.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
 				.ToArray();
 
+			string phoneLine = string.IsNullOrEmpty(messageEntity.Phone) ? string.Empty : $"Telefon: {messageEntity.Phone}{Environment.NewLine}";
+
 			string plainTextContent = $"""
             Neue Kontaktanfrage über alpakasoelde.at
 
             Name: {messageEntity.Name}
             E-Mail: {messageEntity.Email}
-            Nachricht: {messageEntity.Message}
+            {phoneLine}Nachricht: {messageEntity.Message}
             """;
 
 			string htmlContent = $"""
@@ -172,6 +178,7 @@ public sealed class SendMessage
                     <h1>Neue Kontaktanfrage über alpakasoelde.at</h1>
                     <p><strong>Name:</strong> {messageEntity.Name}</p>
                     <p><strong>E-Mail:</strong> {messageEntity.Email}</p>
+                    {(string.IsNullOrEmpty(messageEntity.Phone) ? "" : $"<p><strong>Telefon:</strong> {messageEntity.Phone}</p>")}
                     <p><strong>Nachricht:</strong> {messageEntity.Message}</p>
                 </body>
             </html>

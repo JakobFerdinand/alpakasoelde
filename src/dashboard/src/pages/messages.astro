@@ -12,15 +12,16 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
               <th>Nachricht</th>
+              <th>Email</th>
+              <th>Telefon</th>
               <th>Zeitpunkt</th>
               <th class="actions-header">Aktionen</th>
             </tr>
           </thead>
           <tbody id="message-table-body">
             <tr>
-              <td colspan="5">Lade Nachrichten...</td>
+              <td colspan="6">Lade Nachrichten...</td>
             </tr>
           </tbody>
         </table>
@@ -36,13 +37,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
 <script>
   import { formatTimestamp } from '../utils/formatters';
 
-  const columnCount = 5;
+  const columnCount = 6;
   const trashIconTemplate = document.getElementById('trash-icon') as HTMLTemplateElement | null;
 
   type Message = {
     Id: string;
     Name: string;
     Email: string;
+    Phone: string;
     Message: string;
     Timestamp: string;
   };
@@ -94,7 +96,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
         msgs.forEach((msg: Message) => {
           const tr = document.createElement('tr');
           const time = formatTimestamp(msg.Timestamp);
-          tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
+          const phone = msg.Phone || '–';
+          tr.innerHTML = `<td>${msg.Name}</td><td class="message-cell">${msg.Message}</td><td>${msg.Email}</td><td>${phone}</td><td>${time}</td>`;
 
           const actionCell = document.createElement('td');
           actionCell.classList.add('action-cell');

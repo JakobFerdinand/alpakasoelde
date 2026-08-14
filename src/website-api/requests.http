@@ -7,14 +7,14 @@
 POST {{base}}/api/send-message
 Content-Type: application/x-www-form-urlencoded
 
-name=TestName&email=test@example.com&message=Hello from .http file&privacyConsent=true
+name=TestName&email=test@example.com&message=Hello from .http file&phone=%2B43%20660%201234567&privacyConsent=true
 
 ###
 
 POST {{devbase}}/api/send-message
 Content-Type: application/x-www-form-urlencoded
 
-name=Genuin&email=genuin@example.com&message=Hallo, wir wollen eine Führung auf Ihrem Hof buchen für eine Gruppe von 15 Personen im September. Wie sind Ihre Öffnungszeiten und Preise?&privacyConsent=true
+name=Genuin&email=genuin@example.com&message=Hallo, wir wollen eine Führung auf Ihrem Hof buchen für eine Gruppe von 15 Personen im September. Wie sind Ihre Öffnungszeiten und Preise?&phone=%2B43%20660%201234567&privacyConsent=true
 
 ###
 
