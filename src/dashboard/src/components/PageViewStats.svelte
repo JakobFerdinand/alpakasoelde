@@ -172,9 +172,9 @@
                   <Tooltip.List>
                     {#each data.data as item}
                       <Tooltip.Item
-                        label={item.kind}
+                        label={item.Path}
                         value={item.value}
-                        color={context.cScale?.(item.kind)}
+                        color={context.cScale?.(item.Path)}
                         format="integer"
                         valueAlign="right"
                       />
