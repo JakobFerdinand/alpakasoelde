@@ -18,8 +18,8 @@ Gain insight into usage of `src/website` (how many page views, which pages are v
 - [x] Create git branch `feat/website-analytics`
 - [x] Write the plan (`docs/plans/006-website-analytics.md`)
 - [x] Backend: add `PageViewEntity` + `PageView` slice in `website-api`, register handler, extend `requests.http`
-- [ ] Client: add `sendBeacon` snippet to `src/website/src/layouts/Layout.astro`
-- [ ] Privacy: update `src/website/src/pages/datenschutzerklaerung.astro` (new §5, rework old §6, renumber)
+- [x] Client: add `sendBeacon` snippet to `src/website/src/layouts/Layout.astro`
+- [x] Privacy: update `src/website/src/pages/datenschutzerklaerung.astro` (new §5, rework old §6, renumber)
 - [ ] Dashboard: add `GetPageViewStats` slice in `dashboard-api`, register handler, extend `requests.http`
 - [ ] Dashboard: add `PageViewStats.svelte`/wrapper/page + nav link
 - [ ] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check` (website and dashboard), manual check via `requests.http`
