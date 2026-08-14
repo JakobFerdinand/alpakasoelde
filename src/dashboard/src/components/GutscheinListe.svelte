@@ -1,37 +1,45 @@
----
-import Card from './Card.astro';
-import { formatDate, formatCurrency, toNumber } from '../utils/formatters';
-import { normalizeGutschein, type GutscheinRaw } from '../utils/gutschein';
+<script lang="ts">
+  import Card from './Card.svelte';
+  import { formatCurrency, formatDate, toNumber } from '../utils/formatters';
+  import type { Gutschein } from '../utils/gutschein';
 
-interface Props {
-  gutscheine?: GutscheinRaw[] | null;
-}
+  let {
+    gutscheine,
+    fehler = '',
+    onRedeem,
+    onRefresh,
+  }: {
+    gutscheine: Gutschein[] | null;
+    fehler?: string;
+    onRedeem?: (gutschein: Gutschein) => void;
+    onRefresh?: () => void;
+  } = $props();
 
-const gutscheineProp = Astro.props.gutscheine ?? null;
-const gutscheine = Array.isArray(gutscheineProp) ? gutscheineProp.map(normalizeGutschein) : [];
+  const items = $derived(gutscheine ?? []);
+  const wirdGeladen = $derived(gutscheine === null);
+  const summeVerkauft = $derived(items.reduce((summe, g) => summe + toNumber(g.betrag), 0));
+  const summeOffen = $derived(
+    items.reduce((summe, g) => (!g.eingeloestAm ? summe + toNumber(g.betrag) : summe), 0),
+  );
+</script>
 
-const hatGutscheine = gutscheine.length > 0;
-const wirdGeladen = gutscheineProp === null;
-const summeVerkauft = gutscheine.reduce((summe, g) => summe + toNumber(g.betrag), 0);
-const summeOffen = gutscheine.reduce(
-  (summe, g) => (!g.eingeloestAm ? summe + toNumber(g.betrag) : summe),
-  0
-);
----
-
-<Card class="gutschein-liste-card" data-gutschein-liste data-initial-gutscheine={JSON.stringify(gutscheineProp)}>
+<Card class="gutschein-liste-card">
   <div class="listen-kopf">
     <div>
       <p class="card-eyebrow">Übersicht</p>
       <h2 class="card-title">Verkaufte Gutscheine</h2>
       <p class="card-subtitle">Alle Gutscheine mit Kauf- und Einlösedaten.</p>
     </div>
-    <button id="aktualisieren-button" type="button" class="ghost-button">Aktualisieren</button>
+    <button type="button" class="ghost-button" onclick={onRefresh}>Aktualisieren</button>
   </div>
-  <div id="gutschein-liste" class={`gutschein-liste${wirdGeladen ? ' ladezustand' : ''}`}>
-    {wirdGeladen ? (
+  <div class="gutschein-liste" class:ladezustand={wirdGeladen}>
+    {#if wirdGeladen}
       <p class="loading-text">Lade Gutscheine...</p>
-    ) : hatGutscheine ? (
+    {:else if fehler}
+      <p class="error">{fehler}</p>
+    {:else if items.length === 0}
+      <p class="empty">Noch keine Gutscheine erfasst.</p>
+    {:else}
       <table class="gutschein-tabelle" aria-label="Gutscheinliste">
         <thead>
           <tr class="gutschein-kopf">
@@ -43,23 +51,23 @@ const summeOffen = gutscheine.reduce(
           </tr>
         </thead>
         <tbody>
-          {gutscheine.map((gutschein) => (
+          {#each items as gutschein}
             <tr class="gutschein-zeile">
               <td>{gutschein.gutscheinnummer || '—'}</td>
               <td>{formatDate(gutschein.kaufdatum)}</td>
               <td>{formatCurrency(gutschein.betrag)}</td>
               <td>{gutschein.verkauftAn || '—'}</td>
               <td>
-                {gutschein.eingeloestAm ? (
-                  formatDate(gutschein.eingeloestAm)
-                ) : (
-                  <button type="button" class="link-button" data-gutscheinnummer={gutschein.gutscheinnummer}>
+                {#if gutschein.eingeloestAm}
+                  {formatDate(gutschein.eingeloestAm)}
+                {:else}
+                  <button type="button" class="link-button" onclick={() => onRedeem?.(gutschein)}>
                     Einlösen
                   </button>
-                )}
+                {/if}
               </td>
             </tr>
-          ))}
+          {/each}
         </tbody>
         <tfoot>
           <tr class="gutschein-summe">
@@ -73,9 +81,7 @@ const summeOffen = gutscheine.reduce(
           </tr>
         </tfoot>
       </table>
-    ) : (
-      <p class="empty">Noch keine Gutscheine erfasst.</p>
-    )}
+    {/if}
   </div>
 </Card>
 
