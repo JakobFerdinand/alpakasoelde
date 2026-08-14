@@ -12,9 +12,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           <thead>
             <tr>
               <th>Name</th>
+              <th>Nachricht</th>
               <th>Email</th>
               <th>Telefon</th>
-              <th>Nachricht</th>
               <th>Zeitpunkt</th>
               <th class="actions-header">Aktionen</th>
             </tr>
@@ -97,7 +97,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
           const tr = document.createElement('tr');
           const time = formatTimestamp(msg.Timestamp);
           const phone = msg.Phone || '–';
-          tr.innerHTML = `<td>${msg.Name}</td><td>${msg.Email}</td><td>${phone}</td><td class="message-cell">${msg.Message}</td><td>${time}</td>`;
+          tr.innerHTML = `<td>${msg.Name}</td><td class="message-cell">${msg.Message}</td><td>${msg.Email}</td><td>${phone}</td><td>${time}</td>`;
 
           const actionCell = document.createElement('td');
           actionCell.classList.add('action-cell');
