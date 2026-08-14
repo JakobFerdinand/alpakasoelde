@@ -2,8 +2,12 @@
   "IsEncrypted": false,
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+    "StorageConnection": "",
     "OpenAiEndpoint": "",
     "OpenAiApiKey": "",
-    "OpenAiDeployment": "gpt-5-nano"
+    "OpenAiDeployment": "gpt-5-nano",
+    "EmailSenderAddress": "",
+    "ReceiverEmailAddresses": "",
+    "EmailConnection": ""
   }
 }
