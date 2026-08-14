@@ -15,6 +15,14 @@ GET {{base}}/api/messages/stats?days=90
 
 ###
 
+GET {{base}}/api/pageviews/stats
+
+###
+
+GET {{base}}/api/pageviews/stats?days=90
+
+###
+
 @alpakaId=REPLACE-WITH-ALPAKA-ID
 
 GET {{devbase}}/api/alpakas/{{alpakaId}}

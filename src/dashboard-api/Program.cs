@@ -4,6 +4,7 @@ using DashboardApi.Features.Alpakas;
 using DashboardApi.Features.Events;
 using DashboardApi.Features.Gutscheine;
 using DashboardApi.Features.Messages;
+using DashboardApi.Features.PageViews;
 using DashboardApi.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,6 +26,7 @@ var host = new HostBuilder()
         services.AddScoped<GetOldMessageCount.Handler>();
         services.AddScoped<GetMessageStats.Handler>();
         services.AddScoped<DeleteMessage.Handler>();
+        services.AddScoped<GetPageViewStats.Handler>();
         services.AddScoped<Events.GetHandler>();
         services.AddScoped<Events.AddHandler>();
         services.AddScoped<GetGutscheine.Handler>();
@@ -40,6 +42,7 @@ var host = new HostBuilder()
         services.AddScoped<UpdateAlpaka.IAlpakaUpdateStore, UpdateAlpaka.TableAlpakaUpdateStore>();
         services.AddScoped<UpdateAlpaka.IAlpakaImageReplacementStore, UpdateAlpaka.BlobAlpakaImageReplacementStore>();
         services.AddScoped<GetMessages.IReadStore, GetMessages.TableReadStore>();
+        services.AddScoped<GetPageViewStats.IPageViewReadStore, GetPageViewStats.TablePageViewReadStore>();
         services.AddScoped<DeleteMessage.IStore, DeleteMessage.TableStore>();
         services.AddScoped<Events.IEventStore, Events.TableEventStore>();
         services.AddScoped<Events.IAlpakaLookupStore, Events.TableAlpakaLookupStore>();

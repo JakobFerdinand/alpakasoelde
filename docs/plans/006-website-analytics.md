@@ -20,7 +20,7 @@ Gain insight into usage of `src/website` (how many page views, which pages are v
 - [x] Backend: add `PageViewEntity` + `PageView` slice in `website-api`, register handler, extend `requests.http`
 - [x] Client: add `sendBeacon` snippet to `src/website/src/layouts/Layout.astro`
 - [x] Privacy: update `src/website/src/pages/datenschutzerklaerung.astro` (new §5, rework old §6, renumber)
-- [ ] Dashboard: add `GetPageViewStats` slice in `dashboard-api`, register handler, extend `requests.http`
+- [x] Dashboard: add `GetPageViewStats` slice in `dashboard-api`, register handler, extend `requests.http`
 - [ ] Dashboard: add `PageViewStats.svelte`/wrapper/page + nav link
 - [ ] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check` (website and dashboard), manual check via `requests.http`
 - [ ] Deploy on `main` merge
@@ -89,5 +89,6 @@ New slice `src/dashboard-api/features/pageviews/GetPageViewStats.cs`, mirroring 
 
 - `dashboard-api.Tests`/`website-api.Tests` are not present in the working tree (their references were removed from `alpakasoelde.slnx`; `AGENTS.md` still lists test commands for them); verification relies on builds, `astro check`, and the `requests.http` samples.
 - Referrer is recorded as host only; visitors arriving with query-string parameters (e.g. UTM) are not attributed to campaigns — intentional to keep data non-identifying.
+- The dashboard stats store reads the last 180 days of daily partitions; the `days` query parameter is clamped to 180 (covers all presets 28/90/180).
 - Raw rows live in daily partitions; automated 12-month cleanup and the retention claim in the Datenschutzerklärung need a follow-up (timer function or manual partition deletion).
 - The dashboard page itself is behind SWA EasyAuth (admin/collaborator), so no visitor data is exposed publicly. The `pageviews` table is not linked to `alpakas`/`events`/`messages` data in any way.
