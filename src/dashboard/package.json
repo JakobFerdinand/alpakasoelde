@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
+    "check:svelte": "svelte-check --threshold warning",
     "preview": "astro preview",
     "astro": "astro"
   },
@@ -26,6 +27,7 @@
     "@types/d3-array": "^3.2.2",
     "@types/d3-scale": "^4.0.9",
     "@types/node": "^26.1.0",
+    "svelte-check": "^4.7.6",
     "typescript": "^6.0.3"
   }
 }
