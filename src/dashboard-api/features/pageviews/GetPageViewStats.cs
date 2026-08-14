@@ -38,11 +38,13 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries);
 
 	public sealed record PathCount(string Path, int Count);
 
 	public sealed record PeriodBucket(string Period, int Count);
+
+	public sealed record PathPeriodBucket(string Period, string Path, int Count);
 
 	public interface IPageViewReadStore
 	{
@@ -73,6 +75,9 @@ public sealed class GetPageViewStats
 
 	public sealed class Handler(IPageViewReadStore store)
 	{
+		private const int ChartPathsLimit = 6;
+		private const string OtherBucketLabel = "Übrige";
+
 		private readonly IPageViewReadStore _store = store;
 
 		public async Task<Result> HandleAsync(Query query, CancellationToken cancellationToken)
@@ -97,20 +102,40 @@ public sealed class GetPageViewStats
 				.Select(g => new PathCount(g.Key, g.Count()))
 				.ToList();
 
+			List<string> chartPaths = topPaths.Take(ChartPathsLimit).Select(p => p.Path).ToList();
+			int chartTopCount = inWindow.Count(p => chartPaths.Contains(p.Path));
+			if (total - chartTopCount > 0)
+			{
+				chartPaths.Add(OtherBucketLabel);
+			}
+
+			HashSet<string> chartPathSet = [.. chartPaths];
+
 			var buckets = new Dictionary<DateTime, int>();
+			var pathBuckets = new Dictionary<(DateTime Week, string Path), int>();
 			foreach (PageViewEntity pageView in inWindow)
 			{
 				DateTime weekStart = GetWeekStart(pageView.Timestamp!.Value);
 				buckets[weekStart] = buckets.GetValueOrDefault(weekStart) + 1;
+
+				string path = chartPathSet.Contains(pageView.Path) ? pageView.Path : OtherBucketLabel;
+				var key = (weekStart, path);
+				pathBuckets[key] = pathBuckets.GetValueOrDefault(key) + 1;
 			}
 
 			List<PeriodBucket> series = [];
+			List<PathPeriodBucket> pathSeries = [];
 			for (DateTime week = GetWeekStart(windowStart); week <= GetWeekStart(now); week = week.AddDays(7))
 			{
 				series.Add(new PeriodBucket(week.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(week)));
+
+				foreach (string path in chartPaths)
+				{
+					pathSeries.Add(new PathPeriodBucket(week.ToString("yyyy-MM-dd"), path, pathBuckets.GetValueOrDefault((week, path))));
+				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, series);
+			return new Result(total, uniquePaths, topPaths, series, pathSeries);
 		}
 
 		private static DateTime GetWeekStart(DateTimeOffset value)
