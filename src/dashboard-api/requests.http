@@ -7,6 +7,14 @@ GET {{base}}/api/messages
 
 ###
 
+GET {{base}}/api/messages/stats
+
+###
+
+GET {{base}}/api/messages/stats?days=90
+
+###
+
 @alpakaId=REPLACE-WITH-ALPAKA-ID
 
 GET {{devbase}}/api/alpakas/{{alpakaId}}

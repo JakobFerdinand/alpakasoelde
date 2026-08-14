@@ -23,6 +23,7 @@ var host = new HostBuilder()
         services.AddScoped<UpdateAlpaka.Handler>();
         services.AddScoped<GetMessages.Handler>();
         services.AddScoped<GetOldMessageCount.Handler>();
+        services.AddScoped<GetMessageStats.Handler>();
         services.AddScoped<DeleteMessage.Handler>();
         services.AddScoped<Events.GetHandler>();
         services.AddScoped<Events.AddHandler>();
