@@ -25,4 +25,22 @@ name=SpamBot&email=spammer@spam.example&message=CONGRATULATIONS YOU WON A FREE I
 
 ###
 
-GET {{base}}/api/messages
+POST {{devbase}}/api/pageview
+Content-Type: application/json
+
+{
+  "path": "/alpaka-wanderungen",
+  "referrerHost": "www.google.at",
+  "viewportWidth": 1440
+}
+
+###
+
+POST {{devbase}}/api/pageview
+Content-Type: application/json
+
+{
+  "path": "invalid-path",
+  "referrerHost": "",
+  "viewportWidth": -5
+}
