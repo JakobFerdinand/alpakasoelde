@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -79,15 +80,65 @@ public sealed class PageView
 		Task AddAsync(PageViewEntity entity, CancellationToken cancellationToken);
 	}
 
-	public sealed class TablePageViewStore(TableServiceClient tableServiceClient) : IPageViewWriteStore
+	public sealed class TablePageViewStore(TableServiceClient tableServiceClient, ILogger<TablePageViewStore> logger) : IPageViewWriteStore
 	{
+		private const int RetentionMonths = 36;
+		private const string CleanupMarkerPartition = "Cleanup";
+		private const string CleanupMarkerRowKey = "last";
+		private static readonly TimeSpan CleanupInterval = TimeSpan.FromDays(1);
+
 		private readonly TableServiceClient _tableServiceClient = tableServiceClient;
+		private readonly ILogger<TablePageViewStore> _logger = logger;
 
 		public async Task AddAsync(PageViewEntity entity, CancellationToken cancellationToken)
 		{
 			TableClient tableClient = _tableServiceClient.GetTableClient("pageviews");
 			await tableClient.CreateIfNotExistsAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
 			await tableClient.AddEntityAsync(entity, cancellationToken).ConfigureAwait(false);
+			await MaybePurgeExpiredAsync(tableClient, cancellationToken).ConfigureAwait(false);
+		}
+
+		private async Task MaybePurgeExpiredAsync(TableClient tableClient, CancellationToken cancellationToken)
+		{
+			try
+			{
+				NullableResponse<TableEntity> markerResponse = await tableClient.GetEntityIfExistsAsync<TableEntity>(CleanupMarkerPartition, CleanupMarkerRowKey, cancellationToken: cancellationToken).ConfigureAwait(false);
+				TableEntity? marker = markerResponse.HasValue ? markerResponse.Value : null;
+				if (marker is not null && DateTimeOffset.UtcNow - marker.GetDateTimeOffset("LastCleanupUtc") < CleanupInterval)
+				{
+					return;
+				}
+
+				DateTimeOffset cutoff = DateTimeOffset.UtcNow.AddMonths(-RetentionMonths);
+				string cutoffKey = $"Pv|{cutoff:yyyy-MM-dd}";
+
+				List<PageViewEntity> batch = [];
+				await foreach (PageViewEntity entity in tableClient.QueryAsync<PageViewEntity>(filter: $"PartitionKey lt '{cutoffKey}'", cancellationToken: cancellationToken).ConfigureAwait(false))
+				{
+					batch.Add(entity);
+					if (batch.Count == 100)
+					{
+						await SubmitDeleteBatchAsync(tableClient, batch, cancellationToken).ConfigureAwait(false);
+					}
+				}
+
+				if (batch.Count > 0)
+				{
+					await SubmitDeleteBatchAsync(tableClient, batch, cancellationToken).ConfigureAwait(false);
+				}
+
+				await tableClient.UpsertEntityAsync(new TableEntity(CleanupMarkerPartition, CleanupMarkerRowKey) { ["LastCleanupUtc"] = DateTimeOffset.UtcNow }, TableUpdateMode.Replace, cancellationToken: cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogWarning("Pageview cleanup failed: {Error}", ex.Message);
+			}
+		}
+
+		private static async Task SubmitDeleteBatchAsync(TableClient tableClient, List<PageViewEntity> batch, CancellationToken cancellationToken)
+		{
+			await tableClient.SubmitTransactionAsync([.. batch.Select(e => new TableTransactionAction(TableTransactionActionType.Delete, e))], cancellationToken).ConfigureAwait(false);
+			batch.Clear();
 		}
 	}
 
