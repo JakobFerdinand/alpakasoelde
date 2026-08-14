@@ -58,14 +58,15 @@ defers a full SvelteKit rewrite, and the Svelte components written here port
 
 - [x] Create git branch `feat/dashboard-svelte-islands`
 - [x] Write the plan (`docs/plans/005-svelte-islands-migration.md`)
-- [ ] Migrate `EventList` + `Events` (dashboards overview & alpaka detail share it)
-- [ ] Migrate `Modal`, `Card`, `FormField` (shared building blocks)
-- [ ] Migrate `Alpakas` (overview list, add-alpaka form, event form)
-- [ ] Migrate `alpakas.astro` detail page (view/edit/photo upload)
-- [ ] Migrate `messages.astro` (inbox table: sort/filter/expand/delete)
-- [ ] Migrate `gutscheine.astro` + `GutscheinListe` (form, list, redeem dialog)
-- [ ] Migrate `DashboardNavbar` script (mobile toggle + `.auth/me` user)
-- [ ] Verify: `pnpm run build` + `astro check` + `svelte-check`, manual pass
+- [x] Migrate `EventList` + `Events` (dashboards overview & alpaka detail share it)
+- [x] Migrate `Modal`, `Card`, `FormField` (shared building blocks)
+- [x] Migrate `Alpakas` (overview list, add-alpaka form, event form)
+- [x] Migrate `alpakas.astro` detail page (view/edit/photo upload)
+- [x] Migrate `messages.astro` (inbox table: sort/filter/expand/delete)
+- [x] Migrate `gutscheine.astro` + `GutscheinListe` (form, list, redeem dialog)
+- [x] Migrate `DashboardNavbar` script (mobile toggle + `.auth/me` user)
+- [x] Add `svelte-check` (`check:svelte` script) and fix its findings
+- [x] Verify: `pnpm run build` + `astro check`, `pnpm run check:svelte`
 - [ ] Deploy on `main` merge
 
 ## 1. Shared building blocks (`src/dashboard/src/components`)
@@ -172,6 +173,9 @@ The largest migration (plan `003` built this page as imperative vanilla JS).
   `"check:svelte"` (or fold into the existing `check`) script if it does not
   duplicate `astro check` coverage. `astro check` already type-checks Svelte
   files via the integration.
+- Svelte scoped styles do not reach elements rendered inside child components
+  (e.g. the `svg` of a `@lucide/svelte` icon, or the root of `Card.svelte`);
+  use `:global(...)` for those selectors.
 - No change to `astro.config.mjs` (integration present), `tsconfig.json`,
   `staticwebapp.config.json`, or the CI workflow (it runs `pnpm run check` +
   `pnpm run build`, which we keep green).
