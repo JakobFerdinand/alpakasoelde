@@ -22,7 +22,8 @@ Gain insight into usage of `src/website` (how many page views, which pages are v
 - [x] Privacy: update `src/website/src/pages/datenschutzerklaerung.astro` (new §5, rework old §6, renumber)
 - [x] Dashboard: add `GetPageViewStats` slice in `dashboard-api`, register handler, extend `requests.http`
 - [x] Dashboard: add `PageViewStats.svelte`/wrapper/page + nav link
-- [ ] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check` (website and dashboard), manual check via `requests.http`
+- [x] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check` (website and dashboard)
+- [ ] Manual endpoint check via `requests.http` (requires local storage; deferred)
 - [ ] Deploy on `main` merge
 
 ## 1. Backend (`src/website-api`)
