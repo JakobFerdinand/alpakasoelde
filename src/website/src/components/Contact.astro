@@ -314,19 +314,21 @@
 </style>
 
 <script>
-  const form = document.querySelector('#contact-form');
-  const submitButton = form.querySelector('button[type="submit"]');
-  const status = document.querySelector('#form-status');
+  const form = document.querySelector<HTMLFormElement>('#contact-form');
+  const submitButton = form?.querySelector<HTMLButtonElement>('button[type="submit"]');
+  const status = document.querySelector<HTMLElement>('#form-status');
 
-  function setStatus(message, type) {
+  function setStatus(message: string | null, type: 'success' | 'error' | null) {
+    if (!status) return;
     status.textContent = message;
     status.classList.toggle('success', type === 'success');
     status.classList.toggle('error', type === 'error');
     status.hidden = message === null;
   }
 
-  form.addEventListener('submit', async (event) => {
+  form?.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (!submitButton) return;
     if (submitButton.disabled) return;
 
     submitButton.disabled = true;
@@ -334,11 +336,13 @@
     setStatus('Nachricht wird gesendet…', null);
 
     try {
-      const body = new URLSearchParams(new FormData(form)).toString();
+      if (!form) return;
+      const params = new URLSearchParams();
+      new FormData(form).forEach((value, key) => params.append(key, value.toString()));
       const response = await fetch(form.action, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body,
+        body: params.toString(),
       });
 
       if (!response.ok) {
