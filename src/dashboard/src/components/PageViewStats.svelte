@@ -37,15 +37,14 @@
   let error = $state('');
   let stats = $state<StatsResult | null>(null);
 
-  const chartData = $derived.by(() =>
-    stats
-      ? groupStackData(
-          stats.PathSeries.map((row) => ({ Period: row.Period, Path: row.Path, value: row.Count })),
-          { xKey: 'Period', stackBy: 'Path' },
-        )
-      : [],
-  );
-  const colorKeys = $derived(Array.from(new Set(stats?.PathSeries.map((row) => row.Path) ?? [])));
+  const chartData = $derived.by(() => {
+    if (!stats?.PathSeries?.length) return [];
+    return groupStackData(
+      stats.PathSeries.map((row) => ({ Period: row.Period, Path: row.Path, value: row.Count })),
+      { xKey: 'Period', stackBy: 'Path' },
+    );
+  });
+  const colorKeys = $derived(Array.from(new Set((stats?.PathSeries ?? []).map((row) => row.Path))));
   const keyColors = $derived(colorKeys.map((_, index) => chartPalette[index % chartPalette.length]));
 
   const total = $derived(stats?.Total ?? 0);
