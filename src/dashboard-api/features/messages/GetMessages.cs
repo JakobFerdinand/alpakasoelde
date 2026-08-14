@@ -30,7 +30,7 @@ public sealed class GetMessages
 
 	public sealed record Query;
 
-	public sealed record DashboardMessage(string Id, string Name, string Email, string Message, DateTimeOffset? Timestamp);
+	public sealed record DashboardMessage(string Id, string Name, string Email, string Phone, string Message, DateTimeOffset? Timestamp);
 
 	public interface IReadStore
 	{
@@ -61,7 +61,7 @@ public sealed class GetMessages
 			IReadOnlyList<MessageEntity> messages = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
 			return messages
 				.OrderByDescending(m => m.Timestamp ?? DateTimeOffset.MinValue)
-				.Select(m => new DashboardMessage(m.RowKey, m.Name, m.Email, m.Message, m.Timestamp))
+				.Select(m => new DashboardMessage(m.RowKey, m.Name, m.Email, m.Phone ?? string.Empty, m.Message, m.Timestamp))
 				.ToList();
 		}
 	}
