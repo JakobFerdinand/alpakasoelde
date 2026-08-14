@@ -8,12 +8,14 @@
   type PeriodBucket = { Period: string; Count: number };
   type PathCount = { Path: string; Count: number };
   type PathBucket = { Period: string; Path: string; Count: number };
+  type DeviceCount = { Category: string; Count: number };
   type StatsResult = {
     Total: number;
     UniquePaths: number;
     TopPaths: PathCount[];
     Series: PeriodBucket[];
     PathSeries: PathBucket[];
+    Devices: DeviceCount[];
   };
   type StackItem = { kind: string; value: number };
 
@@ -53,9 +55,15 @@
   const topPath = $derived(stats?.TopPaths[0] ?? null);
   const uniquePages = $derived(stats?.UniquePaths ?? 0);
   const hasData = $derived(Boolean(stats) && stats!.Total > 0);
+  const devices = $derived(stats?.Devices ?? []);
+  const deviceTotal = $derived(devices.reduce((sum, device) => sum + device.Count, 0));
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
+  }
+
+  function formatPercent(value: number): string {
+    return new Intl.NumberFormat('de-AT', { style: 'percent', maximumFractionDigits: 1 }).format(value);
   }
 
   function formatWeekLabel(period: string): string {
@@ -219,6 +227,23 @@
             </tbody>
           </table>
         </div>
+
+        {#if devices.length > 0}
+          <div class="device-block">
+            <h3 class="device-title">Gerätekategorien</h3>
+            {#each devices as device}
+              {@const share = deviceTotal > 0 ? device.Count / deviceTotal : 0}
+              <div class="device-row">
+                <span class="device-label">{device.Category}</span>
+                <div class="device-bar-wrap" aria-hidden="true">
+                  <div class="device-bar" style="width: {share * 100}%"></div>
+                </div>
+                <span class="device-value">{formatCount(device.Count)}</span>
+                <span class="device-percent">{formatPercent(share)}</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
 
         <h3 class="sr-only">Seitenaufrufe nach Woche und Seite</h3>
         <table class="sr-only-table">
@@ -409,6 +434,61 @@
     border-radius: 0.5rem;
     overflow: hidden;
     background-color: var(--schurwolle);
+  }
+
+  .device-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 1px solid rgba(0, 32, 73, 0.1);
+    border-radius: 0.5rem;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+  }
+
+  .device-title {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+
+  .device-row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr auto auto;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .device-label {
+    font-weight: 600;
+    color: var(--taubenblau);
+  }
+
+  .device-bar-wrap {
+    height: 0.75rem;
+    border-radius: 0.375rem;
+    background-color: rgba(0, 32, 73, 0.1);
+    overflow: hidden;
+  }
+
+  .device-bar {
+    height: 100%;
+    border-radius: 0.375rem;
+    background-color: var(--weidegruen);
+  }
+
+  .device-value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  .device-percent {
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    min-width: 3.5rem;
+    color: var(--taubenblau);
   }
 
   .pageview-table {

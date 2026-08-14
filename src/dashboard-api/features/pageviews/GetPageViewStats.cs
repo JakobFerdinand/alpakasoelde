@@ -38,9 +38,11 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices);
 
 	public sealed record PathCount(string Path, int Count);
+
+	public sealed record DeviceCount(string Category, int Count);
 
 	public sealed record PeriodBucket(string Period, int Count);
 
@@ -102,6 +104,13 @@ public sealed class GetPageViewStats
 				.Select(g => new PathCount(g.Key, g.Count()))
 				.ToList();
 
+			List<DeviceCount> devices = inWindow
+				.GroupBy(p => GetDeviceCategory(p.ViewportWidth))
+				.OrderByDescending(g => g.Count())
+				.ThenBy(g => GetDeviceCategoryOrder(g.Key))
+				.Select(g => new DeviceCount(g.Key, g.Count()))
+				.ToList();
+
 			List<string> chartPaths = topPaths.Take(ChartPathsLimit).Select(p => p.Path).ToList();
 			int chartTopCount = inWindow.Count(p => chartPaths.Contains(p.Path));
 			if (total - chartTopCount > 0)
@@ -135,7 +144,30 @@ public sealed class GetPageViewStats
 				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, series, pathSeries);
+			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices);
+		}
+
+		private static string GetDeviceCategory(int viewportWidth)
+		{
+			return viewportWidth switch
+			{
+				< 600 => "Mobil",
+				< 1024 => "Tablet",
+				< 1920 => "Laptop",
+				_ => "Breitbild",
+			};
+		}
+
+		private static int GetDeviceCategoryOrder(string category)
+		{
+			return category switch
+			{
+				"Mobil" => 0,
+				"Tablet" => 1,
+				"Laptop" => 2,
+				"Breitbild" => 3,
+				_ => 4,
+			};
 		}
 
 		private static DateTime GetWeekStart(DateTimeOffset value)
