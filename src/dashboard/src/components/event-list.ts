@@ -25,7 +25,7 @@ export const normalizeEvents = (events: unknown): EventListItem[] => {
   }));
 };
 
-const EVENT_TYPE_ICON_KEYS: Record<string, string> = {
+export const EVENT_TYPE_ICON_KEYS: Record<string, string> = {
   entwurmen: 'worm',
   'nägel schneiden': 'scissors',
   'naegel schneiden': 'scissors',
