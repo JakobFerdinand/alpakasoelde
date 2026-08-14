@@ -88,3 +88,16 @@ const { title, navTransparentOnHero = false, hideLogoOnTransparent = false } = A
     setSolidNav();
   }
 </script>
+
+<script is:inline>
+  if ('sendBeacon' in navigator) {
+    window.addEventListener('load', () => {
+      const payload = {
+        path: location.pathname,
+        referrerHost: document.referrer ? new URL(document.referrer).host : '',
+        viewportWidth: screen.width,
+      };
+      navigator.sendBeacon('/api/pageview', new Blob([JSON.stringify(payload)], { type: 'application/json' }));
+    });
+  }
+</script>

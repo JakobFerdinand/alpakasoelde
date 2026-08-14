@@ -15,6 +15,35 @@ GET {{base}}/api/messages/stats?days=90
 
 ###
 
+GET {{base}}/api/pageviews/stats
+
+# Response (excerpt):
+# {
+#   "total": 42,
+#   "uniquePaths": 5,
+#   "topPaths": [ { "path": "/ueber-uns", "count": 12 } ],
+#   "series": [ { "period": "2025-06-09", "count": 5 } ],
+#   "pathSeries": [ { "period": "2025-06-09", "path": "/ueber-uns", "count": 5 } ],
+#   "deviceSeries": [
+#     { "period": "2025-06-09", "category": "Mobil", "count": 3 },
+#     { "period": "2025-06-09", "category": "Tablet", "count": 0 },
+#     { "period": "2025-06-09", "category": "Laptop", "count": 2 },
+#     { "period": "2025-06-09", "category": "Breitbild", "count": 0 }
+#   ],
+#   "devices": [
+#     { "category": "Mobil", "count": 20 },
+#     { "category": "Laptop", "count": 15 },
+#     { "category": "Tablet", "count": 5 },
+#     { "category": "Breitbild", "count": 2 }
+#   ]
+# }
+
+###
+
+GET {{base}}/api/pageviews/stats?days=90
+
+###
+
 @alpakaId=REPLACE-WITH-ALPAKA-ID
 
 GET {{devbase}}/api/alpakas/{{alpakaId}}

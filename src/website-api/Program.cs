@@ -1,5 +1,6 @@
 using Azure.Data.Tables;
 using WebsiteApi.Features.Messages;
+using WebsiteApi.Features.PageViews;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using WebsiteApi.Shared;
@@ -14,6 +15,8 @@ var host = new HostBuilder()
         services.AddScoped<SendMessage.Handler>();
         services.AddScoped<SendMessage.IMessageWriteStore, SendMessage.TableMessageWriteStore>();
         services.AddScoped<SendMessage.IEmailSender, SendMessage.EmailSender>();
+        services.AddScoped<PageView.Handler>();
+        services.AddScoped<PageView.IPageViewWriteStore, PageView.TablePageViewStore>();
         services.AddScoped<ISpamClassifier, OpenAiSpamClassifier>();
     })
     .Build();

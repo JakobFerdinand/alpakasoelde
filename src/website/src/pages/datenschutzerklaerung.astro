@@ -51,21 +51,36 @@ import Layout from '../layouts/Layout.astro';
         <li>erfolgt die Klassifizierung, wird die Nachricht <strong>nicht an uns weitergeleitet</strong></li>
         <li>für die KI-Verarbeitung gilt der bestehende <strong>Auftragsverarbeitungsvertrag</strong> mit Microsoft</li>
       </ul>
-      <blockquote>Die übermittelten Daten werden <strong>manuell alle 6 Monate gelöscht</strong>, sofern sie nicht mehr benötigt werden oder gesetzliche Aufbewahrungsfristen entgegenstehen. Auf Wunsch können Sie jederzeit eine vorzeitige Löschung Ihrer Daten verlangen (siehe Punkt 7).</blockquote>
+      <blockquote>Die übermittelten Daten werden <strong>manuell alle 6 Monate gelöscht</strong>, sofern sie nicht mehr benötigt werden oder gesetzliche Aufbewahrungsfristen entgegenstehen. Auf Wunsch können Sie jederzeit eine vorzeitige Löschung Ihrer Daten verlangen (siehe Punkt 8).</blockquote>
 
       <hr />
 
-      <h3 id="serverprotokolle">5. Serverprotokolle &amp; Application Insights</h3>
+      <h3 id="pseudonyme-besuchsstatistik">5. Pseudonyme Besuchsstatistik</h3>
+      <p>Bei jedem Seitenaufruf übermittelt Ihr Browser ohne Cookies einen kurzen, pseudonymen Datensatz an uns. Dieser enthält:</p>
+      <ul>
+        <li>die aufgerufene Seite (Pfad)</li>
+        <li>die verweisende Website (nur die Domain, niemals die vollständige Adresse mit Zusatzparametern)</li>
+        <li>die Bildschirmbreite</li>
+        <li>den Zeitpunkt des Aufrufs</li>
+      </ul>
+      <p>Es werden <strong>keine IP-Adressen, keine Cookies und keine Browser-Identifikatoren</strong> gespeichert; eine Identifizierung einzelner Besucher ist nicht möglich.</p>
+      <p>Die Daten werden in <strong>Azure Table Storage (Germany West Central)</strong> gespeichert. Für diese Verarbeitung gilt der bestehende <strong>Auftragsverarbeitungsvertrag</strong> mit Microsoft (siehe Punkt 3).</p>
+      <p>Die Datensätze werden <strong>automatisch nach 36 Monaten gelöscht</strong>.</p>
+      <p>Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. f DSGVO auf Basis unseres berechtigten Interesses, die Website zu verbessern und über ihre Nutzung informiert zu sein. Da die Datensätze keiner einzelnen Person zugeordnet werden können, können die Rechte auf Löschung (Art. 17 DSGVO) und Widerspruch (Art. 21 DSGVO) für diese pseudonyme Statistik nicht ausgeübt werden; sie gelten uneingeschränkt für alle übrigen Verarbeitungen personenbezogener Daten, etwa über das Kontaktformular.</p>
+
+      <hr />
+
+      <h3 id="serverprotokolle">6. Serverprotokolle &amp; Application Insights</h3>
       <p>Zur technischen Überwachung unserer Website verwenden wir <strong>Azure Application Insights</strong> ausschließlich für serverseitige Funktionen. Dabei werden <strong>keine personenbezogenen Daten oder IP-Adressen von Websitebesuchern</strong> erfasst oder gespeichert.</p>
 
       <hr />
 
-      <h3 id="keine-cookies-oder-tracking">6. Keine Cookies oder Tracking</h3>
-      <p>Wir verwenden derzeit <strong>keine Cookies</strong> und keine Website-Analyse-Tools wie Google Analytics oder vergleichbare Drittanbieter. Ein Cookie-Banner ist daher nicht erforderlich.</p>
+      <h3 id="keine-cookies-oder-tracking">7. Keine Cookies oder Tracking</h3>
+      <p>Wir verwenden <strong>keine Cookies</strong>; ein Cookie-Banner ist daher nicht erforderlich. Nutzungsstatistiken erheben wir ausschließlich in der pseudonymen, cookie-freien Form, wie unter Punkt 5 beschrieben. Tools von Drittanbietern wie Google Analytics werden <strong>nicht</strong> eingesetzt.</p>
 
       <hr />
 
-      <h3 id="rechte-der-betroffenen-personen">7. Rechte der betroffenen Personen</h3>
+      <h3 id="rechte-der-betroffenen-personen">8. Rechte der betroffenen Personen</h3>
       <p>Sie haben gemäß DSGVO folgende Rechte:</p>
       <ul>
         <li><strong>Auskunft</strong> über gespeicherte Daten (Art. 15 DSGVO)</li>
@@ -78,12 +93,12 @@ import Layout from '../layouts/Layout.astro';
 
       <hr />
 
-      <h3 id="sicherheit">8. Sicherheit</h3>
+      <h3 id="sicherheit">9. Sicherheit</h3>
       <p>Unsere Website nutzt eine <strong>SSL-/TLS-Verschlüsselung</strong> (erkennbar am „https://“ in der Adresszeile). Die Datenübertragung erfolgt damit geschützt vor Zugriff durch Dritte.</p>
 
       <hr />
 
-      <h3 id="aenderungen">9. Änderungen</h3>
+      <h3 id="aenderungen">10. Änderungen</h3>
       <p>Wir behalten uns vor, diese Datenschutzerklärung bei technischen Änderungen oder gesetzlichen Vorgaben zu aktualisieren.</p>
     </div>
   </section>
