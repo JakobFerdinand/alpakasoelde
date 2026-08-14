@@ -217,6 +217,9 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   function createRow(message: Message): HTMLTableRowElement {
     const tr = document.createElement('tr');
     tr.dataset.messageId = message.Id;
+    if (message.IsSpam) {
+      tr.classList.add('is-spam');
+    }
     if (isOldMessage(message)) {
       tr.classList.add('is-old');
     }
@@ -415,10 +418,14 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
     background-color: rgba(176, 0, 32, 0.1);
   }
 
+  .message-table tbody tr.is-spam td {
+    background-color: rgba(215, 133, 75, 0.2);
+  }
+
   .marker-header,
   .marker-cell {
     width: 2.25rem;
-    vertical-align: top;
+    vertical-align: middle;
     padding-left: 0.75rem;
     padding-right: 0.25rem;
   }
