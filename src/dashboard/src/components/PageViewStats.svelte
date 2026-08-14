@@ -51,7 +51,7 @@
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
   const uniquePages = $derived(stats?.UniquePaths ?? 0);
-  const hasData = $derived(Boolean(stats) && stats!.Series.length > 0);
+  const hasData = $derived(Boolean(stats) && stats!.Total > 0);
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
@@ -212,30 +212,30 @@
             </tbody>
           </table>
         </div>
-      {/if}
 
-      <h3 class="sr-only">Seitenaufrufe nach Woche und Seite</h3>
-      <table class="sr-only-table">
-        <thead>
-          <tr>
-            <th scope="col">Woche</th>
-            <th scope="col">Seite</th>
-            <th scope="col">Aufrufe</th>
-          </tr>
-        </thead>
-        <tbody>
-          {#each stats?.Series ?? [] as bucket}
-            {@const bucketRows = (stats?.PathSeries ?? []).filter((row) => row.Period === bucket.Period && row.Count > 0)}
-            {#each bucketRows as row}
-              <tr>
-                <th scope="row">{formatWeekLabel(bucket.Period)}</th>
-                <td>{row.Path}</td>
-                <td>{formatCount(row.Count)}</td>
-              </tr>
+        <h3 class="sr-only">Seitenaufrufe nach Woche und Seite</h3>
+        <table class="sr-only-table">
+          <thead>
+            <tr>
+              <th scope="col">Woche</th>
+              <th scope="col">Seite</th>
+              <th scope="col">Aufrufe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each stats?.Series ?? [] as bucket}
+              {@const bucketRows = (stats?.PathSeries ?? []).filter((row) => row.Period === bucket.Period && row.Count > 0)}
+              {#each bucketRows as row}
+                <tr>
+                  <th scope="row">{formatWeekLabel(bucket.Period)}</th>
+                  <td>{row.Path}</td>
+                  <td>{formatCount(row.Count)}</td>
+                </tr>
+              {/each}
             {/each}
-          {/each}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      {/if}
     </div>
   </div>
 </section>
