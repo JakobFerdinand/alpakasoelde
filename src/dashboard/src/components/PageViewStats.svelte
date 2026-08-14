@@ -29,6 +29,7 @@
     'var(--taubenblau)',
     '#b3822a',
     '#5f6b8a',
+    '#8a6a9a',
   ];
 
   let days = $state(28);
