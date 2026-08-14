@@ -21,6 +21,13 @@
     }
   };
 
+  const onBackdropKeydown = (event: KeyboardEvent) => {
+    if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) {
+      event.preventDefault();
+      close();
+    }
+  };
+
   const onKeydown = (event: KeyboardEvent) => {
     if (event.key === 'Escape' && open) {
       close();
@@ -43,7 +50,9 @@
     role="dialog"
     aria-modal="true"
     aria-label={label}
+    tabindex="-1"
     onclick={onBackdropClick}
+    onkeydown={onBackdropKeydown}
   >
     <div class="modal-content">
       <button type="button" class="modal-close" aria-label="Schließen" onclick={close}>&times;</button>

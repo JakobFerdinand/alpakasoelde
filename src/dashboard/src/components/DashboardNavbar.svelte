@@ -98,7 +98,7 @@
     font-size: 1.5rem;
     cursor: pointer;
   }
-  .nav-toggle svg {
+  :global(.nav-toggle svg) {
     width: 1.75rem;
     height: 1.75rem;
   }

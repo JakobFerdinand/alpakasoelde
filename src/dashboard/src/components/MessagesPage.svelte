@@ -327,7 +327,7 @@
     margin-left: 0.35rem;
   }
 
-  .marker-svg {
+  :global(.marker-svg) {
     width: 1.1rem;
     height: 1.1rem;
     stroke: currentColor;
@@ -392,7 +392,7 @@
     opacity: 1;
   }
 
-  .sort-icon-svg {
+  :global(.sort-icon-svg) {
     width: 1rem;
     height: 1rem;
     stroke: currentColor;

@@ -86,7 +86,7 @@
 </Card>
 
 <style>
-  .gutschein-liste-card {
+  :global(.gutschein-liste-card) {
     min-width: 0;
   }
 

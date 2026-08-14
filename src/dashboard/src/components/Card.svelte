@@ -15,7 +15,7 @@
     children?: Snippet;
   } = $props();
 
-  const cardClasses = ['card', className].filter(Boolean).join(' ');
+  const cardClasses = $derived(['card', className].filter(Boolean).join(' '));
 </script>
 
 <div class={cardClasses}>
