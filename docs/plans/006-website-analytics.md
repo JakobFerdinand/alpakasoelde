@@ -10,7 +10,7 @@ Gain insight into usage of `src/website` (how many page views, which pages are v
 - **First-party over SaaS:** alternatives considered — self-hosted Umami/Plausible/GoatCounter (extra infrastructure to run), hosted SaaS (third-party DPAs, recurring cost), Application Insights client SDK (poor analytics UX). The custom endpoint reuses the existing Function App, storage account, and SWA→API routing, so nothing new to operate and data stays in the existing Microsoft AVV.
 - **Data model:** one Table Storage entity per page view. Partition key `Pv|{yyyy-MM-dd}` (daily partitions for cheap range scans), RowKey GUID. Fields: `Path`, `ReferrerHost` (origin only, never the full referrer URL, to avoid leaking query-string PII), `ViewportWidth`, `Timestamp`. No IP, no user agent, no identifiers.
 - **Transport:** `navigator.sendBeacon` on `load` — fire-and-forget, does not delay page load, survives page unload. Same-origin `/api/pageview` routes through the existing SWA API integration (same as the contact form).
-- **Retention:** rows are deleted after 12 months (automated cleanup is follow-up work; manual partition deletion via Storage Explorer until then).
+- **Retention:** rows are automatically purged after 36 months via a lazy daily cleanup on the write path (a `Cleanup/last` marker entity in the `pageviews` table gates the purge to once per day; expired daily partitions are deleted in batch transactions). Timer triggers are impossible in the SWA managed-functions environment (HTTP triggers only), so the purge rides on normal traffic.
 - **Dashboard:** new `GET /api/pageviews/stats?days=` mirroring the `GetMessageStats` slice, rendered in a new Svelte page with KPI tiles, per-page table, and a weekly bar chart.
 
 ## Milestones (tracked)
@@ -22,6 +22,7 @@ Gain insight into usage of `src/website` (how many page views, which pages are v
 - [x] Privacy: update `src/website/src/pages/datenschutzerklaerung.astro` (new §5, rework old §6, renumber)
 - [x] Dashboard: add `GetPageViewStats` slice in `dashboard-api`, register handler, extend `requests.http`
 - [x] Dashboard: add `PageViewStats.svelte`/wrapper/page + nav link
+- [x] Retention: switch to 36 months — lazy write-path purge in `TablePageViewStore` (SWA managed APIs support HTTP triggers only), policy §5 updated with the corrected objection wording
 - [x] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check` (website and dashboard)
 - [ ] Manual endpoint check via `requests.http` (requires local storage; deferred)
 - [ ] Deploy on `main` merge
@@ -37,6 +38,7 @@ New slice `src/website-api/features/pageviews/PageView.cs`, following the vertic
 - Endpoint: `Function("pageview")`, `HttpTrigger(AuthorizationLevel.Anonymous, "post")`, route `/api/pageview`.
 - Body: JSON (`application/json`, sendBeacon Blob) with `path`, `referrerHost`, `viewportWidth`. Parse with `System.Text.Json`; validation: `path` must start with `/`, path and referrer host capped at 200 chars, else `400`.
 - Handler builds the entity (client-provided values only — the server adds nothing about the requester, notably no IP) and writes it through `IPageViewWriteStore → TablePageViewStore` (`GetTableClient("pageviews")` + `CreateIfNotExistsAsync`, matching `Events.cs`); table is auto-created, no Bicep changes.
+- **Retention purge** (in `TablePageViewStore`): after each write, a `Cleanup/last` marker entity is checked; if the last purge was more than a day ago, all partitions `< 'Pv|{now−36 months}'` are deleted in 100-row transaction batches, then the marker is refreshed. Purge failures are logged and swallowed (fail-open) so a pageview write is never affected.
 - Response: `204 No Content` (sendBeacon never reads it, but keeps it minimal).
 - Register `PageView.Handler` and `PageView.IPageViewWriteStore → PageView.TablePageViewStore` in `Program.cs` next to `SendMessage`.
 - Extend `src/website-api/requests.http` with a `POST /api/pageview` sample.
@@ -54,7 +56,7 @@ Add an inline `<script is:inline>` at the end of `src/website/src/layouts/Layout
 ## 3. Privacy (`src/website/src/pages/datenschutzerklaerung.astro`)
 
 - Bump "Letztes Update" to August 2026.
-- Insert new section "5. Pseudonyme Besuchsstatistik": per page view a cookie-free record is sent (page path, referred-website host only, screen width, time); no IP addresses, cookies, or browser identifiers are stored; no identification possible; stored in Azure Table Storage under the existing Microsoft Auftragsverarbeitungsvertrag; auto-deleted after 12 months; legal basis Art. 6 Abs. 1 lit. f DSGVO; right to object.
+- Insert new section "5. Pseudonyme Besuchsstatistik": per page view a cookie-free record is sent (page path, referred-website host only, screen width, time); no IP addresses, cookies, or browser identifiers are stored; no identification possible; stored in Azure Table Storage under the existing Microsoft Auftragsverarbeitungsvertrag; auto-deleted after 36 months; legal basis Art. 6 Abs. 1 lit. f DSGVO; deletion/objection rights (Art. 17/21) not exercisable on non-identifiable records, they remain valid for all other personal-data processing.
 - Rework old §6 "Keine Cookies oder Tracking": keep "no cookies", change "keine Website-Analyse-Tools" to clarify analytics are pseudonymous, first-party, and cookie-free — still no banner required.
 - Renumber following sections (old §5 "Serverprotokolle & Application Insights" stays as its own §6, tracking stays excluded from Application Insights).
 
@@ -91,5 +93,5 @@ New slice `src/dashboard-api/features/pageviews/GetPageViewStats.cs`, mirroring 
 - `dashboard-api.Tests`/`website-api.Tests` are not present in the working tree (their references were removed from `alpakasoelde.slnx`; `AGENTS.md` still lists test commands for them); verification relies on builds, `astro check`, and the `requests.http` samples.
 - Referrer is recorded as host only; visitors arriving with query-string parameters (e.g. UTM) are not attributed to campaigns — intentional to keep data non-identifying.
 - The dashboard stats store reads the last 180 days of daily partitions; the `days` query parameter is clamped to 180 (covers all presets 28/90/180).
-- Raw rows live in daily partitions; automated 12-month cleanup and the retention claim in the Datenschutzerklärung need a follow-up (timer function or manual partition deletion).
+- Raw rows live in daily partitions; retention is enforced by the lazy write-path purge (36 months). The purge only runs while there is site traffic — during idle periods no pages views arrive anyway, so old data cannot accumulate past the limit without a subsequent purge. The `Cleanup` marker partition is lexicographically outside the `Pv|` range, so it never leaks into stats queries.
 - The dashboard page itself is behind SWA EasyAuth (admin/collaborator), so no visitor data is exposed publicly. The `pageviews` table is not linked to `alpakas`/`events`/`messages` data in any way.
