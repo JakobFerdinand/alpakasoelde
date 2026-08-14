@@ -221,6 +221,25 @@
           </Chart>
         </div>
 
+        <div class="table-wrap">
+          <table class="pageview-table">
+            <thead>
+              <tr>
+                <th scope="col">Seite</th>
+                <th scope="col" class="table-count">Aufrufe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each stats?.TopPaths ?? [] as path}
+                <tr>
+                  <th scope="row">{path.Path}</th>
+                  <td class="table-count">{formatCount(path.Count)}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+
         {#if hasDeviceSeries}
           <section class="device-chart" aria-labelledby="device-chart-title">
             <h3 id="device-chart-title" class="device-title">Gerätekategorien nach Woche</h3>
@@ -302,25 +321,6 @@
             </table>
           </section>
         {/if}
-
-        <div class="table-wrap">
-          <table class="pageview-table">
-            <thead>
-              <tr>
-                <th scope="col">Seite</th>
-                <th scope="col" class="table-count">Aufrufe</th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each stats?.TopPaths ?? [] as path}
-                <tr>
-                  <th scope="row">{path.Path}</th>
-                  <td class="table-count">{formatCount(path.Count)}</td>
-                </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
 
         {#if devices.length > 0}
           <div class="device-block">
