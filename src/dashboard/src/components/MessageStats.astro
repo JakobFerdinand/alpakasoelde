@@ -1,0 +1,529 @@
+---
+import { Inbox, MailCheck, ShieldAlert } from 'lucide-astro';
+---
+
+<section class="dashboard-messages section">
+  <div class="container">
+    <div class="message-stats-card card">
+      <div class="stats-header">
+        <h2>Nachrichten</h2>
+        <a class="all-link" href="/messages">Alle anzeigen</a>
+      </div>
+
+      <div class="period-toggle" role="group" aria-label="Zeitraum wählen">
+        <button type="button" class="period-button is-active" data-days="28" aria-pressed="true">4 Wochen</button>
+        <button type="button" class="period-button" data-days="90" aria-pressed="false">3 Monate</button>
+        <button type="button" class="period-button" data-days="180" aria-pressed="false">6 Monate</button>
+      </div>
+
+      <p id="stats-error" class="error" hidden></p>
+
+      <div class="kpi-row">
+        <a class="kpi-tile" href="/messages">
+          <span class="kpi-icon" aria-hidden="true"><Inbox /></span>
+          <span class="kpi-value" id="kpi-total">–</span>
+          <span class="kpi-label">Gesamt</span>
+        </a>
+        <a class="kpi-tile kpi-tile-spam" href="/messages">
+          <span class="kpi-icon" aria-hidden="true"><ShieldAlert /></span>
+          <span class="kpi-value" id="kpi-spam">–</span>
+          <span class="kpi-percent" id="kpi-spam-pct" aria-hidden="true"></span>
+          <span class="kpi-label">Spam</span>
+        </a>
+        <a class="kpi-tile kpi-tile-legit" href="/messages">
+          <span class="kpi-icon" aria-hidden="true"><MailCheck /></span>
+          <span class="kpi-value" id="kpi-legit">–</span>
+          <span class="kpi-percent" id="kpi-legit-pct" aria-hidden="true"></span>
+          <span class="kpi-label">Legit</span>
+        </a>
+      </div>
+
+      <a id="old-count-chip" class="old-chip" href="/messages" hidden></a>
+
+      <div class="chart-legend" aria-hidden="true">
+        <span class="legend-item"><span class="legend-swatch legend-swatch-legit"></span>Legit</span>
+        <span class="legend-item"><span class="legend-swatch legend-swatch-spam"></span>Spam</span>
+      </div>
+
+      <div id="stats-content" class="chart-content">
+        <p class="chart-message loading-text">Lade Daten...</p>
+      </div>
+
+      <h3 class="sr-only">Nachrichteneingänge nach Woche</h3>
+      <table id="stats-table" class="sr-only-table">
+        <thead>
+          <tr>
+            <th scope="col">Woche</th>
+            <th scope="col">Legit</th>
+            <th scope="col">Spam</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<script>
+  function formatDateParts(value: string): string {
+    const [year, month, day] = value.split('-');
+    if (!year || !month || !day) return value;
+    return `${day}.${month}.`;
+  }
+
+  function formatCount(value: number): string {
+    return new Intl.NumberFormat('de-AT').format(value);
+  }
+
+  const content = document.getElementById('stats-content') as HTMLDivElement | null;
+  const errorEl = document.getElementById('stats-error') as HTMLParagraphElement | null;
+  const tableBody = document.querySelector('#stats-table tbody') as HTMLTableSectionElement | null;
+  const totalEl = document.getElementById('kpi-total');
+  const spamEl = document.getElementById('kpi-spam');
+  const spamPctEl = document.getElementById('kpi-spam-pct');
+  const legitEl = document.getElementById('kpi-legit');
+  const legitPctEl = document.getElementById('kpi-legit-pct');
+  const oldChip = document.getElementById('old-count-chip') as HTMLAnchorElement | null;
+
+  type PeriodBucket = {
+    Period: string;
+    Spam: number;
+    Legit: number;
+  };
+
+  type StatsResult = {
+    Total: number;
+    Spam: number;
+    Legit: number;
+    OldCount: number;
+    Series: PeriodBucket[];
+  };
+
+  function setLoading() {
+    if (errorEl) errorEl.hidden = true;
+    if (!content) return;
+    content.innerHTML = '';
+    const text = document.createElement('p');
+    text.className = 'chart-message loading-text';
+    text.textContent = 'Lade Daten...';
+    content.appendChild(text);
+    content.classList.add('loading');
+  }
+
+  function setError(message: string) {
+    if (!content) return;
+    content.innerHTML = '';
+    content.classList.remove('loading');
+    if (tableBody) tableBody.innerHTML = '';
+    if (errorEl) {
+      errorEl.textContent = message;
+      errorEl.hidden = false;
+    }
+  }
+
+  function renderBars(data: StatsResult) {
+    if (!content) return;
+    content.classList.remove('loading');
+    content.innerHTML = '';
+
+    if (data.Total === 0 || data.Series.length === 0) {
+      const text = document.createElement('p');
+      text.className = 'chart-message';
+      text.textContent = 'Keine Nachrichten im Zeitraum.';
+      content.appendChild(text);
+      return;
+    }
+
+    content.setAttribute('role', 'img');
+    content.setAttribute('aria-label', 'Nachrichteneingänge nach Woche, Legit und Spam getrennt');
+
+    const maxTotal = Math.max(...data.Series.map((bucket) => bucket.Spam + bucket.Legit), 1);
+    const barHeightCap = 86;
+
+    data.Series.forEach((bucket) => {
+      const total = bucket.Spam + bucket.Legit;
+      const column = document.createElement('a');
+      column.className = 'chart-column';
+      column.href = '/messages';
+
+      const bar = document.createElement('span');
+      bar.className = 'chart-bar';
+      bar.style.height = `${Math.round((total / maxTotal) * barHeightCap)}%`;
+
+      const legit = document.createElement('span');
+      legit.className = 'chart-segment segment-legit';
+      legit.style.height = total > 0 ? `${Math.round((bucket.Legit / total) * 100)}%` : '0';
+      legit.title = `Legit: ${bucket.Legit}`;
+
+      const spam = document.createElement('span');
+      spam.className = 'chart-segment segment-spam';
+      spam.style.height = total > 0 ? `${Math.round((bucket.Spam / total) * 100)}%` : '0';
+      spam.title = `Spam: ${bucket.Spam}`;
+
+      bar.appendChild(legit);
+      bar.appendChild(spam);
+      column.appendChild(bar);
+
+      const label = document.createElement('span');
+      label.className = 'chart-label';
+      label.textContent = formatDateParts(bucket.Period);
+      column.appendChild(label);
+
+      column.setAttribute(
+        'aria-label',
+        `Woche ab ${bucket.Period}: ${formatCount(bucket.Legit)} legitim, ${formatCount(bucket.Spam)} Spam`
+      );
+      column.title = `Woche ab ${bucket.Period}: ${formatCount(bucket.Legit)} legitim, ${formatCount(bucket.Spam)} Spam`;
+
+      content.appendChild(column);
+    });
+  }
+
+  function renderTable(data: StatsResult) {
+    if (!tableBody) return;
+    tableBody.innerHTML = '';
+    data.Series.forEach((bucket) => {
+      const row = document.createElement('tr');
+      const week = document.createElement('th');
+      week.scope = 'row';
+      week.textContent = formatDateParts(bucket.Period);
+      const legit = document.createElement('td');
+      legit.textContent = formatCount(bucket.Legit);
+      const spam = document.createElement('td');
+      spam.textContent = formatCount(bucket.Spam);
+      row.appendChild(week);
+      row.appendChild(legit);
+      row.appendChild(spam);
+      tableBody.appendChild(row);
+    });
+  }
+
+  function renderStats(data: StatsResult) {
+    if (totalEl) totalEl.textContent = formatCount(data.Total);
+    if (spamEl) spamEl.textContent = formatCount(data.Spam);
+    if (legitEl) legitEl.textContent = formatCount(data.Legit);
+
+    if (spamPctEl) {
+      spamPctEl.textContent = data.Total > 0 ? `${Math.round((data.Spam / data.Total) * 100)} %` : '';
+    }
+    if (legitPctEl) {
+      legitPctEl.textContent = data.Total > 0 ? `${Math.round((data.Legit / data.Total) * 100)} %` : '';
+    }
+
+    if (oldChip) {
+      if (data.OldCount > 0) {
+        oldChip.textContent = `${formatCount(data.OldCount)} Nachricht${data.OldCount === 1 ? '' : 'en'} älter als 6 Monate`;
+        oldChip.hidden = false;
+      } else {
+        oldChip.hidden = true;
+      }
+    }
+  }
+
+  async function loadStats(days: number) {
+    setLoading();
+    try {
+      const res = await fetch(`/api/messages/stats?days=${days}`);
+      if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
+      const data: StatsResult = await res.json();
+      renderStats(data);
+      renderTable(data);
+      renderBars(data);
+    } catch (e) {
+      console.error(e);
+      setError('Nachrichtenstatistik konnte nicht geladen werden.');
+    }
+  }
+
+  document.querySelectorAll<HTMLButtonElement>('.period-button').forEach((button) => {
+    button.addEventListener('click', () => {
+      const days = Number(button.dataset.days ?? 28);
+      document.querySelectorAll<HTMLButtonElement>('.period-button').forEach((btn) => {
+        const active = btn === button;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', String(active));
+      });
+      loadStats(days);
+    });
+  });
+
+  loadStats(28);
+</script>
+
+<style>
+  .dashboard-messages {
+    background-color: var(--auwasser);
+    color: var(--taubenblau);
+  }
+
+  .message-stats-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+  }
+
+  .stats-header h2 {
+    margin: 0;
+    font-size: 1.875rem;
+  }
+
+  .all-link,
+  .old-chip {
+    color: var(--taubenblau);
+  }
+
+  .all-link:hover,
+  .old-chip:hover {
+    text-decoration: none;
+  }
+
+  .period-toggle {
+    display: inline-flex;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 1px solid rgba(0, 32, 73, 0.15);
+    align-self: flex-start;
+  }
+
+  .period-button {
+    border: none;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .period-button + .period-button {
+    border-left: 1px solid rgba(0, 32, 73, 0.15);
+  }
+
+  .period-button:hover {
+    background-color: var(--himmelblau);
+  }
+
+  .period-button.is-active {
+    background-color: var(--weidegruen);
+    color: var(--schurwolle);
+  }
+
+  .period-button:focus-visible {
+    outline: 2px solid var(--taubenblau);
+    outline-offset: -2px;
+  }
+
+  .kpi-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .kpi-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    text-decoration: none;
+    border: 1px solid rgba(0, 32, 73, 0.1);
+    transition: transform 0.15s ease;
+  }
+
+  .kpi-tile:hover,
+  .kpi-tile:focus-visible {
+    transform: translateY(-2px);
+  }
+
+  .kpi-tile-spam {
+    border-color: var(--backstein);
+  }
+
+  .kpi-tile-legit {
+    border-color: var(--weidegruen);
+  }
+
+  .kpi-icon {
+    color: inherit;
+  }
+
+  .kpi-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    stroke: currentColor;
+    fill: none;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  .kpi-percent {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--taubenblau);
+  }
+
+  .kpi-tile-spam .kpi-percent {
+    color: var(--backstein);
+  }
+
+  .kpi-tile-legit .kpi-percent {
+    color: var(--weidegruen);
+  }
+
+  .kpi-label {
+    font-weight: 600;
+  }
+
+  .old-chip {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 600;
+    background-color: rgba(176, 0, 32, 0.1);
+    border: 1px solid rgba(176, 0, 32, 0.35);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.9rem;
+    text-decoration: none;
+    width: fit-content;
+  }
+
+  .chart-legend {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .legend-swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.2rem;
+  }
+
+  .legend-swatch-legit {
+    background-color: var(--weidegruen);
+  }
+
+  .legend-swatch-spam {
+    background-color: var(--backstein);
+  }
+
+  .chart-content {
+    display: flex;
+    align-items: stretch;
+    gap: 0.35rem;
+    height: 12rem;
+    padding: 0.5rem 0.25rem 0;
+  }
+
+  .chart-content.loading {
+    align-items: center;
+    justify-content: center;
+    height: 12rem;
+  }
+
+  .chart-message {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .chart-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: stretch;
+    flex: 1 1 0;
+    min-width: 0.5rem;
+    max-width: 4rem;
+    text-decoration: none;
+  }
+
+  .chart-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    border-radius: 0.25rem 0.25rem 0 0;
+    overflow: hidden;
+  }
+
+  .chart-label {
+    font-size: 0.7rem;
+    text-align: center;
+    white-space: nowrap;
+    padding-top: 0.25rem;
+  }
+
+  .chart-segment {
+    display: block;
+    width: 100%;
+  }
+
+  .segment-legit {
+    background-color: var(--weidegruen);
+  }
+
+  .segment-spam {
+    background-color: var(--backstein);
+  }
+
+  .chart-column:hover .segment-legit,
+  .chart-column:focus-visible .segment-legit {
+    filter: brightness(1.1);
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .sr-only-table {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (max-width: 600px) {
+    .kpi-row {
+      grid-template-columns: 1fr;
+    }
+
+    .stats-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>
