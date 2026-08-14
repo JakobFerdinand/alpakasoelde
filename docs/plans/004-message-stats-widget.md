@@ -6,7 +6,7 @@ Replace the single-line `Stats` card on the dashboard root (`src/dashboard/src/p
 
 ## Decisions
 
-- **Chart approach:** hand-rolled stacked bars (plain divs/flexbox + design tokens). No chart library — the dashboard ships no framework components and no client JS beyond its own scripts; adding React/Recharts (e.g. Layerchart) would be a stack change and is out of scope. If richer charts are needed later, the `/stats` endpoint contract stays and a library can be layered in.
+- **Chart approach:** Layerchart vertical stacked `<Bars>` chart (https://www.layerchart.com/docs/components/Bars/vertical-stacked) rendered from a Svelte component. This introduces `svelte` + `@astrojs/svelte` to the dashboard as the first framework component. Layerchart is a Svelte-native library and uses the repo's CSS variables directly via color scales; the added dependency only ships to the messages widget as client-side JS. The previous hand-rolled CSS/flex bars were removed because percentage heights failed to render reliably; Layerchart–Svelte replaces them wholesale.
 - **Data source:** new `GET /api/messages/stats` endpoint (new vertical slice in dashboard-api), so message bodies never need to cross the wire to the dashboard root. Reuses the existing `GetMessages.IReadStore` so no new storage wiring.
 - **Period presets:** `4 Wochen` / `3 Monate` / `6 Monate` with weekly buckets. `6 Monate` aligns with the existing "older than 6 months" threshold.
 - **Old-messages line:** kept as an alert chip inside the widget linking to `/messages`, so the cleanup nudge is not lost.
@@ -16,8 +16,9 @@ Replace the single-line `Stats` card on the dashboard root (`src/dashboard/src/p
 
 - [x] Create git branch `feat/message-stats-widget`
 - [x] Write the plan (`docs/plans/004-message-stats-widget.md`)
-- [ ] Backend: add `GetMessageStats` slice (`features/messages/GetMessageStats.cs`), register handler, extend `requests.http`
-- [ ] Frontend: add `MessageStats.astro`, wire it into `index.astro`, remove `Stats.astro`
+- [x] Backend: add `GetMessageStats` slice (`features/messages/GetMessageStats.cs`), register handler, extend `requests.http`
+- [x] Frontend (attempt 1): hand-rolled stacked bars in `MessageStats.astro` — removed because bars did not render reliably
+- [ ] Frontend (attempt 2): Svelte chart component with Layerchart vertical stacked `<Bars>`
 - [ ] Verify: `dotnet build` (dashboard-api), `pnpm run build` + `astro check` in `src/dashboard`, manual widget check
 - [ ] Deploy on `main` merge
 
@@ -39,23 +40,24 @@ New slice `src/dashboard-api/features/messages/GetMessageStats.cs`, following th
 
 ## 2. Frontend (`src/dashboard/src`)
 
-New component `components/MessageStats.astro`; update `pages/index.astro` to use it; delete `components/Stats.astro`.
+Add the Astro Svelte integration and a single Svelte component `components/MessageStatsChart.svelte` that owns the widget (data fetch, KPI tiles, toggle, chart); `components/MessageStats.astro` becomes a thin wrapper mounting it with `client:only="svelte"`.
 
+- **Dependencies:** `svelte` (+ `lucide-svelte`), `layerchart`, and `@astrojs/svelte` in `astro.config.mjs`. The chart only ships as client JS to the messages widget.
+- **Data:** fetch `/api/messages/stats?days=28|90|180` client-side on mount and on toggle change.
+- **Chart:** `Chart` + `Layer` + left/bottom `Axis` + `<Bars>` vertical stacked, fed by `groupStackData(series, { xKey: 'Period', stackBy: 'kind' })` where each row becomes two stacked rows (`kind: 'legit'`/`'spam'`). Colors come from CSS variables: legit `var(--weidegruen)`, spam `var(--backstein)` via the `cRange` prop. `tooltipContext={{ mode: 'band' }}` + `Tooltip.Root` show per-week counts. pattern from the vertical-stacked example.
 - **Section & card:** `<section class="dashboard-messages section">` with header "Nachrichten" + "Alle anzeigen" link to `/messages`, reusing the `.card`/`.container` patterns and design tokens.
 - **KPI row:** three tiles — **Gesamt**, **Spam** (`IsSpam` count + share %, lucide `ShieldAlert`, `--backstein`), **Legit** (`--weidegruen`). Tiles link to `/messages`.
 - **Alert chip:** "X Nachrichten älter als 6 Monate" linking to `/messages`, only rendered when `OldCount > 0`.
-- **Chart:** weekly stacked bars, one column per week in the selected window — legit bar (`--weidegruen`) with the spam bar (`--backstein`) stacked on top. Rendered with plain elements/flex sizing, no canvas/SVG library. Tooltips (`title`/focusable label) give exact per-bucket numbers.
 - **Legend** for the two series, WCAG AA contrast against the card background.
-- **Accessibility:** a visually-hidden per-week table (week, legit, spam) for screen readers; bars are keyboard-focusable with `aria-label`.
+- **Accessibility:** keep the visually-hidden per-week table (week, legit, spam) for screen readers.
 - **Period toggle:** segmented `4 Wochen / 3 Monate / 6 Monate` (same pattern as the filter buttons in `messages.astro`), re-fetches `/api/messages/stats?days=28|90|180`.
-- **States:** loading, empty (no messages at all), and a visible error row if the fetch fails (mirrors `messages.astro` states).
-- **Styles:** scoped `<style>` block, two-space indentation, responsive (bars collapse on small widths), no global CSS additions.
+- **States:** loading, empty (no messages at all), and a visible error row if the fetch fails, each owned by the Svelte component.
 
 ## 3. Verification
 
 - `dotnet build src/dashboard-api/dashboard-api.csproj`
 - `cd src/dashboard && pnpm run build` (runs `astro check`)
-- Manual: hit `GET /api/messages/stats` via `requests.http`, confirm shape; in the browser check KPI update on range toggle, stacked-bar rendering, tooltips, legend, alert chip, and loading/error states.
+- Manual: hit `GET /api/messages/stats` via `requests.http`, confirm shape; in the browser check KPI update on range toggle, Layerchart stacked-bar rendering, tooltip, legend, alert chip, and loading/error states.
 - `git status`/`git diff` review before opening the PR.
 
 ## Known limitations / notes
@@ -63,4 +65,5 @@ New component `components/MessageStats.astro`; update `pages/index.astro` to use
 - Messages stored before the spam filter shipped deserialise with `IsSpam = false` and count toward "legit"; the existing age marker behaviour is unchanged.
 - The bucket window is inclusive of the current week; the "old messages" alert uses the same `30 * 6` day threshold as the inbox markers.
 - `dashboard-api.Tests`/`website-api.Tests` are referenced in `alpakasoelde.slnx` and `AGENTS.md` but not present in the working tree; verification relies on builds, `astro check`, and the `requests.http` samples.
-- No chart dependency is added; if a richer chart library is wanted later it can be layered on without touching the endpoint contract.
+- Layerchart is the first framework component in the dashboard (AGENTS.md previously mandated Astro-only); this is an explicit decision to get a maintainable chart. The Svelte bundle only loads on the dashboard root for the widget.
+- Layerchart's default CSS variables can be themed via the repo tokens so the chart matches the design system; keep WCAG AA contrast for the legend and tooltip.
