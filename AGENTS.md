@@ -13,8 +13,8 @@
 - `cd src/website && npm install && npm run dev` — launches the marketing site with hot reload.
 - `cd src/website && npm run build` — runs `astro check` and builds to `dist/`.
 - `cd src/dashboard && npm install && npm run dev` — starts the internal dashboard; run `npm run build` before shipping changes.
-- `dotnet build src/dashboard-api/dashboard-api.csproj` then `cd src/dashboard-api && func start` — compile and serve the dashboard API locally (Azure Functions Core Tools required).
-- `dotnet build src/website-api/website-api.csproj` then `cd src/website-api && func start` — same workflow for the public API facade.
+- `cd src/dashboard-api && dotnet run` — compiles and serves the dashboard API locally (Azure Functions Core Tools required). `dotnet run` builds the project and starts the Functions host from the correct output directory, so prefer it over `dotnet build` + `func start` for .NET isolated projects.
+- `cd src/website-api && dotnet run` — same workflow for the public API facade.
 - Tests: `dotnet test src/dashboard-api.Tests/dashboard-api.Tests.csproj` and `dotnet test src/website-api.Tests/website-api.Tests.csproj`; extend the slice-specific test suites when adding handlers or stores.
 - Infrastructure: `az bicep build --file infrastructure/main.bicep` and `az bicep build --file infrastructure/main-subscription.bicep` validate the templates; `az deployment group what-if --resource-group RG-Alpakasoelde --template-file infrastructure/main.bicep --parameters infrastructure/main.bicepparam` previews resource-group changes. Deploy with `az deployment group create ...` and `az deployment sub create --location westeurope --template-file infrastructure/main-subscription.bicep --parameters infrastructure/main-subscription.bicepparam`; the `infra-deploy.yml` workflow runs these on `main`. After deploys (or after rotating the storage key), re-apply SWA settings with `bash infrastructure/scripts/sync-swappsettings.sh`.
 

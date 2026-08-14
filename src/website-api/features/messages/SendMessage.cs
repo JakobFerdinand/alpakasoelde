@@ -32,9 +32,9 @@ public sealed class SendMessage
 		_logger.LogInformation("Received data: {Body}", body);
 
 		var parsedForm = HttpUtility.ParseQueryString(body);
-string? name = parsedForm["name"]?.Trim();
-			string? email = parsedForm["email"]?.Trim();
-			string? messageContent = parsedForm["message"]?.Trim();
+		string? name = parsedForm["name"]?.Trim();
+		string? email = parsedForm["email"]?.Trim();
+		string? messageContent = parsedForm["message"]?.Trim();
 
 		var (result, validation) = await _handler.HandleAsync(new Command(name ?? string.Empty, email ?? string.Empty, messageContent ?? string.Empty), req.FunctionContext.CancellationToken);
 		if (validation is not null)
@@ -97,19 +97,19 @@ string? name = parsedForm["name"]?.Trim();
 					PlainText = plainText,
 					Html = html
 				},
-				recipients: new EmailRecipients(bcc: recipients.Select(email => new EmailAddress(email.Trim())).ToArray()));
+				recipients: new EmailRecipients(bcc: [.. recipients.Select(email => new EmailAddress(email.Trim()))]));
 
 			await emailClient.SendAsync(WaitUntil.Completed, emailMessage, cancellationToken: cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-public sealed class Handler(IMessageWriteStore store, IEmailSender emailSender, ISpamClassifier spamClassifier, ILogger<Handler> logger, IConfiguration configuration)
-{
-	private readonly IMessageWriteStore _store = store;
-	private readonly IEmailSender _emailSender = emailSender;
-	private readonly ISpamClassifier _spamClassifier = spamClassifier;
-	private readonly ILogger<Handler> _logger = logger;
-	private readonly IConfiguration _configuration = configuration;
+	public sealed class Handler(IMessageWriteStore store, IEmailSender emailSender, ISpamClassifier spamClassifier, ILogger<Handler> logger, IConfiguration configuration)
+	{
+		private readonly IMessageWriteStore _store = store;
+		private readonly IEmailSender _emailSender = emailSender;
+		private readonly ISpamClassifier _spamClassifier = spamClassifier;
+		private readonly ILogger<Handler> _logger = logger;
+		private readonly IConfiguration _configuration = configuration;
 
 		private const int NameMaxLength = 100;
 		private const int EmailMaxLength = 254;
@@ -127,12 +127,12 @@ public sealed class Handler(IMessageWriteStore store, IEmailSender emailSender, 
 				return (null, new ValidationProblem(missingFields, $"{string.Join(", ", missingFields)} are required fields and must be provided."));
 			}
 
-			List<string> errors = new();
+			List<string> errors = [];
 			if (command.Name.Length > NameMaxLength) errors.Add($"Name exceeds {NameMaxLength} characters.");
 			if (command.Email.Length > EmailMaxLength) errors.Add($"Email exceeds {EmailMaxLength} characters.");
 			if (command.Message.Length > MessageMaxLength) errors.Add($"Message exceeds {MessageMaxLength} characters.");
 
-if (errors.Count > 0)
+			if (errors.Count > 0)
 			{
 				return (null, new ValidationProblem(errors, string.Join(" ", errors)));
 			}
