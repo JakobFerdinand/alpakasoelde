@@ -9,6 +9,7 @@ public sealed class MessageEntity : ITableEntity
 	public required string Email { get; set; }
 	public required string Message { get; set; }
 	public bool PrivacyPolicyAccepted { get; set; }
+	public bool IsSpam { get; set; }
 
 	public DateTimeOffset? Timestamp { get; set; }
 	public ETag ETag { get; set; }

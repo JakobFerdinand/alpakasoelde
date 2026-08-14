@@ -14,6 +14,7 @@ var host = new HostBuilder()
         services.AddScoped<SendMessage.Handler>();
         services.AddScoped<SendMessage.IMessageWriteStore, SendMessage.TableMessageWriteStore>();
         services.AddScoped<SendMessage.IEmailSender, SendMessage.EmailSender>();
+        services.AddScoped<ISpamClassifier, OpenAiSpamClassifier>();
     })
     .Build();
 

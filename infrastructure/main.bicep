@@ -54,6 +54,21 @@ param budgetNotificationEmail string
 @description('Region of the static web apps.')
 param staticSitesLocation string
 
+@description('Name of the Azure OpenAI account for the spam classifier.')
+param openAiName string
+
+@description('Region of the Azure OpenAI account.')
+param openAiLocation string
+
+@description('Name of the model deployment for the spam classifier.')
+param openAiDeploymentName string = 'gpt-5-nano'
+
+@description('Model to deploy for the spam classifier.')
+param openAiModelName string = 'gpt-5-nano'
+
+@description('Model version to deploy for the spam classifier.')
+param openAiModelVersion string = '2025-08-07'
+
 @description('Name of the public static web app.')
 param websiteSiteName string
 
@@ -117,5 +132,16 @@ module staticSites './modules/static-sites.bicep' = {
     location: staticSitesLocation
     websiteCustomDomains: websiteCustomDomains
     dashboardCustomDomains: dashboardCustomDomains
+  }
+}
+
+module openAi './modules/openai.bicep' = {
+  name: 'openAi'
+  params: {
+    openAiName: openAiName
+    location: openAiLocation
+    deploymentName: openAiDeploymentName
+    modelName: openAiModelName
+    modelVersion: openAiModelVersion
   }
 }

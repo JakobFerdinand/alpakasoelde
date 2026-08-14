@@ -9,16 +9,16 @@ workflows stay untouched.
 
 ## Current Azure estate (resource group `RG-Alpakasoelde`)
 
-| Resource | Name | Notes |
-| --- | --- | --- |
-| Static Web App (public) | `alpakasoelde` | Free, `westeurope`; custom domains `alpakasoelde.at` + `www.alpakasoelde.at`; built-in .NET isolated API; appsettings contain plain-text storage + ACS keys |
-| Static Web App (dashboard) | `alpakasoelde-dashboard` | Free, `westeurope`; domain `dashboard.alpakasoelde.at`; same storage appsettings |
-| Storage account | `alpakasoelde` | Standard_LRS / StorageV2, `germanywestcentral`; tables `alpakas`, `events`, `gutscheine`, `messages`; blob containers `alpakas`, `event-documents`; HTTPS-only |
-| Communication Services | `acs-alpakasoelde` | dataLocation `germany`; source of the `EmailConnection` used by the website API |
-| Email services | `alpakasoelde` | domains `AzureManagedDomain`, `kontakt.alpakasoelde.at`; sender `DoNotReply@kontakt.alpakasoelde.at` |
-| Application Insights | `alpakasoelde-insights` | linked to the Log Analytics workspace |
-| Log Analytics | `Alpakasoelde-LogAnalyticsWorkspace` | 30-day retention |
-| Action groups / budget | Smart Detection, `alpakasoelde-budget-actions` | subscription-level cost budget |
+| Resource                   | Name                                           | Notes                                                                                                                                                          |
+| -------------------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Static Web App (public)    | `alpakasoelde`                                 | Free, `westeurope`; custom domains `alpakasoelde.at` + `www.alpakasoelde.at`; built-in .NET isolated API; appsettings contain plain-text storage + ACS keys    |
+| Static Web App (dashboard) | `alpakasoelde-dashboard`                       | Free, `westeurope`; domain `dashboard.alpakasoelde.at`; same storage appsettings                                                                               |
+| Storage account            | `alpakasoelde`                                 | Standard_LRS / StorageV2, `germanywestcentral`; tables `alpakas`, `events`, `gutscheine`, `messages`; blob containers `alpakas`, `event-documents`; HTTPS-only |
+| Communication Services     | `acs-alpakasoelde`                             | dataLocation `germany`; source of the `EmailConnection` used by the website API                                                                                |
+| Email services             | `alpakasoelde`                                 | domains `AzureManagedDomain`, `kontakt.alpakasoelde.at`; sender `DoNotReply@kontakt.alpakasoelde.at`                                                           |
+| Application Insights       | `alpakasoelde-insights`                        | linked to the Log Analytics workspace                                                                                                                          |
+| Log Analytics              | `Alpakasoelde-LogAnalyticsWorkspace`           | 30-day retention                                                                                                                                               |
+| Action groups / budget     | Smart Detection, `alpakasoelde-budget-actions` | subscription-level cost budget                                                                                                                                 |
 
 Deployment today happens via the auto-generated Static Web App GitHub-integration
 workflows. There is no IaC in the repo yet (AGENTS.md references a
@@ -35,7 +35,7 @@ downtime. `what-if` is used to verify this before applying.
 Checkboxes are updated as work progresses.
 
 - [x] Create git branch `feat/infrastructure-as-code`
-- [x] Write infrastructure plan (`infrastructure/plan.md`)
+- [x] Write infrastructure plan (`docs/plans/001-infrastructure-as-code.md`)
 - [x] Finalize plan decisions (Key Vault name, budget values, seed script,
       storage-key rotation, `what-if` PR job)
 - [x] Scaffold Bicep templates (`main.bicep`, `main-subscription.bicep`, modules,
@@ -51,7 +51,6 @@ Checkboxes are updated as work progresses.
 - [x] Rotate storage account key; sync new key into Key Vault; re-apply SWA settings
 - [x] Update `AGENTS.md` and README (fix stale `table-storage.bicep` reference, add
       deployment commands)
-- [ ] Open pull request and merge to `main`
 
 ## 1. Bicep structure under `infrastructure/`
 
@@ -132,7 +131,7 @@ New workflow `.github/workflows/infra-deploy.yml`:
    secrets; run `infrastructure/scripts/seed-keyvault.sh` to populate
    `kv-alpakasoelde` with the existing SWA settings. If the subscription has
    never used Key Vault, register the provider first (`az provider register -n
-   Microsoft.KeyVault`). Note: Key Vault secret names only allow alphanumerics
+Microsoft.KeyVault`). Note: Key Vault secret names only allow alphanumerics
    and hyphens, so setting names are stored with `_` replaced by `-`.
 2. Commit the Bicep templates plus `infra-deploy.yml`; run a `workflow_dispatch`-ed
    `what-if` to confirm no destructive changes on the Static Web Apps or storage
