@@ -9,6 +9,7 @@
   type PathCount = { Path: string; Count: number };
   type PathBucket = { Period: string; Path: string; Count: number };
   type DeviceCount = { Category: string; Count: number };
+  type DeviceBucket = { Period: string; Category: string; Count: number };
   type StatsResult = {
     Total: number;
     UniquePaths: number;
@@ -16,6 +17,7 @@
     Series: PeriodBucket[];
     PathSeries: PathBucket[];
     Devices: DeviceCount[];
+    DeviceSeries?: DeviceBucket[];
   };
   type StackItem = { kind: string; value: number };
 
@@ -33,6 +35,8 @@
     '#5f6b8a',
     '#8a6a9a',
   ];
+  const deviceCategories = ['Mobil', 'Tablet', 'Laptop', 'Breitbild'];
+  const deviceColors = ['var(--weidegruen)', 'var(--backstein)', 'var(--himmelblau)', 'var(--taubenblau)'];
 
   let activeController: AbortController | null = null;
 
@@ -50,6 +54,14 @@
   });
   const colorKeys = $derived(Array.from(new Set((stats?.PathSeries ?? []).map((row) => row.Path))));
   const keyColors = $derived(colorKeys.map((_, index) => chartPalette[index % chartPalette.length]));
+  const deviceChartData = $derived.by(() => {
+    if (!stats?.DeviceSeries?.length) return [];
+    return groupStackData(
+      stats.DeviceSeries.map((row) => ({ Period: row.Period, Category: row.Category, value: row.Count })),
+      { xKey: 'Period', stackBy: 'Category' },
+    );
+  });
+  const hasDeviceSeries = $derived((stats?.DeviceSeries ?? []).some((row) => row.Count > 0));
 
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
@@ -208,6 +220,88 @@
             {/snippet}
           </Chart>
         </div>
+
+        {#if hasDeviceSeries}
+          <section class="device-chart" aria-labelledby="device-chart-title">
+            <h3 id="device-chart-title" class="device-title">Gerätekategorien nach Woche</h3>
+            <div class="chart-legend" aria-hidden="true">
+              {#each deviceCategories as category, index}
+                <span class="legend-item">
+                  <span class="legend-swatch" style="background-color: {deviceColors[index]}"></span>
+                  {category}
+                </span>
+              {/each}
+            </div>
+
+            <div class="chart-wrap">
+              <Chart
+                data={deviceChartData}
+                x="Period"
+                xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+                y="values"
+                yNice
+                c="Category"
+                cDomain={deviceCategories}
+                cRange={deviceColors}
+                padding={{ left: 32, bottom: 20, top: 8 }}
+                tooltipContext={{ mode: 'band' }}
+                height={300}
+              >
+                {#snippet children({ context })}
+                  <Layer>
+                    <Axis placement="left" grid rule />
+                    <Axis placement="bottom" rule />
+                    <Bars strokeWidth={1} />
+                    <Highlight area />
+                  </Layer>
+
+                  <Tooltip.Root>
+                    {#snippet children({ data })}
+                      <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
+                      <Tooltip.List>
+                        {#each data.data as item}
+                          <Tooltip.Item
+                            label={item.Category}
+                            value={item.value}
+                            color={context.cScale?.(item.Category)}
+                            format="integer"
+                            valueAlign="right"
+                          />
+                        {/each}
+                        <Tooltip.Separator />
+                        <Tooltip.Item
+                          label="Gesamt"
+                          value={sum([...data.data], (d: StackItem) => d.value)}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      </Tooltip.List>
+                    {/snippet}
+                  </Tooltip.Root>
+                {/snippet}
+              </Chart>
+            </div>
+
+            <table class="sr-only-table">
+              <thead>
+                <tr>
+                  <th scope="col">Woche</th>
+                  <th scope="col">Gerätekategorie</th>
+                  <th scope="col">Aufrufe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each stats?.DeviceSeries ?? [] as row}
+                  <tr>
+                    <th scope="row">{formatWeekLabel(row.Period)}</th>
+                    <td>{row.Category}</td>
+                    <td>{formatCount(row.Count)}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </section>
+        {/if}
 
         <div class="table-wrap">
           <table class="pageview-table">
@@ -445,6 +539,12 @@
     border-radius: 0.5rem;
     background-color: var(--schurwolle);
     color: var(--taubenblau);
+  }
+
+  .device-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
   }
 
   .device-title {

@@ -38,7 +38,7 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<DevicePeriodBucket> DeviceSeries);
 
 	public sealed record PathCount(string Path, int Count);
 
@@ -47,6 +47,8 @@ public sealed class GetPageViewStats
 	public sealed record PeriodBucket(string Period, int Count);
 
 	public sealed record PathPeriodBucket(string Period, string Path, int Count);
+
+	public sealed record DevicePeriodBucket(string Period, string Category, int Count);
 
 	public interface IPageViewReadStore
 	{
@@ -79,6 +81,7 @@ public sealed class GetPageViewStats
 	{
 		private const int ChartPathsLimit = 6;
 		private const string OtherBucketLabel = "Übrige";
+		private static readonly string[] DeviceCategories = ["Mobil", "Tablet", "Laptop", "Breitbild"];
 
 		private readonly IPageViewReadStore _store = store;
 
@@ -107,7 +110,7 @@ public sealed class GetPageViewStats
 			List<DeviceCount> devices = inWindow
 				.GroupBy(p => GetDeviceCategory(p.ViewportWidth))
 				.OrderByDescending(g => g.Count())
-				.ThenBy(g => GetDeviceCategoryOrder(g.Key))
+				.ThenBy(g => Array.IndexOf(DeviceCategories, g.Key))
 				.Select(g => new DeviceCount(g.Key, g.Count()))
 				.ToList();
 
@@ -122,6 +125,7 @@ public sealed class GetPageViewStats
 
 			var buckets = new Dictionary<DateTime, int>();
 			var pathBuckets = new Dictionary<(DateTime Week, string Path), int>();
+			var deviceBuckets = new Dictionary<(DateTime Week, string Category), int>();
 			foreach (PageViewEntity pageView in inWindow)
 			{
 				DateTime weekStart = GetWeekStart(pageView.Timestamp!.Value);
@@ -130,10 +134,15 @@ public sealed class GetPageViewStats
 				string path = chartPathSet.Contains(pageView.Path) ? pageView.Path : OtherBucketLabel;
 				var key = (weekStart, path);
 				pathBuckets[key] = pathBuckets.GetValueOrDefault(key) + 1;
+
+				string category = GetDeviceCategory(pageView.ViewportWidth);
+				var deviceKey = (weekStart, category);
+				deviceBuckets[deviceKey] = deviceBuckets.GetValueOrDefault(deviceKey) + 1;
 			}
 
 			List<PeriodBucket> series = [];
 			List<PathPeriodBucket> pathSeries = [];
+			List<DevicePeriodBucket> deviceSeries = [];
 			for (DateTime week = GetWeekStart(windowStart); week <= GetWeekStart(now); week = week.AddDays(7))
 			{
 				series.Add(new PeriodBucket(week.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(week)));
@@ -142,9 +151,14 @@ public sealed class GetPageViewStats
 				{
 					pathSeries.Add(new PathPeriodBucket(week.ToString("yyyy-MM-dd"), path, pathBuckets.GetValueOrDefault((week, path))));
 				}
+
+				foreach (string category in DeviceCategories)
+				{
+					deviceSeries.Add(new DevicePeriodBucket(week.ToString("yyyy-MM-dd"), category, deviceBuckets.GetValueOrDefault((week, category))));
+				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices);
+			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices, deviceSeries);
 		}
 
 		private static string GetDeviceCategory(int viewportWidth)
@@ -155,18 +169,6 @@ public sealed class GetPageViewStats
 				< 1024 => "Tablet",
 				< 1920 => "Laptop",
 				_ => "Breitbild",
-			};
-		}
-
-		private static int GetDeviceCategoryOrder(string category)
-		{
-			return category switch
-			{
-				"Mobil" => 0,
-				"Tablet" => 1,
-				"Laptop" => 2,
-				"Breitbild" => 3,
-				_ => 4,
 			};
 		}
 
