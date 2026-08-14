@@ -52,7 +52,7 @@ sorted rows. Delete mutates the array and re-renders.
 
 - **Row markers** instead of a Status column: a narrow leading column shows
   lucide icons at the top-left of matching rows — `ShieldAlert` (backstein) for
-  messages classified as spam and `Clock` (red) for messages older than six
+  messages classified as spam and `MailX` (red) for messages older than six
   months (same 30-day×6 threshold as `get-old-message-count`). Rows flagged as
   old also get a light red background.
 - **Sortable headers** for `Name`, `Nachricht`, `Email`, `Telefon`, `Zeitpunkt`

@@ -1,5 +1,5 @@
 ---
-import { ArrowDown, ArrowUp, ArrowUpDown, Clock, ShieldAlert, Trash2 } from 'lucide-astro';
+import { ArrowDown, ArrowUp, ArrowUpDown, MailX, ShieldAlert, Trash2 } from 'lucide-astro';
 import DashboardLayout from '../layouts/DashboardLayout.astro';
 ---
 
@@ -64,8 +64,8 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
   <template id="spam-marker-icon">
     <ShieldAlert aria-hidden="true" class="marker-svg" />
   </template>
-  <template id="clock-marker-icon">
-    <Clock aria-hidden="true" class="marker-svg" />
+  <template id="old-marker-icon">
+    <MailX aria-hidden="true" class="marker-svg" />
   </template>
   <template id="sort-up-icon">
     <ArrowUp aria-hidden="true" class="sort-icon-svg" />
@@ -239,7 +239,7 @@ import DashboardLayout from '../layouts/DashboardLayout.astro';
       marker.setAttribute('role', 'img');
       marker.title = 'Älter als 6 Monate';
       marker.setAttribute('aria-label', 'Älter als 6 Monate');
-      const markerIcon = cloneIcon('clock-marker-icon');
+      const markerIcon = cloneIcon('old-marker-icon');
       if (markerIcon) marker.appendChild(markerIcon);
       markerCell.appendChild(marker);
     }
