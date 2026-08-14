@@ -93,9 +93,9 @@
       <table class="event-table">
         <thead>
           <tr>
-            <th scope="col" class="event-date-header" aria-label="Datum"></th>
-            <th scope="col" class="event-type-header" aria-label="Ereignistyp"></th>
-            <th scope="col" aria-label="Details"></th>
+            <th scope="col" class="event-date-header">Datum</th>
+            <th scope="col" class="event-type-header">Ereignistyp</th>
+            <th scope="col" class="event-details-header">Details</th>
             <th scope="col" class="event-cost-header">Kosten</th>
           </tr>
         </thead>
@@ -105,8 +105,11 @@
             <tr>
               <td class="event-date">{formatDate(item.eventDate)}</td>
               <td class="event-type">
-                <span class="event-icon-wrapper" title={item.eventType || 'Ereignis'} aria-label={item.eventType || 'Ereignis'}>
-                  <Icon class="event-icon" aria-hidden="true" />
+                <span class="event-type-cell">
+                  <span class="event-icon-wrapper" aria-hidden="true">
+                    <Icon class="event-icon" aria-hidden="true" />
+                  </span>
+                  <span class="event-type-label">{item.eventType || 'Ereignis'}</span>
                 </span>
               </td>
               <td class="event-details">
@@ -199,19 +202,25 @@
 
   .event-table th,
   .event-table td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.85rem 0.75rem;
     vertical-align: top;
+    text-align: left;
   }
 
   .event-table thead th {
-    font-size: 0.85rem;
-    color: var(--sahlchen);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: rgba(0, 32, 73, 0.55);
     font-weight: 600;
   }
 
-  .event-date-header,
+  .event-date-header {
+    width: 7.5rem;
+  }
+
   .event-type-header {
-    width: 3rem;
+    width: 12rem;
   }
 
   .event-cost-header,
@@ -220,12 +229,20 @@
     white-space: nowrap;
   }
 
+  .event-table tbody {
+    border-top: 1px solid rgba(0, 32, 73, 0.12);
+  }
+
   .event-table tbody td {
-    border-top: 1px solid rgba(0, 32, 73, 0.08);
+    border-top: 1px solid rgba(0, 32, 73, 0.06);
   }
 
   .event-table tbody tr:first-child td {
     border-top: none;
+  }
+
+  .event-table tbody tr:hover {
+    background-color: rgba(0, 32, 73, 0.04);
   }
 
   .event-date {
@@ -234,12 +251,21 @@
     white-space: nowrap;
   }
 
-  .event-type {
-    text-align: center;
+  .event-type-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .event-type-label {
+    color: var(--taubenblau);
+    font-weight: 600;
+    line-height: 1.3;
   }
 
   .event-icon-wrapper {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     width: 2.5rem;
@@ -247,6 +273,16 @@
     border-radius: 999px;
     background-color: var(--himmelblau);
     color: var(--schurwolle);
+  }
+
+  .event-table .event-icon-wrapper {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .event-table :global(.event-icon) {
+    width: 1.125rem;
+    height: 1.125rem;
   }
 
   :global(.event-icon) {
@@ -281,10 +317,8 @@
   }
 
   .event-total-label {
-    text-align: right;
     font-weight: 700;
     color: var(--taubenblau);
-    padding-right: 0.5rem;
   }
 
   .event-total {
