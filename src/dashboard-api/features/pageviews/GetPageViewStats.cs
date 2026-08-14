@@ -38,7 +38,7 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days);
 
-	public sealed record Result(int Total, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series);
 
 	public sealed record PathCount(string Path, int Count);
 
@@ -87,6 +87,7 @@ public sealed class GetPageViewStats
 				.ToList();
 
 			int total = inWindow.Count;
+			int uniquePaths = inWindow.Select(p => p.Path).Distinct().Count();
 
 			List<PathCount> topPaths = inWindow
 				.GroupBy(p => p.Path)
@@ -109,7 +110,7 @@ public sealed class GetPageViewStats
 				series.Add(new PeriodBucket(week.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(week)));
 			}
 
-			return new Result(total, topPaths, series);
+			return new Result(total, uniquePaths, topPaths, series);
 		}
 
 		private static DateTime GetWeekStart(DateTimeOffset value)

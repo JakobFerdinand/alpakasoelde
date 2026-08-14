@@ -21,7 +21,7 @@ Gain insight into usage of `src/website` (how many page views, which pages are v
 - [x] Client: add `sendBeacon` snippet to `src/website/src/layouts/Layout.astro`
 - [x] Privacy: update `src/website/src/pages/datenschutzerklaerung.astro` (new §5, rework old §6, renumber)
 - [x] Dashboard: add `GetPageViewStats` slice in `dashboard-api`, register handler, extend `requests.http`
-- [ ] Dashboard: add `PageViewStats.svelte`/wrapper/page + nav link
+- [x] Dashboard: add `PageViewStats.svelte`/wrapper/page + nav link
 - [ ] Verify: `dotnet build` (both APIs), `pnpm run build` + `astro check` (website and dashboard), manual check via `requests.http`
 - [ ] Deploy on `main` merge
 
