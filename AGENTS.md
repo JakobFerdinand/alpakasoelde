@@ -10,9 +10,10 @@
 - `docs/plans/`: design/roadmap docs kept for reference, numbered in creation order (`001-infrastructure-as-code.md`, `002-ai-spam-filter.md`); add new plans here instead of the repository root.
 
 ## Build, Test, and Development Commands
-- `cd src/website && npm install && npm run dev` — launches the marketing site with hot reload.
-- `cd src/website && npm run build` — runs `astro check` and builds to `dist/`.
-- `cd src/dashboard && npm install && npm run dev` — starts the internal dashboard; run `npm run build` before shipping changes.
+- Use `pnpm` (not `npm`) for all package manager commands in the Astro projects.
+- `cd src/website && pnpm install && pnpm dev` — launches the marketing site with hot reload.
+- `cd src/website && pnpm run build` — runs `astro check` and builds to `dist/`.
+- `cd src/dashboard && pnpm install && pnpm dev` — starts the internal dashboard; run `pnpm run build` before shipping changes.
 - `cd src/dashboard-api && dotnet run` — compiles and serves the dashboard API locally (Azure Functions Core Tools required). `dotnet run` builds the project and starts the Functions host from the correct output directory, so prefer it over `dotnet build` + `func start` for .NET isolated projects.
 - `cd src/website-api && dotnet run` — same workflow for the public API facade.
 - Tests: `dotnet test src/dashboard-api.Tests/dashboard-api.Tests.csproj` and `dotnet test src/website-api.Tests/website-api.Tests.csproj`; extend the slice-specific test suites when adding handlers or stores.
@@ -36,10 +37,10 @@
 - Minimise client-side `<script>` tags; prefer Astro's static rendering and use `client:*` directives only when necessary.
 - Use Astro's `<Image />` component for optimised image delivery; avoid raw `<img>` tags for local assets.
 - Leverage Astro content collections for structured data (blog posts, product catalogues) instead of loose JSON or frontmatter duplication.
-- Run `astro check` (via `npm run build`) before committing to catch type and template errors early.
+- Run `astro check` (via `pnpm run build`) before committing to catch type and template errors early.
 
 ## Testing Guidelines
-- Frontend validation comes from `astro check` during `npm run build`; run it before opening a PR.
+- Frontend validation comes from `astro check` during `pnpm run build`; run it before opening a PR.
 - Exercise Azure Functions with the REST samples in each `requests.http`; extend them alongside new endpoints.
 - No coverage target exists yet, but add unit tests when introducing new services or parsers.
 
