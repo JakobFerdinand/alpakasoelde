@@ -32,6 +32,8 @@
     '#8a6a9a',
   ];
 
+  let activeController: AbortController | null = null;
+
   let days = $state(28);
   let loading = $state(true);
   let error = $state('');
@@ -62,22 +64,28 @@
   }
 
   async function load() {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
     loading = true;
     error = '';
     try {
-      const res = await fetch(`/api/pageviews/stats?days=${days}`);
+      const res = await fetch(`/api/pageviews/stats?days=${days}`, { signal: controller.signal });
       if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
+      if (controller.signal.aborted) return;
       stats = await res.json();
     } catch (e) {
+      if (controller.signal.aborted) return;
       console.error(e);
       error = 'Statistik konnte nicht geladen werden.';
     } finally {
-      loading = false;
+      if (!controller.signal.aborted) loading = false;
     }
   }
 
   onMount(() => {
     load();
+    return () => activeController?.abort();
   });
 </script>
 
