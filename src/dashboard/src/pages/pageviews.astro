@@ -6,3 +6,10 @@ import PageViewStats from '../components/PageViewStats.svelte';
 <DashboardLayout title="Seitenaufrufe">
   <PageViewStats client:only="svelte" />
 </DashboardLayout>
+
+<style is:global>
+  #main-content > astro-island {
+    display: block;
+    width: 100%;
+  }
+</style>
