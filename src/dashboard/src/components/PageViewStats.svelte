@@ -10,6 +10,8 @@
   type PathBucket = { Period: string; Path: string; Count: number };
   type DeviceCount = { Category: string; Count: number };
   type DeviceBucket = { Period: string; Category: string; Count: number };
+  type OriginCount = { Domain: string; Count: number };
+  type OriginBucket = { Period: string; Domain: string; Count: number };
   type StatsResult = {
     Total: number;
     UniquePaths: number;
@@ -18,6 +20,8 @@
     PathSeries: PathBucket[];
     Devices: DeviceCount[];
     DeviceSeries?: DeviceBucket[];
+    Origins?: OriginCount[];
+    OriginSeries?: OriginBucket[];
   };
   type StackItem = { kind: string; value: number };
 
@@ -62,6 +66,16 @@
     );
   });
   const hasDeviceSeries = $derived((stats?.DeviceSeries ?? []).some((row) => row.Count > 0));
+  const originKeys = $derived(Array.from(new Set((stats?.OriginSeries ?? []).map((row) => row.Domain))));
+  const originColors = $derived(originKeys.map((_, index) => chartPalette[index % chartPalette.length]));
+  const originChartData = $derived.by(() => {
+    if (!stats?.OriginSeries?.length) return [];
+    return groupStackData(
+      stats.OriginSeries.map((row) => ({ Period: row.Period, Domain: row.Domain, value: row.Count })),
+      { xKey: 'Period', stackBy: 'Domain' },
+    );
+  });
+  const hasOriginSeries = $derived((stats?.OriginSeries ?? []).some((row) => row.Count > 0));
 
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
@@ -337,6 +351,107 @@
               </div>
             {/each}
           </div>
+        {/if}
+
+        {#if hasOriginSeries}
+          <section class="device-chart" aria-labelledby="origin-chart-title">
+            <h3 id="origin-chart-title" class="device-title">Herkunftsdomains nach Woche</h3>
+            <div class="chart-legend" aria-hidden="true">
+              {#each originKeys as domain, index}
+                <span class="legend-item">
+                  <span class="legend-swatch" style="background-color: {originColors[index]}"></span>
+                  {domain}
+                </span>
+              {/each}
+            </div>
+
+            <div class="chart-wrap">
+              <Chart
+                data={originChartData}
+                x="Period"
+                xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+                y="values"
+                yNice
+                c="Domain"
+                cDomain={originKeys}
+                cRange={originColors}
+                padding={{ left: 32, bottom: 20, top: 8 }}
+                tooltipContext={{ mode: 'band' }}
+                height={300}
+              >
+                {#snippet children({ context })}
+                  <Layer>
+                    <Axis placement="left" grid rule />
+                    <Axis placement="bottom" rule />
+                    <Bars strokeWidth={1} />
+                    <Highlight area />
+                  </Layer>
+
+                  <Tooltip.Root>
+                    {#snippet children({ data })}
+                      <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
+                      <Tooltip.List>
+                        {#each data.data as item}
+                          <Tooltip.Item
+                            label={item.Domain}
+                            value={item.value}
+                            color={context.cScale?.(item.Domain)}
+                            format="integer"
+                            valueAlign="right"
+                          />
+                        {/each}
+                        <Tooltip.Separator />
+                        <Tooltip.Item
+                          label="Gesamt"
+                          value={sum([...data.data], (d: StackItem) => d.value)}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      </Tooltip.List>
+                    {/snippet}
+                  </Tooltip.Root>
+                {/snippet}
+              </Chart>
+            </div>
+
+            <div class="table-wrap">
+              <table class="pageview-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Herkunftsdomain</th>
+                    <th scope="col" class="table-count">Aufrufe</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each stats?.Origins ?? [] as origin}
+                    <tr>
+                      <th scope="row">{origin.Domain}</th>
+                      <td class="table-count">{formatCount(origin.Count)}</td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
+
+            <table class="sr-only-table">
+              <thead>
+                <tr>
+                  <th scope="col">Woche</th>
+                  <th scope="col">Herkunftsdomain</th>
+                  <th scope="col">Aufrufe</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each stats?.OriginSeries ?? [] as row}
+                  <tr>
+                    <th scope="row">{formatWeekLabel(row.Period)}</th>
+                    <td>{row.Domain}</td>
+                    <td>{formatCount(row.Count)}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </section>
         {/if}
 
         <h3 class="sr-only">Seitenaufrufe nach Woche und Seite</h3>

@@ -38,17 +38,21 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<DevicePeriodBucket> DeviceSeries);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<DevicePeriodBucket> DeviceSeries, IReadOnlyList<OriginCount> Origins, IReadOnlyList<OriginPeriodBucket> OriginSeries);
 
 	public sealed record PathCount(string Path, int Count);
 
 	public sealed record DeviceCount(string Category, int Count);
+
+	public sealed record OriginCount(string Domain, int Count);
 
 	public sealed record PeriodBucket(string Period, int Count);
 
 	public sealed record PathPeriodBucket(string Period, string Path, int Count);
 
 	public sealed record DevicePeriodBucket(string Period, string Category, int Count);
+
+	public sealed record OriginPeriodBucket(string Period, string Domain, int Count);
 
 	public interface IPageViewReadStore
 	{
@@ -80,6 +84,7 @@ public sealed class GetPageViewStats
 	public sealed class Handler(IPageViewReadStore store)
 	{
 		private const int ChartPathsLimit = 6;
+		private const int ChartOriginsLimit = 6;
 		private const string OtherBucketLabel = "Übrige";
 		private static readonly string[] DeviceCategories = ["Mobil", "Tablet", "Laptop", "Breitbild"];
 
@@ -114,6 +119,18 @@ public sealed class GetPageViewStats
 				.Select(g => new DeviceCount(g.Key, g.Count()))
 				.ToList();
 
+			var externalPageViews = inWindow
+				.Where(p => !string.IsNullOrWhiteSpace(p.ReferrerHost) && !IsInternalReferrer(p.ReferrerHost))
+				.ToList();
+
+			List<OriginCount> origins = externalPageViews
+				.GroupBy(p => p.ReferrerHost!.Trim(), StringComparer.OrdinalIgnoreCase)
+				.OrderByDescending(g => g.Count())
+				.ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+				.Take(10)
+				.Select(g => new OriginCount(g.Key.ToLowerInvariant(), g.Count()))
+				.ToList();
+
 			List<string> chartPaths = topPaths.Take(ChartPathsLimit).Select(p => p.Path).ToList();
 			int chartTopCount = inWindow.Count(p => chartPaths.Contains(p.Path));
 			if (total - chartTopCount > 0)
@@ -122,10 +139,17 @@ public sealed class GetPageViewStats
 			}
 
 			HashSet<string> chartPathSet = [.. chartPaths];
+			List<string> chartOrigins = origins.Take(ChartOriginsLimit).Select(o => o.Domain).ToList();
+			if (externalPageViews.Count - origins.Take(ChartOriginsLimit).Sum(o => o.Count) > 0)
+			{
+				chartOrigins.Add(OtherBucketLabel);
+			}
+			HashSet<string> chartOriginSet = new(chartOrigins, StringComparer.OrdinalIgnoreCase);
 
 			var buckets = new Dictionary<DateTime, int>();
 			var pathBuckets = new Dictionary<(DateTime Week, string Path), int>();
 			var deviceBuckets = new Dictionary<(DateTime Week, string Category), int>();
+			var originBuckets = new Dictionary<(DateTime Week, string Domain), int>();
 			foreach (PageViewEntity pageView in inWindow)
 			{
 				DateTime weekStart = GetWeekStart(pageView.Timestamp!.Value);
@@ -138,11 +162,20 @@ public sealed class GetPageViewStats
 				string category = GetDeviceCategory(pageView.ViewportWidth);
 				var deviceKey = (weekStart, category);
 				deviceBuckets[deviceKey] = deviceBuckets.GetValueOrDefault(deviceKey) + 1;
+
+				if (!string.IsNullOrWhiteSpace(pageView.ReferrerHost) && !IsInternalReferrer(pageView.ReferrerHost))
+				{
+					string domain = pageView.ReferrerHost.Trim().ToLowerInvariant();
+					domain = chartOriginSet.Contains(domain) ? domain : OtherBucketLabel;
+					var originKey = (weekStart, domain);
+					originBuckets[originKey] = originBuckets.GetValueOrDefault(originKey) + 1;
+				}
 			}
 
 			List<PeriodBucket> series = [];
 			List<PathPeriodBucket> pathSeries = [];
 			List<DevicePeriodBucket> deviceSeries = [];
+			List<OriginPeriodBucket> originSeries = [];
 			for (DateTime week = GetWeekStart(windowStart); week <= GetWeekStart(now); week = week.AddDays(7))
 			{
 				series.Add(new PeriodBucket(week.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(week)));
@@ -156,9 +189,22 @@ public sealed class GetPageViewStats
 				{
 					deviceSeries.Add(new DevicePeriodBucket(week.ToString("yyyy-MM-dd"), category, deviceBuckets.GetValueOrDefault((week, category))));
 				}
+
+				foreach (string domain in chartOrigins)
+				{
+					originSeries.Add(new OriginPeriodBucket(week.ToString("yyyy-MM-dd"), domain, originBuckets.GetValueOrDefault((week, domain))));
+				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices, deviceSeries);
+			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices, deviceSeries, origins, originSeries);
+		}
+
+		private static bool IsInternalReferrer(string referrerHost)
+		{
+			string host = referrerHost.Trim();
+			return host.Equals("alpakasoelde.at", StringComparison.OrdinalIgnoreCase)
+				|| (host.StartsWith("lemon-hill-0ebd24003-", StringComparison.OrdinalIgnoreCase)
+					&& host.EndsWith(".westeurope.6.azurestaticapps.net", StringComparison.OrdinalIgnoreCase));
 		}
 
 		private static string GetDeviceCategory(int viewportWidth)
