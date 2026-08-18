@@ -223,6 +223,7 @@
           <option value="Scheren">Scheren</option>
           <option value="Impfen">Impfen</option>
           <option value="Gesundheitscheck">Gesundheitscheck</option>
+          <option value="Heu kaufen">Heu kaufen</option>
           <option value="Sonstiges">Sonstiges</option>
         </select>
       </FormField>

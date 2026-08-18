@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { CircleEllipsis, Scissors, ScissorsLineDashed, Stethoscope, Syringe, Worm } from '@lucide/svelte';
+  import { CircleEllipsis, Scissors, ScissorsLineDashed, Stethoscope, Syringe, Wheat, Worm } from '@lucide/svelte';
   import { formatCurrency, formatDate } from '../utils/formatters';
   import { EVENT_TYPE_ICON_KEYS, normalizeEvents, type EventListItem } from './event-list';
 
@@ -54,6 +54,8 @@
         return Syringe;
       case 'stethoscope':
         return Stethoscope;
+      case 'wheat':
+        return Wheat;
       default:
         return CircleEllipsis;
     }
