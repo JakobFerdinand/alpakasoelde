@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using Azure.Data.Tables;
 using dashboard_api.shared.entities;
@@ -30,13 +31,19 @@ public sealed class GetPageViewStats
 			days = Math.Min(requestedDays, TableLookbackDays);
 		}
 
-		Result result = await _handler.HandleAsync(new Query(days), req.FunctionContext.CancellationToken);
+		string? week = req.Query["week"];
+		if (!string.IsNullOrWhiteSpace(week) && !DateTime.TryParseExact(week, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+		{
+			week = null;
+		}
+
+		Result result = await _handler.HandleAsync(new Query(days, week), req.FunctionContext.CancellationToken);
 		var response = req.CreateResponse(HttpStatusCode.OK);
 		await response.WriteAsJsonAsync(result).ConfigureAwait(false);
 		return response;
 	}
 
-	public sealed record Query(int Days);
+	public sealed record Query(int Days, string? Week);
 
 	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<DevicePeriodBucket> DeviceSeries, IReadOnlyList<OriginCount> Origins, IReadOnlyList<OriginPeriodBucket> OriginSeries);
 
@@ -95,10 +102,13 @@ public sealed class GetPageViewStats
 			IReadOnlyList<PageViewEntity> pageViews = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
 
 			DateTimeOffset now = DateTimeOffset.UtcNow;
+			DateTime? weekStart = query.Week is null
+				? null
+				: DateTime.ParseExact(query.Week, "yyyy-MM-dd", CultureInfo.InvariantCulture);
 			DateTimeOffset windowStart = now.AddDays(-query.Days);
 
 			var inWindow = pageViews
-				.Where(p => p.Timestamp.HasValue && p.Timestamp >= windowStart)
+				.Where(p => p.Timestamp.HasValue && IsInRange(p.Timestamp.Value, weekStart, now, query.Days))
 				.ToList();
 
 			int total = inWindow.Count;
@@ -147,27 +157,27 @@ public sealed class GetPageViewStats
 			HashSet<string> chartOriginSet = new(chartOrigins, StringComparer.OrdinalIgnoreCase);
 
 			var buckets = new Dictionary<DateTime, int>();
-			var pathBuckets = new Dictionary<(DateTime Week, string Path), int>();
-			var deviceBuckets = new Dictionary<(DateTime Week, string Category), int>();
-			var originBuckets = new Dictionary<(DateTime Week, string Domain), int>();
+			var pathBuckets = new Dictionary<(DateTime Bucket, string Path), int>();
+			var deviceBuckets = new Dictionary<(DateTime Bucket, string Category), int>();
+			var originBuckets = new Dictionary<(DateTime Bucket, string Domain), int>();
 			foreach (PageViewEntity pageView in inWindow)
 			{
-				DateTime weekStart = GetWeekStart(pageView.Timestamp!.Value);
-				buckets[weekStart] = buckets.GetValueOrDefault(weekStart) + 1;
+				DateTime bucketStart = GetBucketStart(pageView.Timestamp!.Value, weekStart);
+				buckets[bucketStart] = buckets.GetValueOrDefault(bucketStart) + 1;
 
 				string path = chartPathSet.Contains(pageView.Path) ? pageView.Path : OtherBucketLabel;
-				var key = (weekStart, path);
-				pathBuckets[key] = pathBuckets.GetValueOrDefault(key) + 1;
+				var pathKey = (bucketStart, path);
+				pathBuckets[pathKey] = pathBuckets.GetValueOrDefault(pathKey) + 1;
 
 				string category = GetDeviceCategory(pageView.ViewportWidth);
-				var deviceKey = (weekStart, category);
+				var deviceKey = (bucketStart, category);
 				deviceBuckets[deviceKey] = deviceBuckets.GetValueOrDefault(deviceKey) + 1;
 
 				if (!string.IsNullOrWhiteSpace(pageView.ReferrerHost) && !IsInternalReferrer(pageView.ReferrerHost))
 				{
 					string domain = pageView.ReferrerHost.Trim().ToLowerInvariant();
 					domain = chartOriginSet.Contains(domain) ? domain : OtherBucketLabel;
-					var originKey = (weekStart, domain);
+					var originKey = (bucketStart, domain);
 					originBuckets[originKey] = originBuckets.GetValueOrDefault(originKey) + 1;
 				}
 			}
@@ -176,27 +186,60 @@ public sealed class GetPageViewStats
 			List<PathPeriodBucket> pathSeries = [];
 			List<DevicePeriodBucket> deviceSeries = [];
 			List<OriginPeriodBucket> originSeries = [];
-			for (DateTime week = GetWeekStart(windowStart); week <= GetWeekStart(now); week = week.AddDays(7))
+			foreach (DateTime bucketStart in GetBucketStarts(weekStart, windowStart, now))
 			{
-				series.Add(new PeriodBucket(week.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(week)));
+				series.Add(new PeriodBucket(bucketStart.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(bucketStart)));
 
 				foreach (string path in chartPaths)
 				{
-					pathSeries.Add(new PathPeriodBucket(week.ToString("yyyy-MM-dd"), path, pathBuckets.GetValueOrDefault((week, path))));
+					pathSeries.Add(new PathPeriodBucket(bucketStart.ToString("yyyy-MM-dd"), path, pathBuckets.GetValueOrDefault((bucketStart, path))));
 				}
 
 				foreach (string category in DeviceCategories)
 				{
-					deviceSeries.Add(new DevicePeriodBucket(week.ToString("yyyy-MM-dd"), category, deviceBuckets.GetValueOrDefault((week, category))));
+					deviceSeries.Add(new DevicePeriodBucket(bucketStart.ToString("yyyy-MM-dd"), category, deviceBuckets.GetValueOrDefault((bucketStart, category))));
 				}
 
 				foreach (string domain in chartOrigins)
 				{
-					originSeries.Add(new OriginPeriodBucket(week.ToString("yyyy-MM-dd"), domain, originBuckets.GetValueOrDefault((week, domain))));
+					originSeries.Add(new OriginPeriodBucket(bucketStart.ToString("yyyy-MM-dd"), domain, originBuckets.GetValueOrDefault((bucketStart, domain))));
 				}
 			}
 
 			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices, deviceSeries, origins, originSeries);
+		}
+
+		private static bool IsInRange(DateTimeOffset timestamp, DateTime? weekStart, DateTimeOffset now, int days)
+		{
+			if (weekStart.HasValue)
+			{
+				return timestamp >= weekStart.Value && timestamp < weekStart.Value.AddDays(7);
+			}
+
+			return timestamp >= now.AddDays(-days);
+		}
+
+		private static IEnumerable<DateTime> GetBucketStarts(DateTime? weekStart, DateTimeOffset windowStart, DateTimeOffset now)
+		{
+			if (weekStart.HasValue)
+			{
+				for (int offset = 0; offset < 7; offset++)
+				{
+					yield return weekStart.Value.AddDays(offset);
+				}
+
+				yield break;
+			}
+
+			for (DateTime week = GetWeekStart(windowStart); week <= GetWeekStart(now); week = week.AddDays(7))
+			{
+				yield return week;
+			}
+		}
+
+		private static DateTime GetBucketStart(DateTimeOffset value, DateTime? weekStart)
+		{
+			return weekStart.HasValue ? value.UtcDateTime.Date : GetWeekStart(value);
 		}
 
 		private static bool IsInternalReferrer(string referrerHost)

@@ -44,6 +44,11 @@ GET {{base}}/api/pageviews/stats?days=90
 
 ###
 
+# Daily breakdown for a single week (week = ISO-ish week start date, Monday)
+GET {{base}}/api/pageviews/stats?days=90&week=2025-06-09
+
+###
+
 @alpakaId=REPLACE-WITH-ALPAKA-ID
 
 GET {{devbase}}/api/alpakas/{{alpakaId}}
