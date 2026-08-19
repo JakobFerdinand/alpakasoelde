@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Axis, Bars, Chart, Highlight, Layer, Tooltip, groupStackData } from 'layerchart';
-  import { scaleBand } from 'd3-scale';
+  import { Area, Axis, Bars, Chart, Highlight, Layer, Tooltip, groupStackData } from 'layerchart';
+  import { scaleBand, scalePoint } from 'd3-scale';
   import { sum } from 'd3-array';
   import { BarChart3, Eye, Files } from '@lucide/svelte';
 
@@ -24,6 +24,8 @@
     OriginSeries?: OriginBucket[];
   };
   type StackItem = { kind: string; value: number };
+  type WeekRow = { Period: string; Path: string; value: number };
+  type WeekSeriesItem = { key: string; label: string; value: (row: WeekRow) => number; data: WeekRow[]; color: string };
 
   const periods = [
     { label: '4 Wochen', days: 28 },
@@ -48,6 +50,11 @@
   let loading = $state(true);
   let error = $state('');
   let stats = $state<StatsResult | null>(null);
+
+  let selectedWeek = $state<string | null>(null);
+  let weekStats = $state<StatsResult | null>(null);
+  let weekLoading = $state(false);
+  let weekError = $state('');
 
   const chartData = $derived.by(() => {
     if (!stats?.PathSeries?.length) return [];
@@ -77,6 +84,17 @@
   });
   const hasOriginSeries = $derived((stats?.OriginSeries ?? []).some((row) => row.Count > 0));
 
+  const weekRows = $derived<WeekRow[]>((weekStats?.PathSeries ?? []).map((row) => ({ Period: row.Period, Path: row.Path, value: row.Count })));
+  const weekSeries = $derived<WeekSeriesItem[]>(
+    colorKeys.map((key, index) => ({
+      key,
+      label: key,
+      value: (row: WeekRow) => row.value,
+      data: weekRows.filter((row) => row.Path === key),
+      color: keyColors[index],
+    })),
+  );
+
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
   const uniquePages = $derived(stats?.UniquePaths ?? 0);
@@ -95,6 +113,45 @@
   function formatWeekLabel(period: string): string {
     const [year, month, day] = period.split('-');
     return `Woche ab ${day}.${month}.${year}`;
+  }
+
+  function formatDayLabel(period: string): string {
+    const [year, month, day] = period.split('-');
+    return `${day}.${month}.${year}`;
+  }
+
+  async function loadWeek(period: string) {
+    activeController?.abort();
+    const controller = new AbortController();
+    activeController = controller;
+    weekLoading = true;
+    weekError = '';
+    try {
+      const res = await fetch(`/api/pageviews/stats?days=${days}&week=${period}`, { signal: controller.signal });
+      if (!res.ok) throw new Error(`Failed to load week stats (${res.status})`);
+      if (controller.signal.aborted) return;
+      weekStats = await res.json();
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      console.error(e);
+      weekError = 'Wochenstatistik konnte nicht geladen werden.';
+    } finally {
+      if (!controller.signal.aborted) weekLoading = false;
+    }
+  }
+
+  function openWeek(period: string) {
+    if (selectedWeek === period) return;
+    selectedWeek = period;
+    loadWeek(period);
+  }
+
+  function closeWeek() {
+    activeController?.abort();
+    selectedWeek = null;
+    weekStats = null;
+    weekLoading = false;
+    weekError = '';
   }
 
   async function load() {
@@ -137,6 +194,7 @@
             aria-pressed={days === period.days}
             onclick={() => {
               days = period.days;
+              closeWeek();
               load();
             }}
           >
@@ -186,54 +244,127 @@
           {/each}
         </div>
 
-        <div class="chart-wrap">
-          <Chart
-            data={chartData}
-            x="Period"
-            xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
-            y="values"
-            yNice
-            c="Path"
-            cDomain={colorKeys}
-            cRange={keyColors}
-            padding={{ left: 32, bottom: 20, top: 8 }}
-            tooltipContext={{ mode: 'band' }}
-            height={300}
-          >
-            {#snippet children({ context })}
-              <Layer>
-                <Axis placement="left" grid rule />
-                <Axis placement="bottom" rule />
-                <Bars strokeWidth={1} />
-                <Highlight area />
-              </Layer>
+        {#if !selectedWeek}
+          <div class="chart-wrap">
+            <Chart
+              data={chartData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              y="values"
+              yNice
+              c="Path"
+              cDomain={colorKeys}
+              cRange={keyColors}
+              padding={{ left: 32, bottom: 20, top: 8 }}
+              tooltipContext={{ mode: 'band' }}
+              height={300}
+            >
+              {#snippet children({ context })}
+                <Layer>
+                  <Axis placement="left" grid rule />
+                  <Axis placement="bottom" rule />
+                  <Bars strokeWidth={1} onBarClick={(e, { data }) => data?.Period && openWeek(data.Period)} />
+                  <Highlight
+                    area
+                    onAreaClick={(e, { data }) => data?.Period && openWeek(data.Period)}
+                  />
+                </Layer>
 
-              <Tooltip.Root>
-                {#snippet children({ data })}
-                  <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
-                  <Tooltip.List>
-                    {#each data.data as item}
+                <Tooltip.Root>
+                  {#snippet children({ data })}
+                    <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
+                    <Tooltip.List>
+                      {#each data.data as item}
+                        <Tooltip.Item
+                          label={item.Path}
+                          value={item.value}
+                          color={context.cScale?.(item.Path)}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      {/each}
+                      <Tooltip.Separator />
                       <Tooltip.Item
-                        label={item.Path}
-                        value={item.value}
-                        color={context.cScale?.(item.Path)}
+                        label="Gesamt"
+                        value={sum([...data.data], (d: StackItem) => d.value)}
                         format="integer"
                         valueAlign="right"
                       />
+                    </Tooltip.List>
+                  {/snippet}
+                </Tooltip.Root>
+              {/snippet}
+            </Chart>
+          </div>
+        {:else}
+          <div class="week-zoom-head">
+            <button type="button" class="zoom-back" onclick={closeWeek}>Zurück zur Wochenübersicht</button>
+            <h3 class="device-title">{formatWeekLabel(selectedWeek)} — Aufrufe pro Tag</h3>
+          </div>
+
+          {#if weekError}
+            <p class="error" role="alert">{weekError}</p>
+          {/if}
+
+          {#if weekLoading}
+            <div class="chart-loading">
+              <p class="loading-text">Lade Daten...</p>
+            </div>
+          {:else if weekStats && weekStats.Total > 0}
+            <div class="chart-wrap">
+              <Chart
+                data={weekRows}
+                x="Period"
+                xScale={scalePoint().padding(0.3)}
+                y="value"
+                yBaseline={0}
+                yNice
+                series={weekSeries}
+                seriesLayout="stack"
+                padding={{ left: 32, bottom: 20, top: 8 }}
+                tooltipContext={{ mode: 'band' }}
+                height={300}
+              >
+                {#snippet children({ context })}
+                  <Layer>
+                    <Axis placement="left" grid rule />
+                    <Axis placement="bottom" rule />
+                    {#each context.series.visibleSeries as s (s.key)}
+                      <Area seriesKey={s.key} fillOpacity={0.35} line />
                     {/each}
-                    <Tooltip.Separator />
-                    <Tooltip.Item
-                      label="Gesamt"
-                      value={sum([...data.data], (d: StackItem) => d.value)}
-                      format="integer"
-                      valueAlign="right"
-                    />
-                  </Tooltip.List>
+                    <Highlight area />
+                  </Layer>
+
+                  <Tooltip.Root>
+                    {#snippet children({ data })}
+                      <Tooltip.Header>{formatDayLabel(data.Period)}</Tooltip.Header>
+                      <Tooltip.List>
+                        {#each data.series as item (item.key)}
+                          <Tooltip.Item
+                            label={item.label}
+                            value={item.value}
+                            color={item.color}
+                            format="integer"
+                            valueAlign="right"
+                          />
+                        {/each}
+                        <Tooltip.Separator />
+                        <Tooltip.Item
+                          label="Gesamt"
+                          value={sum([...data.series], (d: { value?: number }) => d.value ?? 0)}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      </Tooltip.List>
+                    {/snippet}
+                  </Tooltip.Root>
                 {/snippet}
-              </Tooltip.Root>
-            {/snippet}
-          </Chart>
-        </div>
+              </Chart>
+            </div>
+          {:else}
+            <p class="chart-message">Keine Seitenaufrufe in dieser Woche.</p>
+          {/if}
+        {/if}
 
         <div class="table-wrap">
           <table class="pageview-table">
@@ -244,7 +375,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each stats?.TopPaths ?? [] as path}
+              {#each (selectedWeek ? weekStats?.TopPaths : stats?.TopPaths) ?? [] as path}
                 <tr>
                   <th scope="row">{path.Path}</th>
                   <td class="table-count">{formatCount(path.Count)}</td>
@@ -665,6 +796,35 @@
   .device-title {
     margin: 0;
     font-size: 1.1rem;
+  }
+
+  .week-zoom-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .zoom-back {
+    border: 1px solid rgba(0, 32, 73, 0.15);
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    padding: 0.5rem 1rem;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    cursor: pointer;
+  }
+
+  .zoom-back:hover {
+    background-color: var(--himmelblau);
+  }
+
+  .zoom-back:focus-visible {
+    outline: 2px solid var(--taubenblau);
+    outline-offset: -2px;
   }
 
   .device-row {
