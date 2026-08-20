@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Area, Axis, Bars, Chart, Highlight, Layer, Spline, Tooltip, groupStackData } from 'layerchart';
+  import { AreaChart, Axis, Bars, Chart, Highlight, Layer, LineChart, Tooltip, groupStackData, type ChartState } from 'layerchart';
   import { scaleBand } from 'd3-scale';
   import { sum } from 'd3-array';
   import { BarChart3, Eye, Files } from '@lucide/svelte';
@@ -12,7 +12,6 @@
   type Granularity = 'week' | 'day' | 'hour';
   type GroupBy = 'total' | 'path' | 'device' | 'origin';
   type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
-  type SeriesRow = { Period: string; Group: string; Count: number };
   type StatsResult = {
     Total: number;
     UniquePaths: number;
@@ -101,14 +100,6 @@
   });
 
   const groupedSeries = $derived(colorKeys.map((key, index) => ({ key, color: keyColors[index] })));
-
-  const rowsByGroup = $derived.by(() => {
-    const map = new Map<string, SeriesRow[]>();
-    for (const key of colorKeys) {
-      map.set(key, seriesRows.filter((row) => row.Group === key));
-    }
-    return map;
-  });
 
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
@@ -305,6 +296,33 @@
         </div>
 
         <div class="chart-wrap">
+          {#snippet explorerTooltip({ context }: { context: ChartState<any> })}
+            {@const visibleSeries = context.tooltip.series.filter((s) => s.visible)}
+            <Tooltip.Root {context}>
+              {#snippet children({ data })}
+                <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                <Tooltip.List>
+                  {#each visibleSeries as s (s.key)}
+                    <Tooltip.Item
+                      label={s.label}
+                      value={s.value}
+                      color={s.color}
+                      format="integer"
+                      valueAlign="right"
+                    />
+                  {/each}
+                  <Tooltip.Separator />
+                  <Tooltip.Item
+                    label="Gesamt"
+                    value={sum(visibleSeries, (s) => s.value ?? 0)}
+                    format="integer"
+                    valueAlign="right"
+                  />
+                </Tooltip.List>
+              {/snippet}
+            </Tooltip.Root>
+          {/snippet}
+
           {#if chartType === 'bars-stacked'}
             <Chart
               data={stackedData}
@@ -400,72 +418,37 @@
                 </Tooltip.Root>
               {/snippet}
             </Chart>
-          {:else}
-            <Chart
-              data={seriesRows}
+          {:else if chartType === 'line'}
+            <LineChart
+              data={groupedData}
               x="Period"
               xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
-              y="Count"
-              yNice
-              c="Group"
-              cDomain={colorKeys}
-              cRange={keyColors}
-              padding={{ left: 32, bottom: 20, top: 8 }}
-              tooltipContext={{ mode: 'band' }}
+              series={groupedSeries}
+              padding={{ left: 32, bottom: 20, top: 36 }}
               height={300}
-            >
-              {#snippet children({ context })}
-                <Layer>
-                  <Axis placement="left" grid rule />
-                  <Axis placement="bottom" rule format={formatAxisLabel} />
-                  {#each colorKeys as key, index}
-                    {#if chartType === 'line'}
-                      <Spline
-                        data={rowsByGroup.get(key) ?? []}
-                        x="Period"
-                        y="Count"
-                        stroke={keyColors[index]}
-                        strokeWidth={2}
-                      />
-                    {:else}
-                      <Area
-                        data={rowsByGroup.get(key) ?? []}
-                        x="Period"
-                        y="Count"
-                        fill={keyColors[index]}
-                        opacity={0.8}
-                        line={{ stroke: keyColors[index], strokeWidth: 2 }}
-                      />
-                    {/if}
-                  {/each}
-                  <Highlight area />
-                </Layer>
-
-                <Tooltip.Root>
-                  {#snippet children({ data })}
-                    <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
-                    <Tooltip.List>
-                      {#each data.data as item}
-                        <Tooltip.Item
-                          label={item.Group}
-                          value={item.Count}
-                          color={context.cScale?.(item.Group)}
-                          format="integer"
-                          valueAlign="right"
-                        />
-                      {/each}
-                      <Tooltip.Separator />
-                      <Tooltip.Item
-                        label="Gesamt"
-                        value={sum([...data.data], (d: Bucket) => d.Count)}
-                        format="integer"
-                        valueAlign="right"
-                      />
-                    </Tooltip.List>
-                  {/snippet}
-                </Tooltip.Root>
-              {/snippet}
-            </Chart>
+              legend={{ placement: 'top' }}
+              tooltip={explorerTooltip}
+              props={{
+                spline: { strokeWidth: 2 },
+                xAxis: { format: formatAxisLabel },
+              }}
+            />
+          {:else}
+            <AreaChart
+              data={groupedData}
+              x="Period"
+              y={colorKeys}
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              series={groupedSeries}
+              padding={{ left: 32, bottom: 20, top: 36 }}
+              height={300}
+              legend={{ placement: 'top' }}
+              tooltip={explorerTooltip}
+              props={{
+                area: { line: { strokeWidth: 2 } },
+                xAxis: { format: formatAxisLabel },
+              }}
+            />
           {/if}
         </div>
 
