@@ -30,15 +30,26 @@ public sealed class GetPageViewStats
 			days = Math.Min(requestedDays, TableLookbackDays);
 		}
 
-		Result result = await _handler.HandleAsync(new Query(days), req.FunctionContext.CancellationToken);
+		string? granularityParam = req.Query["granularity"];
+		string granularity = granularityParam is "week" or "day" or "hour" ? granularityParam : "week";
+
+		string? groupByParam = req.Query["groupBy"];
+		string groupBy = groupByParam is "total" or "path" or "device" or "origin" ? groupByParam : "path";
+
+		if (granularity == "hour")
+		{
+			days = Math.Min(days, 28);
+		}
+
+		Result result = await _handler.HandleAsync(new Query(days, granularity, groupBy), req.FunctionContext.CancellationToken);
 		var response = req.CreateResponse(HttpStatusCode.OK);
 		await response.WriteAsJsonAsync(result).ConfigureAwait(false);
 		return response;
 	}
 
-	public sealed record Query(int Days);
+	public sealed record Query(int Days, string Granularity, string GroupBy);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<PeriodBucket> Series, IReadOnlyList<PathPeriodBucket> PathSeries, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<DevicePeriodBucket> DeviceSeries, IReadOnlyList<OriginCount> Origins, IReadOnlyList<OriginPeriodBucket> OriginSeries);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<OriginCount> Origins, IReadOnlyList<Bucket> Series, string Granularity, string GroupBy);
 
 	public sealed record PathCount(string Path, int Count);
 
@@ -46,13 +57,7 @@ public sealed class GetPageViewStats
 
 	public sealed record OriginCount(string Domain, int Count);
 
-	public sealed record PeriodBucket(string Period, int Count);
-
-	public sealed record PathPeriodBucket(string Period, string Path, int Count);
-
-	public sealed record DevicePeriodBucket(string Period, string Category, int Count);
-
-	public sealed record OriginPeriodBucket(string Period, string Domain, int Count);
+	public sealed record Bucket(string Period, string? Group, int Count);
 
 	public interface IPageViewReadStore
 	{
@@ -146,57 +151,74 @@ public sealed class GetPageViewStats
 			}
 			HashSet<string> chartOriginSet = new(chartOrigins, StringComparer.OrdinalIgnoreCase);
 
-			var buckets = new Dictionary<DateTime, int>();
-			var pathBuckets = new Dictionary<(DateTime Week, string Path), int>();
-			var deviceBuckets = new Dictionary<(DateTime Week, string Category), int>();
-			var originBuckets = new Dictionary<(DateTime Week, string Domain), int>();
+			var buckets = new Dictionary<(DateTime Period, string? Group), int>();
 			foreach (PageViewEntity pageView in inWindow)
 			{
-				DateTime weekStart = GetWeekStart(pageView.Timestamp!.Value);
-				buckets[weekStart] = buckets.GetValueOrDefault(weekStart) + 1;
+				DateTime period = GetPeriodStart(pageView.Timestamp!.Value, query.Granularity);
 
-				string path = chartPathSet.Contains(pageView.Path) ? pageView.Path : OtherBucketLabel;
-				var key = (weekStart, path);
-				pathBuckets[key] = pathBuckets.GetValueOrDefault(key) + 1;
-
-				string category = GetDeviceCategory(pageView.ViewportWidth);
-				var deviceKey = (weekStart, category);
-				deviceBuckets[deviceKey] = deviceBuckets.GetValueOrDefault(deviceKey) + 1;
-
-				if (!string.IsNullOrWhiteSpace(pageView.ReferrerHost) && !IsInternalReferrer(pageView.ReferrerHost))
+				string? group;
+				if (query.GroupBy == "total")
 				{
+					group = null;
+				}
+				else if (query.GroupBy == "path")
+				{
+					group = chartPathSet.Contains(pageView.Path) ? pageView.Path : OtherBucketLabel;
+				}
+				else if (query.GroupBy == "device")
+				{
+					group = GetDeviceCategory(pageView.ViewportWidth);
+				}
+				else
+				{
+					if (string.IsNullOrWhiteSpace(pageView.ReferrerHost) || IsInternalReferrer(pageView.ReferrerHost))
+					{
+						continue;
+					}
+
 					string domain = pageView.ReferrerHost.Trim().ToLowerInvariant();
-					domain = chartOriginSet.Contains(domain) ? domain : OtherBucketLabel;
-					var originKey = (weekStart, domain);
-					originBuckets[originKey] = originBuckets.GetValueOrDefault(originKey) + 1;
+					group = chartOriginSet.Contains(domain) ? domain : OtherBucketLabel;
 				}
+
+				var key = (period, group);
+				buckets[key] = buckets.GetValueOrDefault(key) + 1;
 			}
 
-			List<PeriodBucket> series = [];
-			List<PathPeriodBucket> pathSeries = [];
-			List<DevicePeriodBucket> deviceSeries = [];
-			List<OriginPeriodBucket> originSeries = [];
-			for (DateTime week = GetWeekStart(windowStart); week <= GetWeekStart(now); week = week.AddDays(7))
+			List<Bucket> series = [];
+			DateTime periodStart = GetPeriodStart(windowStart, query.Granularity);
+			DateTime lastPeriodStart = GetPeriodStart(now, query.Granularity);
+			TimeSpan step = query.Granularity switch
 			{
-				series.Add(new PeriodBucket(week.ToString("yyyy-MM-dd"), buckets.GetValueOrDefault(week)));
+				"hour" => TimeSpan.FromHours(1),
+				"day" => TimeSpan.FromDays(1),
+				_ => TimeSpan.FromDays(7),
+			};
 
-				foreach (string path in chartPaths)
+			IReadOnlyList<string> groups = query.GroupBy switch
+			{
+				"device" => DeviceCategories,
+				"origin" => chartOrigins,
+				_ => chartPaths,
+			};
+
+			for (DateTime period = periodStart; period <= lastPeriodStart; period += step)
+			{
+				string periodString = FormatPeriod(period, query.Granularity);
+
+				if (query.GroupBy == "total")
 				{
-					pathSeries.Add(new PathPeriodBucket(week.ToString("yyyy-MM-dd"), path, pathBuckets.GetValueOrDefault((week, path))));
+					series.Add(new Bucket(periodString, null, buckets.GetValueOrDefault((period, null))));
 				}
-
-				foreach (string category in DeviceCategories)
+				else
 				{
-					deviceSeries.Add(new DevicePeriodBucket(week.ToString("yyyy-MM-dd"), category, deviceBuckets.GetValueOrDefault((week, category))));
-				}
-
-				foreach (string domain in chartOrigins)
-				{
-					originSeries.Add(new OriginPeriodBucket(week.ToString("yyyy-MM-dd"), domain, originBuckets.GetValueOrDefault((week, domain))));
+					foreach (string group in groups)
+					{
+						series.Add(new Bucket(periodString, group, buckets.GetValueOrDefault((period, group))));
+					}
 				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, series, pathSeries, devices, deviceSeries, origins, originSeries);
+			return new Result(total, uniquePaths, topPaths, devices, origins, series, query.Granularity, query.GroupBy);
 		}
 
 		private static bool IsInternalReferrer(string referrerHost)
@@ -223,6 +245,21 @@ public sealed class GetPageViewStats
 			DateTime date = value.UtcDateTime.Date;
 			int diff = ((int)date.DayOfWeek + 6) % 7;
 			return date.AddDays(-diff);
+		}
+
+		private static DateTime GetPeriodStart(DateTimeOffset value, string granularity)
+		{
+			return granularity switch
+			{
+				"day" => value.UtcDateTime.Date,
+				"hour" => value.UtcDateTime.Date.AddHours(value.UtcDateTime.Hour),
+				_ => GetWeekStart(value),
+			};
+		}
+
+		private static string FormatPeriod(DateTime period, string granularity)
+		{
+			return granularity == "hour" ? period.ToString("yyyy-MM-dd'T'HH:mm") : period.ToString("yyyy-MM-dd");
 		}
 	}
 }

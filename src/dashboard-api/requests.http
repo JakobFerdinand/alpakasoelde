@@ -22,25 +22,46 @@ GET {{base}}/api/pageviews/stats
 #   "total": 42,
 #   "uniquePaths": 5,
 #   "topPaths": [ { "path": "/ueber-uns", "count": 12 } ],
-#   "series": [ { "period": "2025-06-09", "count": 5 } ],
-#   "pathSeries": [ { "period": "2025-06-09", "path": "/ueber-uns", "count": 5 } ],
-#   "deviceSeries": [
-#     { "period": "2025-06-09", "category": "Mobil", "count": 3 },
-#     { "period": "2025-06-09", "category": "Tablet", "count": 0 },
-#     { "period": "2025-06-09", "category": "Laptop", "count": 2 },
-#     { "period": "2025-06-09", "category": "Breitbild", "count": 0 }
-#   ],
+#   "series": [ { "period": "2025-06-09", "group": "/ueber-uns", "count": 5 } ],
 #   "devices": [
 #     { "category": "Mobil", "count": 20 },
 #     { "category": "Laptop", "count": 15 },
 #     { "category": "Tablet", "count": 5 },
 #     { "category": "Breitbild", "count": 2 }
-#   ]
+#   ],
+#   "granularity": "week",
+#   "groupBy": "path"
 # }
 
 ###
 
 GET {{base}}/api/pageviews/stats?days=90
+
+###
+
+GET {{base}}/api/pageviews/stats?days=90&granularity=day
+
+###
+
+GET {{base}}/api/pageviews/stats?granularity=hour
+
+###
+
+# days=90 must be clamped to 28 when granularity is hour
+
+GET {{base}}/api/pageviews/stats?granularity=hour&days=90
+
+###
+
+GET {{base}}/api/pageviews/stats?groupBy=total
+
+###
+
+GET {{base}}/api/pageviews/stats?groupBy=device
+
+###
+
+GET {{base}}/api/pageviews/stats?groupBy=origin
 
 ###
 

@@ -1,34 +1,50 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Axis, Bars, Chart, Highlight, Layer, Tooltip, groupStackData } from 'layerchart';
+  import { AreaChart, Axis, Bars, Chart, Highlight, Layer, LineChart, Tooltip, groupStackData, type ChartState } from 'layerchart';
   import { scaleBand } from 'd3-scale';
   import { sum } from 'd3-array';
-  import { BarChart3, Eye, Files } from '@lucide/svelte';
+  import { BarChart3, Eye, Files, ZoomOut } from '@lucide/svelte';
 
-  type PeriodBucket = { Period: string; Count: number };
   type PathCount = { Path: string; Count: number };
-  type PathBucket = { Period: string; Path: string; Count: number };
   type DeviceCount = { Category: string; Count: number };
-  type DeviceBucket = { Period: string; Category: string; Count: number };
   type OriginCount = { Domain: string; Count: number };
-  type OriginBucket = { Period: string; Domain: string; Count: number };
+  type Bucket = { Period: string; Group: string | null; Count: number };
+  type Granularity = 'week' | 'day' | 'hour';
+  type GroupBy = 'total' | 'path' | 'device' | 'origin';
+  type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
   type StatsResult = {
     Total: number;
     UniquePaths: number;
     TopPaths: PathCount[];
-    Series: PeriodBucket[];
-    PathSeries: PathBucket[];
     Devices: DeviceCount[];
-    DeviceSeries?: DeviceBucket[];
-    Origins?: OriginCount[];
-    OriginSeries?: OriginBucket[];
+    Origins: OriginCount[];
+    Series: Bucket[];
+    Granularity: Granularity;
+    GroupBy: GroupBy;
   };
-  type StackItem = { kind: string; value: number };
+  type StackItem = { Group: string; value: number };
 
   const periods = [
     { label: '4 Wochen', days: 28 },
     { label: '3 Monate', days: 90 },
     { label: '6 Monate', days: 180 },
+  ];
+  const granularities: { label: string; value: Granularity }[] = [
+    { label: 'Stunde', value: 'hour' },
+    { label: 'Tag', value: 'day' },
+    { label: 'Woche', value: 'week' },
+  ];
+  const groupings: { label: string; value: GroupBy }[] = [
+    { label: 'Gesamt', value: 'total' },
+    { label: 'Seite', value: 'path' },
+    { label: 'Gerätekategorie', value: 'device' },
+    { label: 'Herkunftsdomain', value: 'origin' },
+  ];
+  const chartTypes: { label: string; value: ChartType }[] = [
+    { label: 'Säulen gestapelt', value: 'bars-stacked' },
+    { label: 'Säulen gruppiert', value: 'bars-grouped' },
+    { label: 'Linien', value: 'line' },
+    { label: 'Fläche', value: 'area' },
   ];
   const chartPalette = [
     'var(--weidegruen)',
@@ -39,50 +55,73 @@
     '#5f6b8a',
     '#8a6a9a',
   ];
-  const deviceCategories = ['Mobil', 'Tablet', 'Laptop', 'Breitbild'];
-  const deviceColors = ['var(--weidegruen)', 'var(--backstein)', 'var(--himmelblau)', 'var(--taubenblau)'];
+  const maxZoomScale = 56;
 
   let activeController: AbortController | null = null;
 
   let days = $state(28);
+  let granularity = $state<Granularity>('week');
+  let groupBy = $state<GroupBy>('path');
+  let chartType = $state<ChartType>('bars-stacked');
   let loading = $state(true);
   let error = $state('');
   let stats = $state<StatsResult | null>(null);
+  let chartCtx = $state<ChartState<any, any, any> | undefined>();
+  let zoomed = $state(false);
 
-  const chartData = $derived.by(() => {
-    if (!stats?.PathSeries?.length) return [];
-    return groupStackData(
-      stats.PathSeries.map((row) => ({ Period: row.Period, Path: row.Path, value: row.Count })),
-      { xKey: 'Period', stackBy: 'Path' },
-    );
-  });
-  const colorKeys = $derived(Array.from(new Set((stats?.PathSeries ?? []).map((row) => row.Path))));
+  const hourDisabled = $derived(days > 28);
+
+  const seriesRows = $derived(
+    (stats?.Series ?? []).map((row) => ({
+      Period: row.Period,
+      Group: row.Group ?? 'Gesamt',
+      Count: row.Count,
+    })),
+  );
+  const colorKeys = $derived(Array.from(new Set(seriesRows.map((row) => row.Group))));
   const keyColors = $derived(colorKeys.map((_, index) => chartPalette[index % chartPalette.length]));
-  const deviceChartData = $derived.by(() => {
-    if (!stats?.DeviceSeries?.length) return [];
-    return groupStackData(
-      stats.DeviceSeries.map((row) => ({ Period: row.Period, Category: row.Category, value: row.Count })),
-      { xKey: 'Period', stackBy: 'Category' },
-    );
+
+  const stackedData = $derived.by(() =>
+    seriesRows.length
+      ? groupStackData(
+          seriesRows.map((row) => ({ Period: row.Period, Group: row.Group, value: row.Count })),
+          { xKey: 'Period', stackBy: 'Group' },
+        )
+      : [],
+  );
+
+  const groupedData = $derived.by(() => {
+    if (!seriesRows.length) return [];
+    const periods = Array.from(new Set(seriesRows.map((row) => row.Period)));
+    return periods.map((period) => {
+      const row: Record<string, string | number> = { Period: period };
+      for (const key of colorKeys) {
+        row[key] = seriesRows.find((r) => r.Period === period && r.Group === key)?.Count ?? 0;
+      }
+      return row;
+    });
   });
-  const hasDeviceSeries = $derived((stats?.DeviceSeries ?? []).some((row) => row.Count > 0));
-  const originKeys = $derived(Array.from(new Set((stats?.OriginSeries ?? []).map((row) => row.Domain))));
-  const originColors = $derived(originKeys.map((_, index) => chartPalette[index % chartPalette.length]));
-  const originChartData = $derived.by(() => {
-    if (!stats?.OriginSeries?.length) return [];
-    return groupStackData(
-      stats.OriginSeries.map((row) => ({ Period: row.Period, Domain: row.Domain, value: row.Count })),
-      { xKey: 'Period', stackBy: 'Domain' },
-    );
-  });
-  const hasOriginSeries = $derived((stats?.OriginSeries ?? []).some((row) => row.Count > 0));
+
+  const groupedSeries = $derived(colorKeys.map((key, index) => ({ key, color: keyColors[index] })));
 
   const total = $derived(stats?.Total ?? 0);
   const topPath = $derived(stats?.TopPaths[0] ?? null);
   const uniquePages = $derived(stats?.UniquePaths ?? 0);
   const hasData = $derived(Boolean(stats) && stats!.Total > 0);
   const devices = $derived(stats?.Devices ?? []);
-  const deviceTotal = $derived(devices.reduce((sum, device) => sum + device.Count, 0));
+  const deviceTotal = $derived(devices.reduce((acc, device) => acc + device.Count, 0));
+  const granularityLabel = $derived(
+    granularity === 'hour' ? 'Stunde' : granularity === 'day' ? 'Tag' : 'Woche',
+  );
+  const groupLabel = $derived(
+    groupBy === 'total'
+      ? 'Gesamt'
+      : groupBy === 'device'
+        ? 'Gerätekategorie'
+        : groupBy === 'origin'
+          ? 'Herkunftsdomain'
+          : 'Seite',
+  );
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
@@ -92,19 +131,46 @@
     return new Intl.NumberFormat('de-AT', { style: 'percent', maximumFractionDigits: 1 }).format(value);
   }
 
-  function formatWeekLabel(period: string): string {
-    const [year, month, day] = period.split('-');
-    return `Woche ab ${day}.${month}.${year}`;
+  function formatPeriodLabel(period: string): string {
+    const [datePart, timePart] = period.split('T');
+    const [year, month, day] = datePart.split('-');
+    if (timePart) return `${day}.${month}. ${timePart}`;
+    if (granularity === 'week') return `Woche ab ${day}.${month}.${year}`;
+    return `${day}.${month}.${year}`;
+  }
+
+  function formatAxisLabel(period: string): string {
+    const [datePart, timePart] = period.split('T');
+    const [year, month, day] = datePart.split('-');
+    if (timePart) return `${day}.${month}. ${timePart}`;
+    return `${day}.${month}.${year}`;
+  }
+
+  function setPeriod(daysValue: number) {
+    days = daysValue;
+    if (granularity === 'hour' && daysValue > 28) {
+      granularity = 'day';
+    }
+    load();
+  }
+
+  function handleTransform({ scale, translate }: { scale: number; translate: { x: number; y: number } }) {
+    zoomed = scale > 1 || translate.x !== 0;
   }
 
   async function load() {
     activeController?.abort();
+    zoomed = false;
+    chartCtx?.transform.reset();
     const controller = new AbortController();
     activeController = controller;
     loading = true;
     error = '';
     try {
-      const res = await fetch(`/api/pageviews/stats?days=${days}`, { signal: controller.signal });
+      const res = await fetch(
+        `/api/pageviews/stats?days=${days}&granularity=${granularity}&groupBy=${groupBy}`,
+        { signal: controller.signal },
+      );
       if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
       if (controller.signal.aborted) return;
       stats = await res.json();
@@ -128,21 +194,86 @@
     <div class="pageview-stats-card card">
       <h2 class="stats-title">Seitenaufrufe</h2>
 
-      <div class="period-toggle" role="group" aria-label="Zeitraum wählen">
-        {#each periods as period}
+      <div class="chart-toolbar">
+        <div class="period-toggle" role="group" aria-label="Zeitgranularität wählen">
+          {#each granularities as option}
+            <button
+              type="button"
+              class="period-button"
+              class:is-active={granularity === option.value}
+              class:is-disabled={option.value === 'hour' && hourDisabled}
+              aria-pressed={granularity === option.value}
+              disabled={option.value === 'hour' && hourDisabled}
+              title={option.value === 'hour' && hourDisabled ? 'Stundengenauigkeit nur für 4 Wochen verfügbar' : undefined}
+              onclick={() => {
+                granularity = option.value;
+                load();
+              }}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
+
+        <div class="period-toggle" role="group" aria-label="Gruppierung wählen">
+          {#each groupings as option}
+            <button
+              type="button"
+              class="period-button"
+              class:is-active={groupBy === option.value}
+              aria-pressed={groupBy === option.value}
+              onclick={() => {
+                groupBy = option.value;
+                load();
+              }}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
+
+        <div class="period-toggle" role="group" aria-label="Diagrammtyp wählen">
+          {#each chartTypes as option}
+            <button
+              type="button"
+              class="period-button"
+              class:is-active={chartType === option.value}
+              aria-pressed={chartType === option.value}
+              onclick={() => {
+                chartType = option.value;
+                zoomed = false;
+              }}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
+
+        <div class="period-toggle" role="group" aria-label="Zeitraum wählen">
+          {#each periods as period}
+            <button
+              type="button"
+              class="period-button"
+              class:is-active={days === period.days}
+              aria-pressed={days === period.days}
+              onclick={() => setPeriod(period.days)}
+            >
+              {period.label}
+            </button>
+          {/each}
+        </div>
+
+        {#if zoomed}
           <button
             type="button"
-            class="period-button"
-            class:is-active={days === period.days}
-            aria-pressed={days === period.days}
-            onclick={() => {
-              days = period.days;
-              load();
-            }}
+            class="period-button zoom-reset"
+            title="Zoom zurücksetzen"
+            onclick={() => chartCtx?.transform.reset()}
           >
-            {period.label}
+            <ZoomOut class="zoom-reset-icon" aria-hidden="true" />
+            Zoom zurücksetzen
           </button>
-        {/each}
+        {/if}
       </div>
 
       {#if error}
@@ -187,52 +318,176 @@
         </div>
 
         <div class="chart-wrap">
-          <Chart
-            data={chartData}
-            x="Period"
-            xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
-            y="values"
-            yNice
-            c="Path"
-            cDomain={colorKeys}
-            cRange={keyColors}
-            padding={{ left: 32, bottom: 20, top: 8 }}
-            tooltipContext={{ mode: 'band' }}
-            height={300}
-          >
-            {#snippet children({ context })}
-              <Layer>
-                <Axis placement="left" grid rule />
-                <Axis placement="bottom" rule />
-                <Bars strokeWidth={1} />
-                <Highlight area />
-              </Layer>
-
-              <Tooltip.Root>
-                {#snippet children({ data })}
-                  <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
-                  <Tooltip.List>
-                    {#each data.data as item}
-                      <Tooltip.Item
-                        label={item.Path}
-                        value={item.value}
-                        color={context.cScale?.(item.Path)}
-                        format="integer"
-                        valueAlign="right"
-                      />
-                    {/each}
-                    <Tooltip.Separator />
+          {#snippet explorerTooltip({ context }: { context: ChartState<any> })}
+            {@const visibleSeries = context.tooltip.series.filter((s) => s.visible)}
+            <Tooltip.Root {context}>
+              {#snippet children({ data })}
+                <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                <Tooltip.List>
+                  {#each visibleSeries as s (s.key)}
                     <Tooltip.Item
-                      label="Gesamt"
-                      value={sum([...data.data], (d: StackItem) => d.value)}
+                      label={s.label}
+                      value={s.value}
+                      color={s.color}
                       format="integer"
                       valueAlign="right"
                     />
-                  </Tooltip.List>
-                {/snippet}
-              </Tooltip.Root>
-            {/snippet}
-          </Chart>
+                  {/each}
+                  <Tooltip.Separator />
+                  <Tooltip.Item
+                    label="Gesamt"
+                    value={sum(visibleSeries, (s) => s.value ?? 0)}
+                    format="integer"
+                    valueAlign="right"
+                  />
+                </Tooltip.List>
+              {/snippet}
+            </Tooltip.Root>
+          {/snippet}
+
+          {#if chartType === 'bars-stacked'}
+            <Chart
+              data={stackedData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              y="values"
+              yNice
+              c="Group"
+              cDomain={colorKeys}
+              cRange={keyColors}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              padding={{ left: 32, bottom: 20, top: 8 }}
+              tooltipContext={{ mode: 'band' }}
+              height={300}
+            >
+              {#snippet children({ context })}
+                <Layer>
+                  <Axis placement="left" grid rule />
+                  <Axis placement="bottom" rule format={formatAxisLabel} />
+                  <Bars strokeWidth={1} />
+                  <Highlight area />
+                </Layer>
+
+                <Tooltip.Root>
+                  {#snippet children({ data })}
+                    <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                    <Tooltip.List>
+                      {#each data.data as item}
+                        <Tooltip.Item
+                          label={item.Group}
+                          value={item.value}
+                          color={context.cScale?.(item.Group)}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      {/each}
+                      <Tooltip.Separator />
+                      <Tooltip.Item
+                        label="Gesamt"
+                        value={sum([...data.data], (d: StackItem) => d.value)}
+                        format="integer"
+                        valueAlign="right"
+                      />
+                    </Tooltip.List>
+                  {/snippet}
+                </Tooltip.Root>
+              {/snippet}
+            </Chart>
+          {:else if chartType === 'bars-grouped'}
+            <Chart
+              data={groupedData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              y={colorKeys}
+              yNice
+              series={groupedSeries}
+              seriesLayout="group"
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              padding={{ left: 32, bottom: 20, top: 8 }}
+              tooltipContext={{ mode: 'band' }}
+              height={300}
+            >
+              {#snippet children()}
+                <Layer>
+                  <Axis placement="left" grid rule />
+                  <Axis placement="bottom" rule format={formatAxisLabel} />
+                  {#each groupedSeries as series}
+                    <Bars seriesKey={series.key} x1={(d: Record<string, string | number>) => series.key} strokeWidth={1} />
+                  {/each}
+                  <Highlight area />
+                </Layer>
+
+                <Tooltip.Root>
+                  {#snippet children({ data })}
+                    <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                    <Tooltip.List>
+                      {#each groupedSeries as series, index}
+                        <Tooltip.Item
+                          label={series.key}
+                          value={data[series.key] ?? 0}
+                          color={keyColors[index]}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      {/each}
+                      <Tooltip.Separator />
+                      <Tooltip.Item
+                        label="Gesamt"
+                        value={sum(colorKeys, (key) => data[key] ?? 0)}
+                        format="integer"
+                        valueAlign="right"
+                      />
+                    </Tooltip.List>
+                  {/snippet}
+                </Tooltip.Root>
+              {/snippet}
+            </Chart>
+          {:else if chartType === 'line'}
+            <LineChart
+              data={groupedData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              series={groupedSeries}
+              padding={{ left: 32, bottom: 20, top: 36 }}
+              height={300}
+              legend={{ placement: 'top' }}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              tooltip={explorerTooltip}
+              props={{
+                spline: { strokeWidth: 2 },
+                xAxis: { format: formatAxisLabel },
+              }}
+            />
+          {:else}
+            <AreaChart
+              data={groupedData}
+              x="Period"
+              y={colorKeys}
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              series={groupedSeries}
+              padding={{ left: 32, bottom: 20, top: 36 }}
+              height={300}
+              legend={{ placement: 'top' }}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              tooltip={explorerTooltip}
+              props={{
+                area: { line: { strokeWidth: 2 } },
+                xAxis: { format: formatAxisLabel },
+              }}
+            />
+          {/if}
         </div>
 
         <div class="table-wrap">
@@ -254,88 +509,6 @@
           </table>
         </div>
 
-        {#if hasDeviceSeries}
-          <section class="device-chart" aria-labelledby="device-chart-title">
-            <h3 id="device-chart-title" class="device-title">Gerätekategorien nach Woche</h3>
-            <div class="chart-legend" aria-hidden="true">
-              {#each deviceCategories as category, index}
-                <span class="legend-item">
-                  <span class="legend-swatch" style="background-color: {deviceColors[index]}"></span>
-                  {category}
-                </span>
-              {/each}
-            </div>
-
-            <div class="chart-wrap">
-              <Chart
-                data={deviceChartData}
-                x="Period"
-                xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
-                y="values"
-                yNice
-                c="Category"
-                cDomain={deviceCategories}
-                cRange={deviceColors}
-                padding={{ left: 32, bottom: 20, top: 8 }}
-                tooltipContext={{ mode: 'band' }}
-                height={300}
-              >
-                {#snippet children({ context })}
-                  <Layer>
-                    <Axis placement="left" grid rule />
-                    <Axis placement="bottom" rule />
-                    <Bars strokeWidth={1} />
-                    <Highlight area />
-                  </Layer>
-
-                  <Tooltip.Root>
-                    {#snippet children({ data })}
-                      <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
-                      <Tooltip.List>
-                        {#each data.data as item}
-                          <Tooltip.Item
-                            label={item.Category}
-                            value={item.value}
-                            color={context.cScale?.(item.Category)}
-                            format="integer"
-                            valueAlign="right"
-                          />
-                        {/each}
-                        <Tooltip.Separator />
-                        <Tooltip.Item
-                          label="Gesamt"
-                          value={sum([...data.data], (d: StackItem) => d.value)}
-                          format="integer"
-                          valueAlign="right"
-                        />
-                      </Tooltip.List>
-                    {/snippet}
-                  </Tooltip.Root>
-                {/snippet}
-              </Chart>
-            </div>
-
-            <table class="sr-only-table">
-              <thead>
-                <tr>
-                  <th scope="col">Woche</th>
-                  <th scope="col">Gerätekategorie</th>
-                  <th scope="col">Aufrufe</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each stats?.DeviceSeries ?? [] as row}
-                  <tr>
-                    <th scope="row">{formatWeekLabel(row.Period)}</th>
-                    <td>{row.Category}</td>
-                    <td>{formatCount(row.Count)}</td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </section>
-        {/if}
-
         {#if devices.length > 0}
           <div class="device-block">
             <h3 class="device-title">Gerätekategorien</h3>
@@ -353,126 +526,41 @@
           </div>
         {/if}
 
-        {#if hasOriginSeries}
-          <section class="device-chart" aria-labelledby="origin-chart-title">
-            <h3 id="origin-chart-title" class="device-title">Herkunftsdomains nach Woche</h3>
-            <div class="chart-legend" aria-hidden="true">
-              {#each originKeys as domain, index}
-                <span class="legend-item">
-                  <span class="legend-swatch" style="background-color: {originColors[index]}"></span>
-                  {domain}
-                </span>
-              {/each}
-            </div>
-
-            <div class="chart-wrap">
-              <Chart
-                data={originChartData}
-                x="Period"
-                xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
-                y="values"
-                yNice
-                c="Domain"
-                cDomain={originKeys}
-                cRange={originColors}
-                padding={{ left: 32, bottom: 20, top: 8 }}
-                tooltipContext={{ mode: 'band' }}
-                height={300}
-              >
-                {#snippet children({ context })}
-                  <Layer>
-                    <Axis placement="left" grid rule />
-                    <Axis placement="bottom" rule />
-                    <Bars strokeWidth={1} />
-                    <Highlight area />
-                  </Layer>
-
-                  <Tooltip.Root>
-                    {#snippet children({ data })}
-                      <Tooltip.Header>{formatWeekLabel(data.Period)}</Tooltip.Header>
-                      <Tooltip.List>
-                        {#each data.data as item}
-                          <Tooltip.Item
-                            label={item.Domain}
-                            value={item.value}
-                            color={context.cScale?.(item.Domain)}
-                            format="integer"
-                            valueAlign="right"
-                          />
-                        {/each}
-                        <Tooltip.Separator />
-                        <Tooltip.Item
-                          label="Gesamt"
-                          value={sum([...data.data], (d: StackItem) => d.value)}
-                          format="integer"
-                          valueAlign="right"
-                        />
-                      </Tooltip.List>
-                    {/snippet}
-                  </Tooltip.Root>
-                {/snippet}
-              </Chart>
-            </div>
-
-            <div class="table-wrap">
-              <table class="pageview-table">
-                <thead>
-                  <tr>
-                    <th scope="col">Herkunftsdomain</th>
-                    <th scope="col" class="table-count">Aufrufe</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {#each stats?.Origins ?? [] as origin}
-                    <tr>
-                      <th scope="row">{origin.Domain}</th>
-                      <td class="table-count">{formatCount(origin.Count)}</td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
-
-            <table class="sr-only-table">
-              <thead>
+        <div class="table-wrap">
+          <table class="pageview-table">
+            <thead>
+              <tr>
+                <th scope="col">Herkunftsdomain</th>
+                <th scope="col" class="table-count">Aufrufe</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each stats?.Origins ?? [] as origin}
                 <tr>
-                  <th scope="col">Woche</th>
-                  <th scope="col">Herkunftsdomain</th>
-                  <th scope="col">Aufrufe</th>
+                  <th scope="row">{origin.Domain}</th>
+                  <td class="table-count">{formatCount(origin.Count)}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {#each stats?.OriginSeries ?? [] as row}
-                  <tr>
-                    <th scope="row">{formatWeekLabel(row.Period)}</th>
-                    <td>{row.Domain}</td>
-                    <td>{formatCount(row.Count)}</td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </section>
-        {/if}
+              {/each}
+            </tbody>
+          </table>
+        </div>
 
-        <h3 class="sr-only">Seitenaufrufe nach Woche und Seite</h3>
+        <h3 class="sr-only">Seitenaufrufe nach {granularityLabel} und {groupLabel}</h3>
         <table class="sr-only-table">
           <thead>
             <tr>
-              <th scope="col">Woche</th>
-              <th scope="col">Seite</th>
+              <th scope="col">{granularityLabel}</th>
+              <th scope="col">{groupLabel}</th>
               <th scope="col">Aufrufe</th>
             </tr>
           </thead>
           <tbody>
-            {#each stats?.Series ?? [] as bucket}
-              {@const bucketRows = (stats?.PathSeries ?? []).filter((row) => row.Period === bucket.Period && row.Count > 0)}
-              {#each bucketRows as row}
-                <tr>
-                  <th scope="row">{formatWeekLabel(bucket.Period)}</th>
-                  <td>{row.Path}</td>
-                  <td>{formatCount(row.Count)}</td>
-                </tr>
-              {/each}
+            {#each stats?.Series ?? [] as row}
+              <tr>
+                <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                <td>{row.Group ?? 'Gesamt'}</td>
+                <td>{formatCount(row.Count)}</td>
+              </tr>
             {/each}
           </tbody>
         </table>
@@ -496,6 +584,12 @@
   .stats-title {
     margin: 0;
     font-size: 1.875rem;
+  }
+
+  .chart-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .period-toggle {
@@ -530,9 +624,31 @@
     color: var(--schurwolle);
   }
 
+  .period-button.is-disabled,
+  .period-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .period-button:disabled:hover {
+    background-color: var(--schurwolle);
+  }
+
   .period-button:focus-visible {
     outline: 2px solid var(--taubenblau);
     outline-offset: -2px;
+  }
+
+  .zoom-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+  }
+
+  :global(.zoom-reset-icon) {
+    width: 1rem;
+    height: 1rem;
   }
 
   .kpi-row {
@@ -654,12 +770,6 @@
     border-radius: 0.5rem;
     background-color: var(--schurwolle);
     color: var(--taubenblau);
-  }
-
-  .device-chart {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
   }
 
   .device-title {
