@@ -90,7 +90,7 @@ New slice `src/dashboard-api/features/pageviews/GetPageViewStats.cs`, mirroring 
 
 ## Known limitations / notes
 
-- `dashboard-api.Tests`/`website-api.Tests` are not present in the working tree (their references were removed from `alpakasoelde.slnx`; `AGENTS.md` still lists test commands for them); verification relies on builds, `astro check`, and the `requests.http` samples.
+- No unit test project exists; verification relies on builds, `astro check`, and the `requests.http` samples.
 - Referrer is recorded as host only; visitors arriving with query-string parameters (e.g. UTM) are not attributed to campaigns — intentional to keep data non-identifying.
 - The dashboard stats store reads the last 180 days of daily partitions; the `days` query parameter is clamped to 180 (covers all presets 28/90/180).
 - Raw rows live in daily partitions; retention is enforced by the lazy write-path purge (36 months). The purge only runs while there is site traffic — during idle periods no pages views arrive anyway, so old data cannot accumulate past the limit without a subsequent purge. The `Cleanup` marker partition is lexicographically outside the `Pv|` range, so it never leaks into stats queries.

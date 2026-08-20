@@ -199,8 +199,7 @@ The largest migration (plan `003` built this page as imperative vanilla JS).
   currently show server-rendered shells (e.g. `gutscheine` SSR table) will show
   the island's own loading state instead — acceptable for an auth-gated tool, but
   noted as a visible change.
-- `dashboard-api.Tests`/`website-api.Tests` are referenced in `alpakasoelde.slnx`
-  and `AGENTS.md` but not present in the working tree; this plan is frontend-only,
+- No unit test project exists; this plan is frontend-only,
   so verification relies on builds, `astro check`, `svelte-check`, and manual QA.
 - Some `:global(...)` selectors in migrated components reach into shared layout
   classes (`global.css`); keep those references intentional and minimal.

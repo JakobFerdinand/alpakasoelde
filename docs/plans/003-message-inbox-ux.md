@@ -82,6 +82,5 @@ sorted rows. Delete mutates the array and re-renders.
 
 - Old messages (stored before the spam filter shipped) carry no `IsSpam` column
   and show no spam marker; the age marker still applies based on `Timestamp`.
-- The `dashboard-api.Tests`/`website-api.Tests` projects referenced in
-  `alpakasoelde.slnx` and `AGENTS.md` are not present in the working tree, so
-  verification relies on builds, `astro check`, and the `requests.http` samples.
+- No unit test project exists; verification relies on builds, `astro check`, and
+  the `requests.http` samples.

@@ -16,7 +16,6 @@
 - `cd src/dashboard && pnpm install && pnpm dev` — starts the internal dashboard; run `pnpm run build` before shipping changes.
 - `cd src/dashboard-api && dotnet run` — compiles and serves the dashboard API locally (Azure Functions Core Tools required). `dotnet run` builds the project and starts the Functions host from the correct output directory, so prefer it over `dotnet build` + `func start` for .NET isolated projects.
 - `cd src/website-api && dotnet run` — same workflow for the public API facade.
-- Tests: `dotnet test src/dashboard-api.Tests/dashboard-api.Tests.csproj` and `dotnet test src/website-api.Tests/website-api.Tests.csproj`; extend the slice-specific test suites when adding handlers or stores.
 - Infrastructure: `az bicep build --file infrastructure/main.bicep` and `az bicep build --file infrastructure/main-subscription.bicep` validate the templates; `az deployment group what-if --resource-group RG-Alpakasoelde --template-file infrastructure/main.bicep --parameters infrastructure/main.bicepparam` previews resource-group changes. Deploy with `az deployment group create ...` and `az deployment sub create --location westeurope --template-file infrastructure/main-subscription.bicep --parameters infrastructure/main-subscription.bicepparam`; the `infra-deploy.yml` workflow runs these on `main`. After deploys (or after rotating the storage key), re-apply SWA settings with `bash infrastructure/scripts/sync-swappsettings.sh`.
 
 ## Coding Style & Naming Conventions
@@ -42,7 +41,7 @@
 ## Testing Guidelines
 - Frontend validation comes from `astro check` during `pnpm run build`; run it before opening a PR.
 - Exercise Azure Functions with the REST samples in each `requests.http`; extend them alongside new endpoints.
-- No coverage target exists yet, but add unit tests when introducing new services or parsers.
+- No unit test project exists yet; validation relies on builds, `astro check`, and the `requests.http` samples.
 
 ## Commit & Pull Request Guidelines
 - Use Karma-style commit messages (also known as Conventional Commits): `<type>(<scope>): <subject>` with a lowercase, imperative subject without a trailing period, an optional body of bullet points, and a footer referencing issue/PR numbers. Allowed types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `perf`, `style`, `ci`, `build`, `revert`. Examples: `feat(website-api): add AI spam filter to contact form`, `fix(dashboard): correct event sorting`.

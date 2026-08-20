@@ -64,6 +64,6 @@ Add the Astro Svelte integration and a single Svelte component `components/Messa
 
 - Messages stored before the spam filter shipped deserialise with `IsSpam = false` and count toward "legit"; the existing age marker behaviour is unchanged.
 - The bucket window is inclusive of the current week; the "old messages" alert uses the same `30 * 6` day threshold as the inbox markers.
-- `dashboard-api.Tests`/`website-api.Tests` are referenced in `alpakasoelde.slnx` and `AGENTS.md` but not present in the working tree; verification relies on builds, `astro check`, and the `requests.http` samples.
+- No unit test project exists; verification relies on builds, `astro check`, and the `requests.http` samples.
 - Layerchart is the first framework component in the dashboard (AGENTS.md previously mandated Astro-only); this is an explicit decision to get a maintainable chart. The Svelte bundle only loads on the dashboard root for the widget.
 - Layerchart's default CSS variables can be themed via the repo tokens so the chart matches the design system; keep WCAG AA contrast for the legend and tooltip.
