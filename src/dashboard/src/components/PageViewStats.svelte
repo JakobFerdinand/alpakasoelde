@@ -3,7 +3,7 @@
   import { AreaChart, Axis, Bars, Chart, Highlight, Layer, LineChart, Tooltip, groupStackData, type ChartState } from 'layerchart';
   import { scaleBand } from 'd3-scale';
   import { sum } from 'd3-array';
-  import { BarChart3, Eye, Files } from '@lucide/svelte';
+  import { BarChart3, Eye, Files, ZoomOut } from '@lucide/svelte';
 
   type PathCount = { Path: string; Count: number };
   type DeviceCount = { Category: string; Count: number };
@@ -55,6 +55,7 @@
     '#5f6b8a',
     '#8a6a9a',
   ];
+  const maxZoomScale = 56;
 
   let activeController: AbortController | null = null;
 
@@ -65,6 +66,8 @@
   let loading = $state(true);
   let error = $state('');
   let stats = $state<StatsResult | null>(null);
+  let chartCtx = $state<ChartState<any, any, any> | undefined>();
+  let zoomed = $state(false);
 
   const hourDisabled = $derived(days > 28);
 
@@ -151,8 +154,14 @@
     load();
   }
 
+  function handleTransform({ scale, translate }: { scale: number; translate: { x: number; y: number } }) {
+    zoomed = scale > 1 || translate.x !== 0;
+  }
+
   async function load() {
     activeController?.abort();
+    zoomed = false;
+    chartCtx?.transform.reset();
     const controller = new AbortController();
     activeController = controller;
     loading = true;
@@ -232,6 +241,7 @@
               aria-pressed={chartType === option.value}
               onclick={() => {
                 chartType = option.value;
+                zoomed = false;
               }}
             >
               {option.label}
@@ -252,6 +262,18 @@
             </button>
           {/each}
         </div>
+
+        {#if zoomed}
+          <button
+            type="button"
+            class="period-button zoom-reset"
+            title="Zoom zurücksetzen"
+            onclick={() => chartCtx?.transform.reset()}
+          >
+            <ZoomOut class="zoom-reset-icon" aria-hidden="true" />
+            Zoom zurücksetzen
+          </button>
+        {/if}
       </div>
 
       {#if error}
@@ -333,6 +355,10 @@
               c="Group"
               cDomain={colorKeys}
               cRange={keyColors}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
               padding={{ left: 32, bottom: 20, top: 8 }}
               tooltipContext={{ mode: 'band' }}
               height={300}
@@ -379,6 +405,10 @@
               yNice
               series={groupedSeries}
               seriesLayout="group"
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
               padding={{ left: 32, bottom: 20, top: 8 }}
               tooltipContext={{ mode: 'band' }}
               height={300}
@@ -427,6 +457,10 @@
               padding={{ left: 32, bottom: 20, top: 36 }}
               height={300}
               legend={{ placement: 'top' }}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
               tooltip={explorerTooltip}
               props={{
                 spline: { strokeWidth: 2 },
@@ -443,6 +477,10 @@
               padding={{ left: 32, bottom: 20, top: 36 }}
               height={300}
               legend={{ placement: 'top' }}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
               tooltip={explorerTooltip}
               props={{
                 area: { line: { strokeWidth: 2 } },
@@ -599,6 +637,18 @@
   .period-button:focus-visible {
     outline: 2px solid var(--taubenblau);
     outline-offset: -2px;
+  }
+
+  .zoom-reset {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+  }
+
+  :global(.zoom-reset-icon) {
+    width: 1rem;
+    height: 1rem;
   }
 
   .kpi-row {
