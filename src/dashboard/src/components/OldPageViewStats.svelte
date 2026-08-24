@@ -1,17 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { ChartState } from 'layerchart';
+  import { AreaChart, Axis, Bars, Chart, Highlight, Layer, LineChart, Tooltip, groupStackData, type ChartState } from 'layerchart';
+  import { scaleBand } from 'd3-scale';
+  import { sum } from 'd3-array';
   import { BarChart3, Eye, Files, ZoomOut } from '@lucide/svelte';
-  import PageViewSeriesChart from './PageViewSeriesChart.svelte';
 
   type PathCount = { Path: string; Count: number };
   type DeviceCount = { Category: string; Count: number };
   type OriginCount = { Domain: string; Count: number };
   type Bucket = { Period: string; Group: string | null; Count: number };
   type Granularity = 'week' | 'day' | 'hour';
-  type GroupBy = 'path' | 'device' | 'origin';
+  type GroupBy = 'total' | 'path' | 'device' | 'origin';
   type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
-  type TransformDetails = { scale: number; translate: { x: number; y: number } };
   type StatsResult = {
     Total: number;
     UniquePaths: number;
@@ -20,8 +20,9 @@
     Origins: OriginCount[];
     Series: Bucket[];
     Granularity: Granularity;
-    GroupBy: GroupBy | 'total';
+    GroupBy: GroupBy;
   };
+  type StackItem = { Group: string; value: number };
 
   const periods = [
     { label: '4 Wochen', days: 28 },
@@ -33,50 +34,94 @@
     { label: 'Tag', value: 'day' },
     { label: 'Woche', value: 'week' },
   ];
+  const groupings: { label: string; value: GroupBy }[] = [
+    { label: 'Gesamt', value: 'total' },
+    { label: 'Seite', value: 'path' },
+    { label: 'Gerätekategorie', value: 'device' },
+    { label: 'Herkunftsdomain', value: 'origin' },
+  ];
   const chartTypes: { label: string; value: ChartType }[] = [
     { label: 'Säulen gestapelt', value: 'bars-stacked' },
     { label: 'Säulen gruppiert', value: 'bars-grouped' },
     { label: 'Linien', value: 'line' },
     { label: 'Fläche', value: 'area' },
   ];
+  const chartPalette = [
+    'var(--weidegruen)',
+    'var(--backstein)',
+    'var(--himmelblau)',
+    'var(--taubenblau)',
+    '#b3822a',
+    '#5f6b8a',
+    '#8a6a9a',
+  ];
+  const maxZoomScale = 56;
 
   let activeController: AbortController | null = null;
 
   let days = $state(28);
   let granularity = $state<Granularity>('week');
+  let groupBy = $state<GroupBy>('path');
   let chartType = $state<ChartType>('bars-stacked');
   let loading = $state(true);
   let error = $state('');
-  let pathStats = $state<StatsResult | null>(null);
-  let deviceStats = $state<StatsResult | null>(null);
-  let originStats = $state<StatsResult | null>(null);
-  let pathCtx = $state<ChartState<any, any, any> | undefined>();
-  let deviceCtx = $state<ChartState<any, any, any> | undefined>();
-  let originCtx = $state<ChartState<any, any, any> | undefined>();
+  let stats = $state<StatsResult | null>(null);
+  let chartCtx = $state<ChartState<any, any, any> | undefined>();
   let zoomed = $state(false);
 
   const hourDisabled = $derived(days > 28);
 
-  const total = $derived(pathStats?.Total ?? 0);
-  const topPath = $derived(pathStats?.TopPaths[0] ?? null);
-  const uniquePages = $derived(pathStats?.UniquePaths ?? 0);
-  const hasData = $derived(Boolean(pathStats) && pathStats!.Total > 0);
-  const devices = $derived(deviceStats?.Devices ?? []);
+  const seriesRows = $derived(
+    (stats?.Series ?? []).map((row) => ({
+      Period: row.Period,
+      Group: row.Group ?? 'Gesamt',
+      Count: row.Count,
+    })),
+  );
+  const colorKeys = $derived(Array.from(new Set(seriesRows.map((row) => row.Group))));
+  const keyColors = $derived(colorKeys.map((_, index) => chartPalette[index % chartPalette.length]));
+
+  const stackedData = $derived.by(() =>
+    seriesRows.length
+      ? groupStackData(
+          seriesRows.map((row) => ({ Period: row.Period, Group: row.Group, value: row.Count })),
+          { xKey: 'Period', stackBy: 'Group' },
+        )
+      : [],
+  );
+
+  const groupedData = $derived.by(() => {
+    if (!seriesRows.length) return [];
+    const periods = Array.from(new Set(seriesRows.map((row) => row.Period)));
+    return periods.map((period) => {
+      const row: Record<string, string | number> = { Period: period };
+      for (const key of colorKeys) {
+        row[key] = seriesRows.find((r) => r.Period === period && r.Group === key)?.Count ?? 0;
+      }
+      return row;
+    });
+  });
+
+  const groupedSeries = $derived(colorKeys.map((key, index) => ({ key, color: keyColors[index] })));
+
+  const total = $derived(stats?.Total ?? 0);
+  const topPath = $derived(stats?.TopPaths[0] ?? null);
+  const uniquePages = $derived(stats?.UniquePaths ?? 0);
+  const hasData = $derived(Boolean(stats) && stats!.Total > 0);
+  const devices = $derived(stats?.Devices ?? []);
   const deviceTotal = $derived(devices.reduce((acc, device) => acc + device.Count, 0));
   const granularityLabel = $derived(
     granularity === 'hour' ? 'Stunde' : granularity === 'day' ? 'Tag' : 'Woche',
   );
-
-  function toRows(stats: StatsResult | null) {
-    return (stats?.Series ?? []).map((row) => ({
-      Period: row.Period,
-      Group: row.Group ?? 'Gesamt',
-      Count: row.Count,
-    }));
-  }
-  const pathRows = $derived(toRows(pathStats));
-  const deviceRows = $derived(toRows(deviceStats));
-  const originRows = $derived(toRows(originStats));
+  const groupLabel = $derived(
+    groupBy === 'total'
+      ? 'Gesamt'
+      : groupBy === 'device'
+        ? 'Gerätekategorie'
+        : groupBy === 'origin'
+          ? 'Herkunftsdomain'
+          : 'Seite',
+  );
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
@@ -109,58 +154,26 @@
     load();
   }
 
-  async function fetchStats(groupBy: GroupBy, signal: AbortSignal): Promise<StatsResult> {
-    const res = await fetch(
-      `/api/pageviews/stats?days=${days}&granularity=${granularity}&groupBy=${groupBy}`,
-      { signal },
-    );
-    if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
-    return res.json();
-  }
-
-  function transformApplied(ctx: ChartState<any, any, any>, details: TransformDetails): boolean {
-    return (
-      ctx.transform.scale === details.scale &&
-      ctx.transform.translate.x === details.translate.x &&
-      ctx.transform.translate.y === details.translate.y
-    );
-  }
-
-  function handleTransform(source: ChartState<any, any, any> | undefined, details: TransformDetails) {
-    zoomed = details.scale > 1 || details.translate.x !== 0;
-    if (!source) return;
-    for (const ctx of [pathCtx, deviceCtx, originCtx]) {
-      if (!ctx || ctx === source || transformApplied(ctx, details)) continue;
-      ctx.transform.setScale(details.scale, { instant: true });
-      ctx.transform.setTranslate(details.translate, { instant: true });
-    }
-  }
-
-  function resetZoom() {
-    zoomed = false;
-    for (const ctx of [pathCtx, deviceCtx, originCtx]) {
-      if (!ctx || transformApplied(ctx, { scale: 1, translate: { x: 0, y: 0 } })) continue;
-      ctx.transform.reset();
-    }
+  function handleTransform({ scale, translate }: { scale: number; translate: { x: number; y: number } }) {
+    zoomed = scale > 1 || translate.x !== 0;
   }
 
   async function load() {
     activeController?.abort();
     zoomed = false;
+    chartCtx?.transform.reset();
     const controller = new AbortController();
     activeController = controller;
     loading = true;
     error = '';
     try {
-      const [path, device, origin] = await Promise.all([
-        fetchStats('path', controller.signal),
-        fetchStats('device', controller.signal),
-        fetchStats('origin', controller.signal),
-      ]);
+      const res = await fetch(
+        `/api/pageviews/stats?days=${days}&granularity=${granularity}&groupBy=${groupBy}`,
+        { signal: controller.signal },
+      );
+      if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
       if (controller.signal.aborted) return;
-      pathStats = path;
-      deviceStats = device;
-      originStats = origin;
+      stats = await res.json();
     } catch (e) {
       if (controller.signal.aborted) return;
       console.error(e);
@@ -194,6 +207,23 @@
               title={option.value === 'hour' && hourDisabled ? 'Stundengenauigkeit nur für 4 Wochen verfügbar' : undefined}
               onclick={() => {
                 granularity = option.value;
+                load();
+              }}
+            >
+              {option.label}
+            </button>
+          {/each}
+        </div>
+
+        <div class="period-toggle" role="group" aria-label="Gruppierung wählen">
+          {#each groupings as option}
+            <button
+              type="button"
+              class="period-button"
+              class:is-active={groupBy === option.value}
+              aria-pressed={groupBy === option.value}
+              onclick={() => {
+                groupBy = option.value;
                 load();
               }}
             >
@@ -238,7 +268,7 @@
             type="button"
             class="period-button zoom-reset"
             title="Zoom zurücksetzen"
-            onclick={resetZoom}
+            onclick={() => chartCtx?.transform.reset()}
           >
             <ZoomOut class="zoom-reset-icon" aria-hidden="true" />
             Zoom zurücksetzen
@@ -278,37 +308,187 @@
       {:else if !hasData}
         <p class="chart-message">Keine Seitenaufrufe im Zeitraum.</p>
       {:else}
-        {#if pathRows.length}
-          <section class="chart-section" aria-labelledby="path-chart-title">
-            <h3 id="path-chart-title" class="section-title">Seitenaufrufe nach {granularityLabel} und Seite</h3>
-            <PageViewSeriesChart
-              rows={pathRows}
-              {chartType}
-              formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
-              bind:context={pathCtx}
-              ontransform={(details) => handleTransform(pathCtx, details)}
+        <div class="chart-legend" aria-hidden="true">
+          {#each colorKeys as key, index}
+            <span class="legend-item">
+              <span class="legend-swatch" style="background-color: {keyColors[index]}"></span>
+              {key}
+            </span>
+          {/each}
+        </div>
+
+        <div class="chart-wrap">
+          {#snippet explorerTooltip({ context }: { context: ChartState<any> })}
+            {@const visibleSeries = context.tooltip.series.filter((s) => s.visible)}
+            <Tooltip.Root {context}>
+              {#snippet children({ data })}
+                <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                <Tooltip.List>
+                  {#each visibleSeries as s (s.key)}
+                    <Tooltip.Item
+                      label={s.label}
+                      value={s.value}
+                      color={s.color}
+                      format="integer"
+                      valueAlign="right"
+                    />
+                  {/each}
+                  <Tooltip.Separator />
+                  <Tooltip.Item
+                    label="Gesamt"
+                    value={sum(visibleSeries, (s) => s.value ?? 0)}
+                    format="integer"
+                    valueAlign="right"
+                  />
+                </Tooltip.List>
+              {/snippet}
+            </Tooltip.Root>
+          {/snippet}
+
+          {#if chartType === 'bars-stacked'}
+            <Chart
+              data={stackedData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              y="values"
+              yNice
+              c="Group"
+              cDomain={colorKeys}
+              cRange={keyColors}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              padding={{ left: 32, bottom: 20, top: 8 }}
+              tooltipContext={{ mode: 'band' }}
+              height={300}
+            >
+              {#snippet children({ context })}
+                <Layer>
+                  <Axis placement="left" grid rule />
+                  <Axis placement="bottom" rule format={formatAxisLabel} />
+                  <Bars strokeWidth={1} />
+                  <Highlight area />
+                </Layer>
+
+                <Tooltip.Root>
+                  {#snippet children({ data })}
+                    <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                    <Tooltip.List>
+                      {#each data.data as item}
+                        <Tooltip.Item
+                          label={item.Group}
+                          value={item.value}
+                          color={context.cScale?.(item.Group)}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      {/each}
+                      <Tooltip.Separator />
+                      <Tooltip.Item
+                        label="Gesamt"
+                        value={sum([...data.data], (d: StackItem) => d.value)}
+                        format="integer"
+                        valueAlign="right"
+                      />
+                    </Tooltip.List>
+                  {/snippet}
+                </Tooltip.Root>
+              {/snippet}
+            </Chart>
+          {:else if chartType === 'bars-grouped'}
+            <Chart
+              data={groupedData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              y={colorKeys}
+              yNice
+              series={groupedSeries}
+              seriesLayout="group"
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              padding={{ left: 32, bottom: 20, top: 8 }}
+              tooltipContext={{ mode: 'band' }}
+              height={300}
+            >
+              {#snippet children()}
+                <Layer>
+                  <Axis placement="left" grid rule />
+                  <Axis placement="bottom" rule format={formatAxisLabel} />
+                  {#each groupedSeries as series}
+                    <Bars seriesKey={series.key} x1={(d: Record<string, string | number>) => series.key} strokeWidth={1} />
+                  {/each}
+                  <Highlight area />
+                </Layer>
+
+                <Tooltip.Root>
+                  {#snippet children({ data })}
+                    <Tooltip.Header>{formatPeriodLabel(data.Period)}</Tooltip.Header>
+                    <Tooltip.List>
+                      {#each groupedSeries as series, index}
+                        <Tooltip.Item
+                          label={series.key}
+                          value={data[series.key] ?? 0}
+                          color={keyColors[index]}
+                          format="integer"
+                          valueAlign="right"
+                        />
+                      {/each}
+                      <Tooltip.Separator />
+                      <Tooltip.Item
+                        label="Gesamt"
+                        value={sum(colorKeys, (key) => data[key] ?? 0)}
+                        format="integer"
+                        valueAlign="right"
+                      />
+                    </Tooltip.List>
+                  {/snippet}
+                </Tooltip.Root>
+              {/snippet}
+            </Chart>
+          {:else if chartType === 'line'}
+            <LineChart
+              data={groupedData}
+              x="Period"
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              series={groupedSeries}
+              padding={{ left: 32, bottom: 20, top: 36 }}
+              height={300}
+              legend={{ placement: 'top' }}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              tooltip={explorerTooltip}
+              props={{
+                spline: { strokeWidth: 2 },
+                xAxis: { format: formatAxisLabel },
+              }}
             />
-            <table class="sr-only-table">
-              <thead>
-                <tr>
-                  <th scope="col">{granularityLabel}</th>
-                  <th scope="col">Seite</th>
-                  <th scope="col">Aufrufe</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each pathRows as row}
-                  <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
-                    <td>{row.Group}</td>
-                    <td>{formatCount(row.Count)}</td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </section>
-        {/if}
+          {:else}
+            <AreaChart
+              data={groupedData}
+              x="Period"
+              y={colorKeys}
+              xScale={scaleBand().paddingInner(0.4).paddingOuter(0.2)}
+              series={groupedSeries}
+              padding={{ left: 32, bottom: 20, top: 36 }}
+              height={300}
+              legend={{ placement: 'top' }}
+              bind:context={chartCtx}
+              brush={{ axis: 'x', minExtent: { x: 1 } }}
+              transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+              onTransform={handleTransform}
+              tooltip={explorerTooltip}
+              props={{
+                area: { line: { strokeWidth: 2 } },
+                xAxis: { format: formatAxisLabel },
+              }}
+            />
+          {/if}
+        </div>
 
         <div class="table-wrap">
           <table class="pageview-table">
@@ -319,7 +499,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each pathStats?.TopPaths ?? [] as path}
+              {#each stats?.TopPaths ?? [] as path}
                 <tr>
                   <th scope="row">{path.Path}</th>
                   <td class="table-count">{formatCount(path.Count)}</td>
@@ -328,38 +508,6 @@
             </tbody>
           </table>
         </div>
-
-        {#if deviceRows.length}
-          <section class="chart-section" aria-labelledby="device-chart-title">
-            <h3 id="device-chart-title" class="section-title">Gerätekategorien nach {granularityLabel}</h3>
-            <PageViewSeriesChart
-              rows={deviceRows}
-              {chartType}
-              formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
-              bind:context={deviceCtx}
-              ontransform={(details) => handleTransform(deviceCtx, details)}
-            />
-            <table class="sr-only-table">
-              <thead>
-                <tr>
-                  <th scope="col">{granularityLabel}</th>
-                  <th scope="col">Gerätekategorie</th>
-                  <th scope="col">Aufrufe</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each deviceRows as row}
-                  <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
-                    <td>{row.Group}</td>
-                    <td>{formatCount(row.Count)}</td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </section>
-        {/if}
 
         {#if devices.length > 0}
           <div class="device-block">
@@ -378,38 +526,6 @@
           </div>
         {/if}
 
-        {#if originRows.length}
-          <section class="chart-section" aria-labelledby="origin-chart-title">
-            <h3 id="origin-chart-title" class="section-title">Herkunftsdomains nach {granularityLabel}</h3>
-            <PageViewSeriesChart
-              rows={originRows}
-              {chartType}
-              formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
-              bind:context={originCtx}
-              ontransform={(details) => handleTransform(originCtx, details)}
-            />
-            <table class="sr-only-table">
-              <thead>
-                <tr>
-                  <th scope="col">{granularityLabel}</th>
-                  <th scope="col">Herkunftsdomain</th>
-                  <th scope="col">Aufrufe</th>
-                </tr>
-              </thead>
-              <tbody>
-                {#each originRows as row}
-                  <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
-                    <td>{row.Group}</td>
-                    <td>{formatCount(row.Count)}</td>
-                  </tr>
-                {/each}
-              </tbody>
-            </table>
-          </section>
-        {/if}
-
         <div class="table-wrap">
           <table class="pageview-table">
             <thead>
@@ -419,7 +535,7 @@
               </tr>
             </thead>
             <tbody>
-              {#each originStats?.Origins ?? [] as origin}
+              {#each stats?.Origins ?? [] as origin}
                 <tr>
                   <th scope="row">{origin.Domain}</th>
                   <td class="table-count">{formatCount(origin.Count)}</td>
@@ -428,6 +544,26 @@
             </tbody>
           </table>
         </div>
+
+        <h3 class="sr-only">Seitenaufrufe nach {granularityLabel} und {groupLabel}</h3>
+        <table class="sr-only-table">
+          <thead>
+            <tr>
+              <th scope="col">{granularityLabel}</th>
+              <th scope="col">{groupLabel}</th>
+              <th scope="col">Aufrufe</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each stats?.Series ?? [] as row}
+              <tr>
+                <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                <td>{row.Group ?? 'Gesamt'}</td>
+                <td>{formatCount(row.Count)}</td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
       {/if}
     </div>
   </div>
@@ -573,15 +709,37 @@
     color: var(--backstein);
   }
 
-  .chart-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+  .chart-wrap {
+    color: var(--taubenblau);
   }
 
-  .section-title {
-    margin: 0;
-    font-size: 1.1rem;
+  .chart-wrap :global(.lc-root-container) {
+    --color-primary: var(--weidegruen);
+    --color-surface-100: #ffffff;
+    --color-surface-200: var(--schurwolle);
+    --color-surface-300: rgba(0, 32, 73, 0.15);
+    --color-surface-content: var(--taubenblau);
+  }
+
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.25rem;
+    justify-content: flex-end;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .legend-swatch {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 0.2rem;
   }
 
   .chart-loading {
@@ -691,6 +849,18 @@
   .table-count {
     text-align: right;
     font-variant-numeric: tabular-nums;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .sr-only-table {

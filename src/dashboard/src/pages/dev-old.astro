@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import OldPageViewStats from '../components/OldPageViewStats.svelte';
+---
+
+<DashboardLayout title="Old Pageviews (dev)">
+  <OldPageViewStats client:only="svelte" />
+</DashboardLayout>
