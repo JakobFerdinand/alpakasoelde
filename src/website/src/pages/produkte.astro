@@ -12,7 +12,46 @@ import Karten from "../images/produkte/Karten.jpg";
 import Polster from "../images/produkte/Polster.jpg";
 import Wollpellets from "../images/produkte/Wollpellets.jpg";
 
-const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpellets];
+const slides = [
+  {
+    src: Strickgabel,
+    alt: 'Strickgabel aus Holz mit begonnener Wollkordel',
+    caption: 'Strickgabel aus Holz',
+    description: 'Für knotenfreies Stricken ohne Zählen.',
+  },
+  {
+    src: Zauberwolle,
+    alt: 'Knäuel Zauberwolle in kräftigen Buntfarben',
+    caption: 'Zauberwolle',
+    description: 'Bunte Schurwolle zum Häkeln mit der Strickgabel – ganz ohne Zählring.',
+    badge: 'Bestseller',
+  },
+  {
+    src: WolleAmadeus,
+    alt: 'Handgesponnene Wolle Amadeus in Naturtönen',
+    caption: 'Wolle Amadeus',
+    description: 'Handgesponnen und kuschelweich – ein Naturklassiker für deine Projekte.',
+  },
+  {
+    src: Karten,
+    alt: 'Handgefertigte Grußkarten mit Alpakamotiv',
+    caption: 'Grußkarten mit Alpakamotiv',
+    description: 'Liebevoll gestaltete Karten für jeden Anlass.',
+  },
+  {
+    src: Polster,
+    alt: 'Kuschelweiches Polster gefüllt mit Alpakawolle',
+    caption: 'Polster mit Alpakafüllung',
+    description: 'Gemütliche Pölster, gefüllt mit heimischer Alpakawolle.',
+  },
+  {
+    src: Wollpellets,
+    alt: 'Wollpellets als natürlicher Dünger aus Schurwolle',
+    caption: 'Wollpellets',
+    description: 'Natürlicher Dünger aus reiner Schurwolle – für Garten und Beet.',
+    badge: 'Neu',
+  },
+];
 ---
 
 <Layout title="Produkte" navTransparentOnHero={true} hideLogoOnTransparent={false}>
@@ -32,7 +71,7 @@ const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpel
     </div>
   </section>
   <section class="section">
-    <Slideshow images={images} />
+    <Slideshow variant="product" id="produkte" slides={slides} />
   </section>
 </Layout>
 

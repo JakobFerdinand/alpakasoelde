@@ -1,73 +1,66 @@
 ---
-import { Image } from "astro:assets";
+import type { ImageMetadata } from 'astro';
+import GalleryProduct from './gallery/GalleryProduct.astro';
+import GalleryStory from './gallery/GalleryStory.astro';
 
-interface Props {
-  images: any[];
+export type GalleryVariant = 'product' | 'story';
+
+export interface GallerySlide {
+  /** Statically imported image (astro:assets metadata). Required. */
+  src: ImageMetadata;
+  /** REQUIRED, specific German alt text (no generic farm boilerplate). */
+  alt: string;
+  /** Short caption line; product: below stage, story: scrim overlay. */
+  caption?: string;
+  /** 1–2 sentences, product variant only (rendered under the title). */
+  description?: string;
+  /** Badge chip text, e.g. „Neu", „Bestseller" — product variant only. */
+  badge?: string;
 }
 
-const { images } = Astro.props as Props;
----
+export interface Props {
+  slides: GallerySlide[];
+  variant?: GalleryVariant;
+  id?: string;
+  autoplay?: boolean;
+  intervalMs?: number;
+  loop?: boolean | 'wrap-buttons';
+  showThumbnails?: boolean;
+  lightbox?: boolean;
+}
 
-<ul class="slideshow" id="slideshow">
-  {images.map((src, i) => (
-    <li class={`slide ${i === 0 ? 'visible' : 'hidden'}`} image-slide>
-      <Image
-        src={src}
-        alt="Alpaka auf der Alpakasölde Farm"
-        width={800}
-        height={600}
-      />
-    </li>
-  ))}
-</ul>
+const {
+  slides,
+  variant = 'product',
+  id,
+  autoplay = variant === 'story',
+  intervalMs = 6000,
+  loop = 'wrap-buttons',
+  showThumbnails = true,
+  lightbox = true,
+} = Astro.props as Props;
 
-<script>
-  const slides = Array.from(document.querySelectorAll('[image-slide]'));
-  let index = 0;
-  setInterval(() => {
-    slides[index].classList.add('hidden');
-    index = (index + 1) % slides.length;
-    slides[index].classList.remove('hidden');
-  }, 4000);
-</script>
-
-<style>
-  .slideshow {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-    height: 24rem;
+if (import.meta.env.DEV) {
+  if (slides.length < 2) {
+    console.warn(`[Slideshow] Mindestens zwei „slides“ erwartet, erhalten: ${slides.length}.`);
   }
-
-  @media (min-width: 768px) {
-    .slideshow {
-      height: 32rem;
+  if (id && !/^[a-z][a-z0-9-]*$/.test(id)) {
+    console.warn(`[Slideshow] „id“ „${id}“ entspricht nicht dem Muster /^[a-z][a-z0-9-]*$/.`);
+  }
+  if (loop !== 'wrap-buttons') {
+    throw new Error(`[Slideshow] Nur loop='wrap-buttons' ist implementiert, erhalten: ${String(loop)}.`);
+  }
+  if (variant === 'story') {
+    for (const slide of slides) {
+      if (slide.badge) console.warn('[Slideshow] „badge“ wird in variant="story" ignoriert.');
+      if (slide.description) console.warn('[Slideshow] „description“ wird in variant="story" ignoriert.');
     }
   }
+}
+---
 
-  .slide {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: opacity 1s;
-    background-color: var(--schurwolle);
-  }
-
-  .slide.hidden {
-    opacity: 0;
-  }
-
-  .slide.visible {
-    opacity: 1;
-  }
-
-  .slide img {
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-  }
-</style>
+{variant === 'story' ? (
+  <GalleryStory slides={slides} id={id} autoplay={autoplay} intervalMs={intervalMs} />
+) : (
+  <GalleryProduct slides={slides} id={id} showThumbnails={showThumbnails} lightbox={lightbox} />
+)}

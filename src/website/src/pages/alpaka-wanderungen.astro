@@ -13,7 +13,28 @@ import heroImage from "../images/impressions/impression_64.jpg";
 
 import impression_72 from "../images/impressions/impression_72.jpg";
 
-const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
+const slides = [
+  {
+    src: Wanderung1,
+    alt: 'Alpakas auf dem Wanderweg durch die Innauen bei Ering',
+    caption: 'Alpakawanderung durch die Innauen',
+  },
+  {
+    src: Wanderung2,
+    alt: 'Teilnehmerin führt ein Alpaka am Halfter',
+    caption: 'An der Seite unserer Alpakas',
+  },
+  {
+    src: Wanderung3,
+    alt: 'Alpakagruppe auf der Weide vor dem Hof',
+    caption: 'Kennenlernen bei einem Hofbesuch',
+  },
+  {
+    src: Wanderung4,
+    alt: 'Blick über die Innauen bei einer Alpakawanderung',
+    caption: 'Natur pur zwischen Inn und Deich',
+  },
+];
 ---
 
 <Layout title="Alpaka-Wanderungen" navTransparentOnHero={true} hideLogoOnTransparent={false}>
@@ -48,7 +69,7 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
     </div>
   </section>
 
-  <Slideshow images={images} />
+  <Slideshow variant="story" id="wanderungen" slides={slides} autoplay={true} intervalMs={6000} />
 
   <section class="info-box section">
     <div class="container">

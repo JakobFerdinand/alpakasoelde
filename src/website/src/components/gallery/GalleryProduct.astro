@@ -1,0 +1,620 @@
+---
+import { getImage, Picture } from 'astro:assets';
+import type { GallerySlide } from '../Slideshow.astro';
+
+export type { GalleryVariant, GallerySlide } from '../Slideshow.astro';
+
+interface Props {
+  slides: GallerySlide[];
+  id?: string;
+  showThumbnails?: boolean;
+  lightbox?: boolean;
+}
+
+const { slides, id, showThumbnails = true, lightbox = true } = Astro.props as Props;
+
+const withLightbox = lightbox && !!id;
+
+const titleOf = (slide: GallerySlide): string => slide.caption ?? slide.alt;
+
+const hiResSrcs = withLightbox
+  ? await Promise.all(
+      slides.map(async (slide) => {
+        const image = await getImage({
+          src: slide.src,
+          width: Math.min(1920, slide.src.width),
+          format: 'webp',
+        });
+        return image.src;
+      }),
+    )
+  : [];
+---
+
+<section
+  class="gallery gallery--product"
+  data-gallery
+  data-gallery-id={id}
+  data-variant="product"
+  data-loop="wrap-buttons"
+  aria-roledescription="Bildergalerie"
+  aria-label="Produktfotos aus dem Hofladen"
+>
+  <div class="gallery__stage">
+    <button type="button" class="gallery__nav gallery__nav--prev" aria-label="Vorheriges Bild" data-gallery-prev>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6"></path>
+      </svg>
+    </button>
+
+    <ul class="gallery__track" data-gallery-track tabindex="0" aria-label="Bilder durchblättern">
+      {slides.map((slide, i) => (
+        <li
+          class="gallery__slide"
+          role="group"
+          aria-roledescription="Folie"
+          aria-label={`${i + 1} von ${slides.length}`}
+          data-caption={titleOf(slide)}
+          data-hires-src={withLightbox ? hiResSrcs[i] : undefined}
+        >
+          <Picture
+            src={slide.src}
+            alt={slide.alt}
+            widths={[480, 768, 1080, 1440]}
+            sizes="(min-width: 768px) min(900px, calc(100vw - 2rem)), calc(100vw - 2rem)"
+            formats={['avif', 'webp']}
+            loading={i === 0 ? 'eager' : 'lazy'}
+            fetchpriority={i === 0 ? 'high' : undefined}
+            decoding={i === 0 ? 'sync' : 'async'}
+          />
+        </li>
+      ))}
+    </ul>
+
+    <button type="button" class="gallery__nav gallery__nav--next" aria-label="Nächstes Bild" data-gallery-next>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m9 18 6-6-6-6"></path>
+      </svg>
+    </button>
+
+    <p class="gallery__counter" aria-hidden="true">
+      <span data-gallery-counter-current>1</span> von <span data-gallery-counter-total>{slides.length}</span>
+    </p>
+
+    {withLightbox && (
+      <button type="button" class="gallery__zoom-btn" data-gallery-zoom-open aria-label="Bild vergrößern">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.3-4.3"></path>
+        </svg>
+      </button>
+    )}
+  </div>
+
+  <div class="gallery__meta" data-gallery-meta>
+    {slides.map((slide, i) => (
+      <div class="gallery__caption" data-gallery-caption data-index={i} data-active={i === 0 ? '' : undefined}>
+        <h3 class="gallery__title">
+          {titleOf(slide)}
+          {slide.badge && <span class="gallery__badge">{slide.badge}</span>}
+        </h3>
+        {slide.description && <p class="gallery__desc">{slide.description}</p>}
+      </div>
+    ))}
+  </div>
+
+  <p class="visually-hidden" data-gallery-status aria-live="polite"></p>
+
+  <div class="gallery__indicator" aria-label="Bild wählen">
+    {slides.map((slide, i) => (
+      <button
+        type="button"
+        class="gallery__dot"
+        data-gallery-dot
+        data-index={i}
+        aria-label={`Zu Bild ${i + 1}: ${titleOf(slide)}`}
+        aria-current={i === 0 ? 'true' : undefined}
+        tabindex={i === 0 ? 0 : -1}
+      ></button>
+    ))}
+  </div>
+
+  {showThumbnails && (
+    <div class="gallery__thumbs" data-gallery-thumbs>
+      {slides.map((slide, i) => (
+        <button
+          type="button"
+          class="gallery__thumb"
+          data-gallery-thumb
+          data-index={i}
+          aria-label={`Zu Bild ${i + 1}: ${titleOf(slide)}`}
+          aria-current={i === 0 ? 'true' : undefined}
+          tabindex={i === 0 ? 0 : -1}
+        >
+          <Picture
+            src={slide.src}
+            alt=""
+            width={96}
+            height={96}
+            widths={[96, 160]}
+            formats={['avif', 'webp']}
+            loading="lazy"
+            decoding="async"
+          />
+        </button>
+      ))}
+    </div>
+  )}
+
+  {withLightbox && slides[0] && (
+    <dialog
+      class="gallery__lightbox"
+      data-gallery-lightbox
+      aria-label={`Bildansicht: ${titleOf(slides[0])}`}
+    >
+      <div class="gallery__lightbox-bar">
+        <p class="gallery__lightbox-count">
+          <span data-gallery-lb-current>1</span> von {slides.length}
+        </p>
+        <button type="button" class="gallery__lightbox-close" data-gallery-lb-close aria-label="Schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18"></path>
+            <path d="m6 6 12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <div class="gallery__zoomport" data-gallery-zoomport tabindex="0">
+        <img data-gallery-zoom-img alt="" decoding="async" />
+      </div>
+      <div class="gallery__lightbox-foot">
+        <button type="button" class="gallery__nav gallery__nav--prev" aria-label="Vorheriges Bild" data-gallery-lb-prev>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m15 18-6-6 6-6"></path>
+          </svg>
+        </button>
+        <p class="gallery__lightbox-caption" data-gallery-lb-caption>{titleOf(slides[0])}</p>
+        <button type="button" class="gallery__nav gallery__nav--next" aria-label="Nächstes Bild" data-gallery-lb-next>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </button>
+      </div>
+    </dialog>
+  )}
+</section>
+
+<script>
+  import './gallery';
+</script>
+
+<style>
+  .gallery {
+    max-width: 900px;
+    margin-inline: auto;
+  }
+
+  .gallery__nav,
+  .gallery__indicator,
+  .gallery__thumbs,
+  .gallery__counter,
+  .gallery__zoom-btn {
+    display: none;
+  }
+
+  html.js .gallery__nav,
+  html.js .gallery__zoom-btn {
+    display: grid;
+  }
+
+  html.js .gallery__indicator {
+    display: flex;
+  }
+
+  @media (min-width: 768px) {
+    html.js .gallery__indicator {
+      display: none;
+    }
+  }
+
+  html.js .gallery__counter {
+    display: inline-block;
+  }
+
+  @media (min-width: 768px) {
+    html.js .gallery__thumbs {
+      display: flex;
+    }
+  }
+
+  .gallery__stage {
+    position: relative;
+  }
+
+  .gallery__track {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .gallery__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .gallery__slide {
+    position: relative;
+    flex: 0 0 100%;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+    aspect-ratio: 1 / 1;
+    background: var(--schurwolle);
+  }
+
+  @media (min-width: 768px) {
+    .gallery__slide {
+      aspect-ratio: 4 / 3;
+    }
+  }
+
+  .gallery__slide img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .gallery__nav {
+    position: absolute;
+    top: 50%;
+    translate: 0 -50%;
+    z-index: 1;
+    inline-size: 48px;
+    block-size: 48px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(75 91 115 / 0.92);
+    color: var(--schurwolle);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .gallery__nav--prev {
+    left: max(0.5rem, env(safe-area-inset-left));
+  }
+
+  .gallery__nav--next {
+    right: max(0.5rem, env(safe-area-inset-right));
+  }
+
+  .gallery__nav svg {
+    inline-size: 24px;
+    block-size: 24px;
+  }
+
+  .gallery__counter {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    margin: 0;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    background: var(--taubenblau);
+    color: var(--schurwolle);
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .gallery__zoom-btn {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+    inline-size: 48px;
+    block-size: 48px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: rgb(75 91 115 / 0.92);
+    color: var(--schurwolle);
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .gallery__zoom-btn svg {
+    inline-size: 22px;
+    block-size: 22px;
+  }
+
+  .gallery__meta {
+    display: grid;
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .gallery__caption {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 300ms,
+      visibility 300ms;
+  }
+
+  .gallery__caption[data-active] {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .gallery__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 400;
+  }
+
+  .gallery__desc {
+    margin: 0.25rem auto 0;
+    max-width: 42rem;
+  }
+
+  .gallery__badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.625rem;
+    border-radius: 999px;
+    background: var(--bluetenhonig);
+    color: var(--schwarz);
+    font-size: 0.75rem;
+    font-weight: 400;
+    vertical-align: middle;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .gallery__indicator {
+    justify-content: center;
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+  }
+
+  .gallery__dot {
+    inline-size: 44px;
+    block-size: 44px;
+    place-items: center;
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .gallery__dot::after {
+    content: '';
+    inline-size: 10px;
+    block-size: 10px;
+    border-radius: 50%;
+    background: var(--taubenblau);
+    opacity: 0.3;
+    transition:
+      opacity 200ms,
+      translate 200ms;
+  }
+
+  .gallery__dot[aria-current='true']::after {
+    opacity: 1;
+    translate: 0 -1px;
+    outline: 2px solid var(--himmelblau);
+    outline-offset: 2px;
+  }
+
+  .gallery__thumbs {
+    gap: 0.5rem;
+    margin-top: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    padding-bottom: 0.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .gallery__thumb {
+      flex: 0 0 auto;
+      inline-size: 72px;
+      block-size: 72px;
+      padding: 3px;
+      border: 0;
+      border-radius: 0.375rem;
+      background: transparent;
+      opacity: 0.55;
+      filter: saturate(0.7);
+      cursor: pointer;
+    }
+
+    .gallery__thumb[aria-current='true'] {
+      opacity: 1;
+      filter: none;
+      box-shadow: inset 0 0 0 2px var(--taubenblau);
+      outline: 2px solid var(--bluetenhonig);
+      outline-offset: 1px;
+    }
+
+    .gallery__thumb img {
+      inline-size: 100%;
+      block-size: 100%;
+      object-fit: cover;
+      border-radius: 0.25rem;
+    }
+  }
+
+  .gallery__lightbox {
+    inset: 0;
+    inline-size: 100vw;
+    block-size: 100dvh;
+    max-inline-size: none;
+    max-block-size: none;
+    border: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--schurwolle);
+    color: var(--taubenblau);
+  }
+
+  .gallery__lightbox:not([open]) {
+    display: none;
+  }
+
+  .gallery__lightbox::backdrop {
+    background: rgb(31 31 29 / 0.8);
+  }
+
+  .gallery__lightbox-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--taubenblau);
+    color: var(--schurwolle);
+  }
+
+  .gallery__lightbox-count {
+    margin: 0;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .gallery__lightbox-close {
+    inline-size: 48px;
+    block-size: 48px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .gallery__lightbox-close svg {
+    inline-size: 24px;
+    block-size: 24px;
+  }
+
+  .gallery__zoomport {
+    flex: 1;
+    min-block-size: 0;
+    overflow: auto;
+    display: flex;
+    background: var(--schwarz);
+    touch-action: pan-x pan-y pinch-zoom;
+  }
+
+  .gallery__zoomport img {
+    margin: auto;
+    inline-size: 100%;
+    block-size: auto;
+    max-inline-size: none;
+  }
+
+  .gallery__zoomport.is-zoomed img {
+    inline-size: 200%;
+  }
+
+  .gallery__lightbox-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--taubenblau);
+    color: var(--schurwolle);
+  }
+
+  .gallery__lightbox-foot .gallery__nav {
+    position: static;
+    translate: none;
+    background: transparent;
+  }
+
+  .gallery__lightbox-caption {
+    flex: 1;
+    min-inline-size: 0;
+    margin: 0;
+    text-align: center;
+    font-size: 0.9375rem;
+  }
+
+  .gallery__track:focus-visible,
+  .gallery__zoomport:focus-visible {
+    outline: 2px solid var(--taubenblau);
+    outline-offset: 2px;
+  }
+
+  .gallery__nav:focus-visible,
+  .gallery__lightbox-close:focus-visible {
+    outline: 2px solid var(--bluetenhonig);
+    outline-offset: 2px;
+  }
+
+  .gallery__dot:focus-visible,
+  .gallery__thumb:focus-visible,
+  .gallery__zoom-btn:focus-visible {
+    outline: 2px solid var(--taubenblau);
+    outline-offset: 1px;
+  }
+
+  @supports (transition-behavior: allow-discrete) {
+    .gallery__lightbox[open] {
+      opacity: 1;
+      transition:
+        opacity 250ms,
+        overlay 250ms allow-discrete,
+        display 250ms allow-discrete;
+    }
+
+    @starting-style {
+      .gallery__lightbox[open] {
+        opacity: 0;
+      }
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .gallery__slide img {
+      view-transition-name: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gallery__track {
+      scroll-behavior: auto;
+    }
+
+    .gallery__caption {
+      transition: none;
+    }
+
+    .gallery__dot::after {
+      transition: none;
+    }
+
+    .gallery__lightbox[open] {
+      animation: none;
+    }
+  }
+</style>
