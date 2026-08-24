@@ -126,7 +126,7 @@
       cRange={keyColors}
       bind:context={context}
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
       onTransform={handleTransform}
       padding={{ left: 32, bottom: 20, top: 8 }}
       tooltipContext={{ mode: 'band' }}
@@ -176,7 +176,7 @@
       seriesLayout="group"
       bind:context={context}
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
       onTransform={handleTransform}
       padding={{ left: 32, bottom: 20, top: 8 }}
       tooltipContext={{ mode: 'band' }}
@@ -228,7 +228,7 @@
       legend={{ placement: 'top' }}
       bind:context={context}
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
       onTransform={handleTransform}
       tooltip={explorerTooltip}
       props={{
@@ -248,7 +248,7 @@
       legend={{ placement: 'top' }}
       bind:context={context}
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale] }}
+      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
       onTransform={handleTransform}
       tooltip={explorerTooltip}
       props={{

@@ -41,7 +41,6 @@
   ];
 
   let activeController: AbortController | null = null;
-  let syncing = false;
 
   let days = $state(28);
   let granularity = $state<Granularity>('week');
@@ -119,28 +118,29 @@
     return res.json();
   }
 
+  function transformApplied(ctx: ChartState<any, any, any>, details: TransformDetails): boolean {
+    return (
+      ctx.transform.scale === details.scale &&
+      ctx.transform.translate.x === details.translate.x &&
+      ctx.transform.translate.y === details.translate.y
+    );
+  }
+
   function handleTransform(source: ChartState<any, any, any> | undefined, details: TransformDetails) {
     zoomed = details.scale > 1 || details.translate.x !== 0;
-    if (syncing || !source) return;
-    syncing = true;
-    try {
-      for (const ctx of [pathCtx, deviceCtx, originCtx]) {
-        if (!ctx || ctx === source) continue;
-        ctx.transform.setScale(details.scale, { instant: true });
-        ctx.transform.setTranslate(details.translate, { instant: true });
-      }
-    } finally {
-      syncing = false;
+    if (!source) return;
+    for (const ctx of [pathCtx, deviceCtx, originCtx]) {
+      if (!ctx || ctx === source || transformApplied(ctx, details)) continue;
+      ctx.transform.setScale(details.scale, { instant: true });
+      ctx.transform.setTranslate(details.translate, { instant: true });
     }
   }
 
   function resetZoom() {
     zoomed = false;
-    syncing = true;
-    try {
-      for (const ctx of [pathCtx, deviceCtx, originCtx]) ctx?.transform.reset();
-    } finally {
-      syncing = false;
+    for (const ctx of [pathCtx, deviceCtx, originCtx]) {
+      if (!ctx || transformApplied(ctx, { scale: 1, translate: { x: 0, y: 0 } })) continue;
+      ctx.transform.reset();
     }
   }
 
