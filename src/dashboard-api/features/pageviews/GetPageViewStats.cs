@@ -49,13 +49,15 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days, string Granularity, string GroupBy);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<OriginCount> Origins, IReadOnlyList<Bucket> Series, string Granularity, string GroupBy);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<OriginCount> Origins, IReadOnlyList<Bucket> Series, int Sessions, int Visitors, IReadOnlyList<NavigationCount> Navigations, string Granularity, string GroupBy);
 
 	public sealed record PathCount(string Path, int Count);
 
 	public sealed record DeviceCount(string Category, int Count);
 
 	public sealed record OriginCount(string Domain, int Count);
+
+	public sealed record NavigationCount(string Type, int Count);
 
 	public sealed record Bucket(string Period, string? Group, int Count);
 
@@ -107,10 +109,10 @@ public sealed class GetPageViewStats
 				.ToList();
 
 			int total = inWindow.Count;
-			int uniquePaths = inWindow.Select(p => p.Path).Distinct().Count();
+			int uniquePaths = inWindow.Select(p => NormalizePath(p.Path)).Distinct(StringComparer.Ordinal).Count();
 
 			List<PathCount> topPaths = inWindow
-				.GroupBy(p => p.Path)
+				.GroupBy(p => NormalizePath(p.Path))
 				.OrderByDescending(g => g.Count())
 				.ThenBy(g => g.Key)
 				.Take(10)
@@ -136,8 +138,28 @@ public sealed class GetPageViewStats
 				.Select(g => new OriginCount(g.Key.ToLowerInvariant(), g.Count()))
 				.ToList();
 
+			int sessions = inWindow
+				.Where(p => !string.IsNullOrWhiteSpace(p.SessionId))
+				.Select(p => p.SessionId!.Trim())
+				.Distinct(StringComparer.Ordinal)
+				.Count();
+
+			int visitors = inWindow
+				.Where(p => !string.IsNullOrWhiteSpace(p.VisitorId))
+				.Select(p => p.VisitorId!.Trim())
+				.Distinct(StringComparer.Ordinal)
+				.Count();
+
+			List<NavigationCount> navigations = inWindow
+				.Where(p => !string.IsNullOrWhiteSpace(p.NavigationType))
+				.GroupBy(p => p.NavigationType!.Trim(), StringComparer.Ordinal)
+				.OrderByDescending(g => g.Count())
+				.ThenBy(g => g.Key, StringComparer.Ordinal)
+				.Select(g => new NavigationCount(g.Key, g.Count()))
+				.ToList();
+
 			List<string> chartPaths = topPaths.Take(ChartPathsLimit).Select(p => p.Path).ToList();
-			int chartTopCount = inWindow.Count(p => chartPaths.Contains(p.Path));
+			int chartTopCount = inWindow.Count(p => chartPaths.Contains(NormalizePath(p.Path)));
 			if (total - chartTopCount > 0)
 			{
 				chartPaths.Add(OtherBucketLabel);
@@ -163,7 +185,8 @@ public sealed class GetPageViewStats
 				}
 				else if (query.GroupBy == "path")
 				{
-					group = chartPathSet.Contains(pageView.Path) ? pageView.Path : OtherBucketLabel;
+					string normalizedPath = NormalizePath(pageView.Path);
+					group = chartPathSet.Contains(normalizedPath) ? normalizedPath : OtherBucketLabel;
 				}
 				else if (query.GroupBy == "device")
 				{
@@ -218,7 +241,13 @@ public sealed class GetPageViewStats
 				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, devices, origins, series, query.Granularity, query.GroupBy);
+			return new Result(total, uniquePaths, topPaths, devices, origins, series, sessions, visitors, navigations, query.Granularity, query.GroupBy);
+		}
+
+		private static string NormalizePath(string path)
+		{
+			string trimmed = path.Trim().TrimEnd('/');
+			return trimmed.Length == 0 ? "/" : trimmed;
 		}
 
 		private static bool IsInternalReferrer(string referrerHost)
