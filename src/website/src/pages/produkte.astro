@@ -12,7 +12,14 @@ import Karten from "../images/produkte/Karten.jpg";
 import Polster from "../images/produkte/Polster.jpg";
 import Wollpellets from "../images/produkte/Wollpellets.jpg";
 
-const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpellets];
+const images = [
+  { src: Strickgabel, alt: "Strickgabel für Zauberwolle aus Alpakawolle" },
+  { src: Zauberwolle, alt: "Zauberwolle aus weicher Alpakawolle" },
+  { src: WolleAmadeus, alt: "Handgesponnene Schurwolle Amadeus" },
+  { src: Karten, alt: "Handgefertigte Karten mit Alpakamotiven" },
+  { src: Polster, alt: "Polster mit Alpakafüllung" },
+  { src: Wollpellets, alt: "Wollpellets als naturreiner Dünger" },
+];
 ---
 
 <Layout title="Produkte" navTransparentOnHero={true} hideLogoOnTransparent={false}>
@@ -32,7 +39,7 @@ const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpel
     </div>
   </section>
   <section class="section">
-    <Slideshow images={images} />
+    <Slideshow images={images} label="Produktfotos" />
   </section>
 </Layout>
 

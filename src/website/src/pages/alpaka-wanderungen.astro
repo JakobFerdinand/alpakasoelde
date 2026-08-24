@@ -13,7 +13,12 @@ import heroImage from "../images/impressions/impression_64.jpg";
 
 import impression_72 from "../images/impressions/impression_72.jpg";
 
-const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
+const images = [
+  { src: Wanderung1, alt: "Alpakas auf der Wanderung durch die Innauen" },
+  { src: Wanderung2, alt: "Wandergruppe mit Alpakas auf dem Feldweg" },
+  { src: Wanderung3, alt: "Blick über die Innauen bei der Alpaka-Wanderung" },
+  { src: Wanderung4, alt: "Alpaka beim gemütlichen Spaziergang" },
+];
 ---
 
 <Layout title="Alpaka-Wanderungen" navTransparentOnHero={true} hideLogoOnTransparent={false}>
@@ -48,7 +53,7 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
     </div>
   </section>
 
-  <Slideshow images={images} />
+  <Slideshow images={images} label="Eindrücke von den Alpaka-Wanderungen" />
 
   <section class="info-box section">
     <div class="container">
