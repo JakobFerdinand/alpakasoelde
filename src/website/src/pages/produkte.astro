@@ -12,7 +12,51 @@ import Karten from "../images/produkte/Karten.jpg";
 import Polster from "../images/produkte/Polster.jpg";
 import Wollpellets from "../images/produkte/Wollpellets.jpg";
 
-const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpellets];
+const slides = [
+  {
+    src: Strickgabel,
+    alt: "Holzerne Strickgabel mit begonnener Wollearbeit auf einem Holztisch",
+    kicker: "01 · Hofladen",
+    title: "Strickgabel",
+    text: "Mit diesem urigen Werkzeug aus dem Hofladen strickst du aus unserer Zauberwolle gemütliche Halstücher – ganz ohne Nadeln.",
+    focal: "center 50%",
+  },
+  {
+    src: Zauberwolle,
+    alt: "Knäuel handgesponnener Alpakawolle in natürlichen Naturtönen",
+    kicker: "02 · Hofladen",
+    title: "Zauberwolle",
+    text: "Ein Knäuel, tausend Ideen: handgesponnene Alpakawolle in natürlichen Naturtönen, bereit für dein nächstes Herzensprojekt.",
+  },
+  {
+    src: WolleAmadeus,
+    alt: "Handgesponnenes Wollknäuel der Alpakawolle Amadeus",
+    kicker: "03 · Hofladen",
+    title: "Wolle Amadeus",
+    text: "Von Amadeus und seiner Herde bis zum fertigen Knäuel bleibt die Faser bei uns am Hof – gekämmt, gewaschen und handgesponnen.",
+  },
+  {
+    src: Karten,
+    alt: "Stapel handgefertigter Karten mit Alpakamotiven",
+    kicker: "04 · Hofladen",
+    title: "Karten",
+    text: "Für jeden Anlass liegt etwas Handgemachtes bereit – vom Geburtstagsgruß bis zum kleinen Danke mit einem Foto unserer Alpakas.",
+  },
+  {
+    src: Polster,
+    alt: "Dekoratives Kissen gefüllt mit weicher Alpakawolle",
+    kicker: "05 · Zuhause",
+    title: "Pölster",
+    text: "Herrlich weiche Pölster mit Alpakafüllung – sie wärmen im Winter und lassen an warmen Tagen die Faser atmen.",
+  },
+  {
+    src: Wollpellets,
+    alt: "Naturreine Wollpellets als Dünger in einer Schale",
+    kicker: "06 · Für den Garten",
+    title: "Wollpellets",
+    text: "Von der Schur zurück auf die Weide: naturreine Wollpellets, die deinen Beeten langsam und sanft Nahrung geben.",
+  },
+];
 ---
 
 <Layout title="Produkte" navTransparentOnHero={true} hideLogoOnTransparent={false}>
@@ -32,7 +76,14 @@ const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpel
     </div>
   </section>
   <section class="section">
-    <Slideshow images={images} />
+    <Slideshow
+      slides={slides}
+      label="Fotos aus unserem Hofladen"
+      variant="product"
+      eyebrow="Aus unserem Hofladen"
+      subline="Handgesponnen, gefüllt und verpackt bei uns am Hof."
+      lightbox
+    />
   </section>
 </Layout>
 

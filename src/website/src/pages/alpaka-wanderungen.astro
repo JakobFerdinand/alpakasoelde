@@ -13,7 +13,36 @@ import heroImage from "../images/impressions/impression_64.jpg";
 
 import impression_72 from "../images/impressions/impression_72.jpg";
 
-const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
+const slides = [
+  {
+    src: Wanderung1,
+    alt: "Alpakas und ihre Begleiter beim Start der Wanderung am Hof",
+    kicker: "Moment 01",
+    title: "Start am Hof",
+    text: "Nach dem Kennenlernen sucht sich jedes Alpaka seinen Menschen für die nächsten zwei Stunden – meistens entscheidet die Fresslaune.",
+  },
+  {
+    src: Wanderung2,
+    alt: "Alpakas wandern mit ihren Menschen über einen Feldweg in den Inn-Auen",
+    kicker: "Moment 02",
+    title: "Die Runde beginnt",
+    text: "Durch die Inn-Auen geht es gemütlich voran – immer im Tempo des gemächlichsten Vierbeins.",
+  },
+  {
+    src: Wanderung3,
+    alt: "Die Wandergruppe hält mit Blick über das Europareservat Unterer Inn",
+    kicker: "Moment 03",
+    title: "Pause mit Aussicht",
+    text: "Mitten in den Inn-Auen bleibt die Runde stehen: Zeit für Streicheleinheiten, Fotos und das weite Grün des Europareservats.",
+  },
+  {
+    src: Wanderung4,
+    alt: "Alpakas auf dem Heimweg zur Alpakasölde",
+    kicker: "Moment 04",
+    title: "Zurück am Hof",
+    text: "Nach zwei Stunden kehren alle gemeinsam heim – müde Beine, volle Herzen und garantiert ein Foto zu viel.",
+  },
+];
 ---
 
 <Layout title="Alpaka-Wanderungen" navTransparentOnHero={true} hideLogoOnTransparent={false}>
@@ -48,7 +77,14 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
     </div>
   </section>
 
-  <Slideshow images={images} />
+  <Slideshow
+    slides={slides}
+    label="Momentaufnahmen von der Wanderung"
+    variant="hike"
+    eyebrow="Unterwegs am Inn"
+    subline="Zwei gemütliche Stunden – Momentaufnahmen von der Strecke."
+    lightbox
+  />
 
   <section class="info-box section">
     <div class="container">
