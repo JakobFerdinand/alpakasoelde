@@ -1,13 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { ChartState } from 'layerchart';
-  import { BarChart3, Eye, Files, ZoomOut } from '@lucide/svelte';
+  import { BarChart3, Eye, Files, Repeat, Users, ZoomOut } from '@lucide/svelte';
   import PageViewSeriesChart from './PageViewSeriesChart.svelte';
 
   type PathCount = { Path: string; Count: number };
   type DeviceCount = { Category: string; Count: number };
   type OriginCount = { Domain: string; Count: number };
   type Bucket = { Period: string; Group: string | null; Count: number };
+  type NavigationCount = { Type: string; Count: number };
   type Granularity = 'week' | 'day' | 'hour';
   type GroupBy = 'path' | 'device' | 'origin';
   type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
@@ -19,6 +20,9 @@
     Devices: DeviceCount[];
     Origins: OriginCount[];
     Series: Bucket[];
+    Sessions: number;
+    Visitors: number;
+    Navigations: NavigationCount[];
     Granularity: Granularity;
     GroupBy: GroupBy | 'total';
   };
@@ -58,6 +62,14 @@
   const hourDisabled = $derived(days > 28);
 
   const total = $derived(pathStats?.Total ?? 0);
+  const sessions = $derived(pathStats?.Sessions ?? 0);
+  const visitors = $derived(pathStats?.Visitors ?? 0);
+  const markedShare = $derived.by(() => {
+    const marked = (pathStats?.Navigations ?? [])
+      .filter((entry) => entry.Type === 'reload' || entry.Type === 'back_forward')
+      .reduce((acc, entry) => acc + entry.Count, 0);
+    return total > 0 ? marked / total : 0;
+  });
   const topPath = $derived(pathStats?.TopPaths[0] ?? null);
   const uniquePages = $derived(pathStats?.UniquePaths ?? 0);
   const hasData = $derived(Boolean(pathStats) && pathStats!.Total > 0);
@@ -254,6 +266,7 @@
         <div class="kpi-tile">
           <BarChart3 class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(total)}</span>
+          <span class="kpi-percent">{formatPercent(markedShare)} neu geladen/zurück</span>
           <span class="kpi-label">Gesamt</span>
         </div>
         <div class="kpi-tile kpi-tile-top">
@@ -268,6 +281,16 @@
           <Files class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(uniquePages)}</span>
           <span class="kpi-label">Einzigartige Seiten</span>
+        </div>
+        <div class="kpi-tile">
+          <Users class="kpi-icon" aria-hidden="true" />
+          <span class="kpi-value">{formatCount(sessions)}</span>
+          <span class="kpi-label">Sitzungen</span>
+        </div>
+        <div class="kpi-tile">
+          <Repeat class="kpi-icon" aria-hidden="true" />
+          <span class="kpi-value">{formatCount(visitors)}</span>
+          <span class="kpi-label">Besucher</span>
         </div>
       </div>
 
@@ -517,7 +540,7 @@
 
   .kpi-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
     gap: 1rem;
   }
 
