@@ -51,7 +51,7 @@ public sealed class PageView
 			return invalidJsonResponse;
 		}
 
-		var command = new Command(payload.Path ?? string.Empty, payload.ReferrerHost, payload.ViewportWidth ?? 0);
+		var command = new Command(payload.Path ?? string.Empty, payload.ReferrerHost, payload.ViewportWidth ?? 0, payload.SessionId, payload.VisitorId, payload.NavigationType);
 		var validation = await _handler.HandleAsync(command, req.FunctionContext.CancellationToken).ConfigureAwait(false);
 		if (validation is not null)
 		{
@@ -69,9 +69,9 @@ public sealed class PageView
 		return req.CreateResponse(HttpStatusCode.NoContent);
 	}
 
-	public sealed record Payload(string? Path, string? ReferrerHost, int? ViewportWidth);
+	public sealed record Payload(string? Path, string? ReferrerHost, int? ViewportWidth, string? SessionId, string? VisitorId, string? NavigationType);
 
-	public sealed record Command(string Path, string? ReferrerHost, int ViewportWidth);
+	public sealed record Command(string Path, string? ReferrerHost, int ViewportWidth, string? SessionId, string? VisitorId, string? NavigationType);
 
 	public sealed record ValidationProblem(IReadOnlyCollection<string> Errors, string Detail);
 
@@ -149,6 +149,8 @@ public sealed class PageView
 		private const int PathMaxLength = 200;
 		private const int ReferrerHostMaxLength = 200;
 		private const int MaxViewportWidth = 10000;
+		private const int IdMaxLength = 64;
+		private static readonly string[] AllowedNavigationTypes = ["navigate", "reload", "back_forward"];
 
 		public async Task<ValidationProblem?> HandleAsync(Command command, CancellationToken cancellationToken)
 		{
@@ -171,18 +173,49 @@ public sealed class PageView
 				return new ValidationProblem(errors, string.Join(" ", errors));
 			}
 
+			string path = command.Path.Trim().TrimEnd('/');
+			if (path.Length == 0)
+			{
+				path = "/";
+			}
+
 			PageViewEntity entity = new()
 			{
 				PartitionKey = $"Pv|{DateTime.UtcNow:yyyy-MM-dd}",
 				RowKey = Guid.NewGuid().ToString(),
-				Path = command.Path.Trim(),
+				Path = path,
 				ReferrerHost = string.IsNullOrEmpty(command.ReferrerHost) ? null : command.ReferrerHost.Trim(),
 				ViewportWidth = command.ViewportWidth,
+				SessionId = SanitizeIdentifier(command.SessionId),
+				VisitorId = SanitizeIdentifier(command.VisitorId),
+				NavigationType = SanitizeNavigationType(command.NavigationType),
 			};
 
 			await _store.AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
 			return null;
+		}
+
+		private static string? SanitizeIdentifier(string? value)
+		{
+			if (string.IsNullOrWhiteSpace(value))
+			{
+				return null;
+			}
+
+			string trimmed = value.Trim();
+			return trimmed.Length > IdMaxLength ? null : trimmed;
+		}
+
+		private static string? SanitizeNavigationType(string? value)
+		{
+			if (string.IsNullOrWhiteSpace(value))
+			{
+				return null;
+			}
+
+			string trimmed = value.Trim();
+			return AllowedNavigationTypes.Contains(trimmed, StringComparer.Ordinal) ? trimmed : null;
 		}
 	}
 }
