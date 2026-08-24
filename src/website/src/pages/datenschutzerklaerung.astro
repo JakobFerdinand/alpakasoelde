@@ -61,12 +61,15 @@ import Layout from '../layouts/Layout.astro';
         <li>die aufgerufene Seite (Pfad)</li>
         <li>die verweisende Website (nur die Domain, niemals die vollständige Adresse mit Zusatzparametern)</li>
         <li>die Bildschirmbreite</li>
+        <li>eine zufällige Sitzungskennung im Sitzungsspeicher Ihres Browsers (wird beim Schließen des Browsers gelöscht)</li>
+        <li>eine zufällige Besucherkennung im lokalen Speicher Ihres Browsers (bleibt bis zum Löschen der Browserdaten bestehen)</li>
+        <li>die Art des Seitenaufrufs (normal aufgerufen, neu geladen oder über die Zurück-Navigation erreicht)</li>
         <li>den Zeitpunkt des Aufrufs</li>
       </ul>
-      <p>Es werden <strong>keine IP-Adressen, keine Cookies und keine Browser-Identifikatoren</strong> gespeichert; eine Identifizierung einzelner Besucher ist nicht möglich.</p>
+      <p>Es werden <strong>keine IP-Adressen und keine Cookies</strong> gespeichert. Die eingesetzten Kennungen sind reine Zufallswerte ohne Bezug zu Ihrer Person, werden ausschließlich für diese Statistik verwendet und niemals mit Daten Dritter abgeglichen; ein siteübergreifendes Tracking findet nicht statt.</p>
       <p>Die Daten werden in <strong>Azure Table Storage (Germany West Central)</strong> gespeichert. Für diese Verarbeitung gilt der bestehende <strong>Auftragsverarbeitungsvertrag</strong> mit Microsoft (siehe Punkt 3).</p>
       <p>Die Datensätze werden <strong>automatisch nach 36 Monaten gelöscht</strong>.</p>
-      <p>Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. f DSGVO auf Basis unseres berechtigten Interesses, die Website zu verbessern und über ihre Nutzung informiert zu sein. Da die Datensätze keiner einzelnen Person zugeordnet werden können, können die Rechte auf Löschung (Art. 17 DSGVO) und Widerspruch (Art. 21 DSGVO) für diese pseudonyme Statistik nicht ausgeübt werden; sie gelten uneingeschränkt für alle übrigen Verarbeitungen personenbezogener Daten, etwa über das Kontaktformular.</p>
+      <p>Die Verarbeitung erfolgt gemäß Art. 6 Abs. 1 lit. f DSGVO auf Basis unseres berechtigten Interesses, die Website zu verbessern und über ihre Nutzung informiert zu sein. Da die Kennungen reine Zufallswerte sind und keinen Bezug zu Ihrer Person haben, können wir die Datensätze keiner bestimmten Person zuordnen; Löschen Sie Ihre Browserdaten oder sperren Sie den lokalen Speicher für diese Website, erzeugt Ihr Browser zudem neue Kennungen. Die Rechte auf Löschung (Art. 17 DSGVO) und Widerspruch (Art. 21 DSGVO) bleiben für alle übrigen Verarbeitungen personenbezogener Daten uneingeschränkt anwendbar, etwa über das Kontaktformular.</p>
 
       <hr />
 
@@ -76,7 +79,7 @@ import Layout from '../layouts/Layout.astro';
       <hr />
 
       <h3 id="keine-cookies-oder-tracking">7. Keine Cookies oder Tracking</h3>
-      <p>Wir verwenden <strong>keine Cookies</strong>; ein Cookie-Banner ist daher nicht erforderlich. Nutzungsstatistiken erheben wir ausschließlich in der pseudonymen, cookie-freien Form, wie unter Punkt 5 beschrieben. Tools von Drittanbietern wie Google Analytics werden <strong>nicht</strong> eingesetzt.</p>
+      <p>Wir verwenden <strong>keine Cookies</strong>; ein Cookie-Banner ist daher nicht erforderlich. Die unter Punkt 5 beschriebene Statistik erfolgt ausschließlich über erste Partei im lokalen Speicher Ihres Browsers mit reinen Zufallskennungen; ein Werbe- oder siteübergreifendes Tracking findet nicht statt. Tools von Drittanbietern wie Google Analytics werden <strong>nicht</strong> eingesetzt.</p>
 
       <hr />
 
