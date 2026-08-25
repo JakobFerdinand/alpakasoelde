@@ -30,6 +30,7 @@
   };
 
   const periods = [
+    { label: '7 Tage', days: 7 },
     { label: '4 Wochen', days: 28 },
     { label: '3 Monate', days: 90 },
     { label: '6 Monate', days: 180 },
@@ -61,8 +62,25 @@
   let originCtx = $state<ChartState<any, any, any> | undefined>();
   let audienceCtx = $state<ChartState<any, any, any> | undefined>();
   let zoomed = $state(false);
+  let customRange = $state(false);
+  let fromDate = $state('');
+  let toDate = $state('');
 
-  const hourDisabled = $derived(days > 28);
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const computedDays = $derived.by(() => {
+    if (customRange && fromDate && toDate) {
+      const diff = (Date.parse(toDate) - Date.parse(fromDate)) / 86400000 + 1;
+      return Math.min(Math.max(Math.round(diff), 1), 180);
+    }
+    return days;
+  });
+
+  const hasCustomDates = $derived(
+    customRange && fromDate !== '' && toDate !== '' && Date.parse(toDate) >= Date.parse(fromDate),
+  );
+
+  const hourDisabled = $derived(computedDays > 28);
 
   const total = $derived(pathStats?.Total ?? 0);
   const sessions = $derived(pathStats?.Sessions ?? 0);
@@ -131,10 +149,14 @@
   }
 
   async function fetchStats(groupBy: GroupBy, signal: AbortSignal): Promise<StatsResult> {
-    const res = await fetch(
-      `/api/pageviews/stats?days=${days}&granularity=${granularity}&groupBy=${groupBy}`,
-      { signal },
-    );
+    const params = new URLSearchParams({ granularity, groupBy });
+    if (hasCustomDates) {
+      params.set('from', fromDate);
+      params.set('to', toDate);
+    } else {
+      params.set('days', String(days));
+    }
+    const res = await fetch(`/api/pageviews/stats?${params}`, { signal });
     if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
     return res.json();
   }
@@ -245,14 +267,56 @@
             <button
               type="button"
               class="period-button"
-              class:is-active={days === period.days}
-              aria-pressed={days === period.days}
-              onclick={() => setPeriod(period.days)}
+              class:is-active={!customRange && days === period.days}
+              aria-pressed={!customRange && days === period.days}
+              onclick={() => {
+                customRange = false;
+                setPeriod(period.days);
+              }}
             >
               {period.label}
             </button>
           {/each}
+          <button
+            type="button"
+            class="period-button"
+            class:is-active={customRange}
+            aria-pressed={customRange}
+            onclick={() => { customRange = !customRange; }}
+          >
+            Benutzerdefiniert
+          </button>
         </div>
+
+        {#if customRange}
+          <div class="custom-date-range">
+            <label class="date-label">
+              Von
+              <input
+                type="date"
+                bind:value={fromDate}
+                max={toDate || todayIso}
+              />
+            </label>
+            <label class="date-label">
+              Bis
+              <input
+                type="date"
+                bind:value={toDate}
+                min={fromDate}
+                max={todayIso}
+              />
+            </label>
+            <button
+              type="button"
+              class="period-button"
+              disabled={!hasCustomDates}
+              onclick={() => load()}
+            >
+              Anwenden
+            </button>
+          </div>
+        {/if}
 
         {#if zoomed}
           <button
@@ -572,6 +636,37 @@
     align-items: center;
     gap: 0.4rem;
     margin-left: auto;
+  }
+
+  .custom-date-range {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    align-self: flex-start;
+  }
+
+  .date-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--taubenblau);
+  }
+
+  .date-label input[type="date"] {
+    border: 1px solid rgba(0, 32, 73, 0.15);
+    border-radius: 0.375rem;
+    padding: 0.4rem 0.6rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--taubenblau);
+    background: var(--schurwolle);
+  }
+
+  .date-label input[type="date"]:focus-visible {
+    outline: 2px solid var(--taubenblau);
+    outline-offset: -1px;
   }
 
   :global(.zoom-reset-icon) {

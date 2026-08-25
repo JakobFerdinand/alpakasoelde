@@ -39,6 +39,18 @@ GET {{base}}/api/pageviews/stats?days=90
 
 ###
 
+GET {{base}}/api/pageviews/stats?days=7&granularity=day
+
+###
+
+GET {{base}}/api/pageviews/stats?from=2026-07-01&to=2026-08-25&granularity=day
+
+###
+
+GET {{base}}/api/pageviews/stats?from=2026-02-01&to=2026-08-25&granularity=week
+
+###
+
 GET {{base}}/api/pageviews/stats?days=90&granularity=day
 
 ###
