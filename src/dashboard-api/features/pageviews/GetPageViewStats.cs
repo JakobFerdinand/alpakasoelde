@@ -30,6 +30,16 @@ public sealed class GetPageViewStats
 			days = Math.Min(requestedDays, TableLookbackDays);
 		}
 
+		DateTimeOffset? windowStart = null;
+		string? fromParam = req.Query["from"];
+		string? toParam = req.Query["to"];
+		if (DateOnly.TryParse(fromParam, out DateOnly from) && DateOnly.TryParse(toParam, out DateOnly to) && to >= from)
+		{
+			int computedDays = (to.DayNumber - from.DayNumber) + 1;
+			days = Math.Min(computedDays, TableLookbackDays);
+			windowStart = new DateTimeOffset(from.Year, from.Month, from.Day, 0, 0, 0, TimeSpan.Zero);
+		}
+
 		string? granularityParam = req.Query["granularity"];
 		string granularity = granularityParam is "week" or "day" or "hour" ? granularityParam : "week";
 
@@ -41,13 +51,13 @@ public sealed class GetPageViewStats
 			days = Math.Min(days, 28);
 		}
 
-		Result result = await _handler.HandleAsync(new Query(days, granularity, groupBy), req.FunctionContext.CancellationToken);
+		Result result = await _handler.HandleAsync(new Query(days, granularity, groupBy, windowStart), req.FunctionContext.CancellationToken);
 		var response = req.CreateResponse(HttpStatusCode.OK);
 		await response.WriteAsJsonAsync(result).ConfigureAwait(false);
 		return response;
 	}
 
-	public sealed record Query(int Days, string Granularity, string GroupBy);
+	public sealed record Query(int Days, string Granularity, string GroupBy, DateTimeOffset? WindowStart = null);
 
 	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<OriginCount> Origins, IReadOnlyList<Bucket> Series, int Sessions, int Visitors, IReadOnlyList<NavigationCount> Navigations, IReadOnlyList<AudienceBucket> AudienceSeries, string Granularity, string GroupBy);
 
@@ -104,7 +114,7 @@ public sealed class GetPageViewStats
 			IReadOnlyList<PageViewEntity> pageViews = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
 
 			DateTimeOffset now = DateTimeOffset.UtcNow;
-			DateTimeOffset windowStart = now.AddDays(-query.Days);
+			DateTimeOffset windowStart = query.WindowStart ?? now.AddDays(-query.Days);
 
 			var inWindow = pageViews
 				.Where(p => p.Timestamp.HasValue && p.Timestamp >= windowStart)
