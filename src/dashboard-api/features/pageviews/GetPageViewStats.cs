@@ -49,7 +49,7 @@ public sealed class GetPageViewStats
 
 	public sealed record Query(int Days, string Granularity, string GroupBy);
 
-	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<OriginCount> Origins, IReadOnlyList<Bucket> Series, int Sessions, int Visitors, IReadOnlyList<NavigationCount> Navigations, string Granularity, string GroupBy);
+	public sealed record Result(int Total, int UniquePaths, IReadOnlyList<PathCount> TopPaths, IReadOnlyList<DeviceCount> Devices, IReadOnlyList<OriginCount> Origins, IReadOnlyList<Bucket> Series, int Sessions, int Visitors, IReadOnlyList<NavigationCount> Navigations, IReadOnlyList<AudienceBucket> AudienceSeries, string Granularity, string GroupBy);
 
 	public sealed record PathCount(string Path, int Count);
 
@@ -60,6 +60,8 @@ public sealed class GetPageViewStats
 	public sealed record NavigationCount(string Type, int Count);
 
 	public sealed record Bucket(string Period, string? Group, int Count);
+
+	public sealed record AudienceBucket(string Period, int Visitors, int Sessions);
 
 	public interface IPageViewReadStore
 	{
@@ -241,7 +243,9 @@ public sealed class GetPageViewStats
 				}
 			}
 
-			return new Result(total, uniquePaths, topPaths, devices, origins, series, sessions, visitors, navigations, query.Granularity, query.GroupBy);
+			List<AudienceBucket> audienceSeries = BuildAudienceSeries(inWindow, windowStart, now, query.Granularity);
+
+			return new Result(total, uniquePaths, topPaths, devices, origins, series, sessions, visitors, navigations, audienceSeries, query.Granularity, query.GroupBy);
 		}
 
 		private static string NormalizePath(string path)
@@ -289,6 +293,57 @@ public sealed class GetPageViewStats
 		private static string FormatPeriod(DateTime period, string granularity)
 		{
 			return granularity == "hour" ? period.ToString("yyyy-MM-dd'T'HH:mm") : period.ToString("yyyy-MM-dd");
+		}
+
+		private static List<AudienceBucket> BuildAudienceSeries(
+			IReadOnlyList<PageViewEntity> inWindow,
+			DateTimeOffset windowStart,
+			DateTimeOffset now,
+			string granularity)
+		{
+			var byPeriod = new Dictionary<DateTime, (HashSet<string> Visitors, HashSet<string> Sessions)>();
+			foreach (PageViewEntity pv in inWindow)
+			{
+				DateTime period = GetPeriodStart(pv.Timestamp!.Value, granularity);
+				if (!byPeriod.TryGetValue(period, out var bucket))
+				{
+					bucket = (new HashSet<string>(StringComparer.Ordinal), new HashSet<string>(StringComparer.Ordinal));
+					byPeriod[period] = bucket;
+				}
+				if (!string.IsNullOrWhiteSpace(pv.VisitorId))
+				{
+					bucket.Visitors.Add(pv.VisitorId!.Trim());
+				}
+				if (!string.IsNullOrWhiteSpace(pv.SessionId))
+				{
+					bucket.Sessions.Add(pv.SessionId!.Trim());
+				}
+			}
+
+			var result = new List<AudienceBucket>();
+			DateTime periodStart = GetPeriodStart(windowStart, granularity);
+			DateTime lastPeriodStart = GetPeriodStart(now, granularity);
+			TimeSpan step = granularity switch
+			{
+				"hour" => TimeSpan.FromHours(1),
+				"day" => TimeSpan.FromDays(1),
+				_ => TimeSpan.FromDays(7),
+			};
+
+			for (DateTime period = periodStart; period <= lastPeriodStart; period += step)
+			{
+				string periodString = FormatPeriod(period, granularity);
+				if (byPeriod.TryGetValue(period, out var counts))
+				{
+					result.Add(new AudienceBucket(periodString, counts.Visitors.Count, counts.Sessions.Count));
+				}
+				else
+				{
+					result.Add(new AudienceBucket(periodString, 0, 0));
+				}
+			}
+
+			return result;
 		}
 	}
 }

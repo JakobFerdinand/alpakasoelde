@@ -8,6 +8,7 @@
   type DeviceCount = { Category: string; Count: number };
   type OriginCount = { Domain: string; Count: number };
   type Bucket = { Period: string; Group: string | null; Count: number };
+  type AudienceBucket = { Period: string; Visitors: number; Sessions: number };
   type NavigationCount = { Type: string; Count: number };
   type Granularity = 'week' | 'day' | 'hour';
   type GroupBy = 'path' | 'device' | 'origin';
@@ -23,6 +24,7 @@
     Sessions: number;
     Visitors: number;
     Navigations: NavigationCount[];
+    AudienceSeries: AudienceBucket[];
     Granularity: Granularity;
     GroupBy: GroupBy | 'total';
   };
@@ -57,6 +59,7 @@
   let pathCtx = $state<ChartState<any, any, any> | undefined>();
   let deviceCtx = $state<ChartState<any, any, any> | undefined>();
   let originCtx = $state<ChartState<any, any, any> | undefined>();
+  let audienceCtx = $state<ChartState<any, any, any> | undefined>();
   let zoomed = $state(false);
 
   const hourDisabled = $derived(days > 28);
@@ -89,6 +92,12 @@
   const pathRows = $derived(toRows(pathStats));
   const deviceRows = $derived(toRows(deviceStats));
   const originRows = $derived(toRows(originStats));
+  const audienceRows = $derived(
+    (pathStats?.AudienceSeries ?? []).flatMap((entry) => [
+      { Period: entry.Period, Group: 'Besucher', Count: entry.Visitors },
+      { Period: entry.Period, Group: 'Sitzungen', Count: entry.Sessions },
+    ]),
+  );
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
@@ -141,7 +150,7 @@
   function handleTransform(source: ChartState<any, any, any> | undefined, details: TransformDetails) {
     zoomed = details.scale > 1 || details.translate.x !== 0;
     if (!source) return;
-    for (const ctx of [pathCtx, deviceCtx, originCtx]) {
+    for (const ctx of [pathCtx, deviceCtx, originCtx, audienceCtx]) {
       if (!ctx || ctx === source || transformApplied(ctx, details)) continue;
       ctx.transform.setScale(details.scale, { instant: true });
       ctx.transform.setTranslate(details.translate, { instant: true });
@@ -150,7 +159,7 @@
 
   function resetZoom() {
     zoomed = false;
-    for (const ctx of [pathCtx, deviceCtx, originCtx]) {
+    for (const ctx of [pathCtx, deviceCtx, originCtx, audienceCtx]) {
       if (!ctx || transformApplied(ctx, { scale: 1, translate: { x: 0, y: 0 } })) continue;
       ctx.transform.reset();
     }
@@ -322,6 +331,38 @@
               </thead>
               <tbody>
                 {#each pathRows as row}
+                  <tr>
+                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                    <td>{row.Group}</td>
+                    <td>{formatCount(row.Count)}</td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </section>
+        {/if}
+
+        {#if audienceRows.length}
+          <section class="chart-section" aria-labelledby="audience-chart-title">
+            <h3 id="audience-chart-title" class="section-title">Besucher und Sitzungen nach {granularityLabel}</h3>
+            <PageViewSeriesChart
+              rows={audienceRows}
+              {chartType}
+              formatTooltipLabel={formatPeriodLabel}
+              formatAxisLabel={formatAxisLabel}
+              bind:context={audienceCtx}
+              ontransform={(details) => handleTransform(audienceCtx, details)}
+            />
+            <table class="sr-only-table">
+              <thead>
+                <tr>
+                  <th scope="col">{granularityLabel}</th>
+                  <th scope="col">Metrik</th>
+                  <th scope="col">Anzahl</th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each audienceRows as row}
                   <tr>
                     <th scope="row">{formatPeriodLabel(row.Period)}</th>
                     <td>{row.Group}</td>
