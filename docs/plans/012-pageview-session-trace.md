@@ -30,11 +30,11 @@ Add a read-only drill-down to the dashboard so an individual browsing session ca
 
 ## Milestones (tracked)
 
-- [ ] Write the plan (`docs/plans/012-pageview-session-trace.md`)
-- [ ] `dashboard-api`: session list + detail endpoints in `features/pageviews/GetPageViewSessions.cs`
-- [ ] `dashboard`: `SessionFlow.svelte` (list + trace view), `src/pages/sitzungen.astro`, navbar entry
-- [ ] Extend `src/dashboard-api/requests.http`
-- [ ] Verify builds + manual matrix; deploy dashboard SWA (ships API + frontend together)
+- [x] Write the plan (`docs/plans/012-pageview-session-trace.md`)
+- [x] `dashboard-api`: session list + detail endpoints in `features/pageviews/GetPageViewSessions.cs`
+- [x] `dashboard`: `SessionFlow.svelte` (list + trace view), `src/pages/sitzungen.astro`, navbar entry
+- [x] Extend `src/dashboard-api/requests.http`
+- [ ] Verify builds + manual matrix; deploy dashboard SWA (ships API + frontend together) — `dotnet build` both APIs and `pnpm run build`/`check:svelte` pass locally on branch `feat/pageview-session-trace`; manual matrix and deploy still pending
 
 ## 1. Read API (`src/dashboard-api`)
 
