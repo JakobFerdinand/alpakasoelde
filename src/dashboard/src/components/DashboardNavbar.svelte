@@ -36,6 +36,7 @@
       <li><a href="/" onclick={closeMenu}>Übersicht</a></li>
       <li><a href="/messages" onclick={closeMenu}>Nachrichten</a></li>
       <li><a href="/pageviews" onclick={closeMenu}>Statistik</a></li>
+      <li><a href="/sitzungen" onclick={closeMenu}>Sitzungen</a></li>
       <li><a href="/gutscheine" onclick={closeMenu}>Gutscheine</a></li>
       <li class="user-info">
         <span class="user-name">{userName}</span>
