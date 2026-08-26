@@ -49,8 +49,8 @@
 
   let activeController: AbortController | null = null;
 
-  let days = $state(28);
-  let granularity = $state<Granularity>('week');
+  let days = $state(7);
+  let granularity = $state<Granularity>('day');
   let chartType = $state<ChartType>('bars-stacked');
   let loading = $state(true);
   let error = $state('');
