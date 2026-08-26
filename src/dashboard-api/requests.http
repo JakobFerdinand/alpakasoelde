@@ -131,3 +131,43 @@ Content-Type: application/json
 {
   "eingeloestAm": "2025-02-15"
 }
+
+###
+
+# Pageview sessions
+
+GET {{base}}/api/pageviews/sessions
+
+###
+
+GET {{base}}/api/pageviews/sessions?days=7&minPages=2&limit=50
+
+###
+
+GET {{base}}/api/pageviews/sessions?from=2026-08-01&to=2026-08-14
+
+###
+
+# Example values – replace visitor id and path as needed
+
+@pageviewVisitorId=REPLACE-WITH-VISITOR-ID
+
+GET {{base}}/api/pageviews/sessions?visitor={{pageviewVisitorId}}
+
+###
+
+GET {{base}}/api/pageviews/sessions?path=/
+
+###
+
+# Example value – copy a SessionId from a sessions list response
+
+@pageviewSessionId=REPLACE-WITH-SESSION-ID
+
+GET {{base}}/api/pageviews/sessions/{{pageviewSessionId}}
+
+###
+
+# Expect 404
+
+GET {{base}}/api/pageviews/sessions/not-a-real-id
