@@ -27,6 +27,7 @@ var host = new HostBuilder()
         services.AddScoped<GetMessageStats.Handler>();
         services.AddScoped<DeleteMessage.Handler>();
         services.AddScoped<GetPageViewStats.Handler>();
+        services.AddScoped<GetPageViewSessions.Handler>();
         services.AddScoped<Events.GetHandler>();
         services.AddScoped<Events.AddHandler>();
         services.AddScoped<GetGutscheine.Handler>();

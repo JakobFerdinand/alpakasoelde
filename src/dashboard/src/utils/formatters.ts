@@ -83,6 +83,25 @@ export const calculateAge = (dateString: string | null | undefined): string => {
 };
 
 /**
+ * Formats a duration in seconds as a compact German string.
+ */
+export const formatDuration = (seconds?: number | null): string => {
+  if (seconds === null || seconds === undefined || Number.isNaN(seconds) || seconds < 0) return '—';
+  if (seconds < 60) return `${Math.round(seconds)} s`;
+  if (seconds < 3600) {
+    const minutes = Math.floor(seconds / 60);
+    const restSeconds = Math.floor(seconds % 60);
+    return restSeconds > 0 ? `${minutes} min ${restSeconds} s` : `${minutes} min`;
+  }
+  if (seconds < 86400) {
+    const hours = Math.floor(seconds / 3600);
+    const restMinutes = Math.floor((seconds % 3600) / 60);
+    return restMinutes > 0 ? `${hours} h ${restMinutes} min` : `${hours} h`;
+  }
+  return '> 24 h';
+};
+
+/**
  * Formats a timestamp to German locale with time zone.
  */
 export const formatTimestamp = (value: string | null | undefined): string => {
