@@ -1,4 +1,5 @@
 using DashboardApi.Features.Gutscheine;
+using DashboardApi.Tests.Fakes;
 using dashboard_api.shared.entities;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -6,33 +7,8 @@ namespace DashboardApi.Tests;
 
 public sealed class AddGutscheinHandlerTests
 {
-    private sealed class InMemoryGutscheinStore(params GutscheinEntity[] seed) : IGutscheinStore
-    {
-        public List<GutscheinEntity> Entities { get; } = [.. seed];
-
-        public Task<IReadOnlyList<GutscheinEntity>> GetAllAsync(CancellationToken cancellationToken)
-            => Task.FromResult<IReadOnlyList<GutscheinEntity>>(Entities);
-
-        public Task AddAsync(GutscheinEntity entity, CancellationToken cancellationToken)
-        {
-            Entities.Add(entity);
-            return Task.CompletedTask;
-        }
-
-        public Task<GutscheinEntity?> GetByGutscheinnummerAsync(string gutscheinnummer, CancellationToken cancellationToken)
-            => Task.FromResult(Entities.Find(e => e.Gutscheinnummer == gutscheinnummer));
-
-        public Task UpdateAsync(GutscheinEntity entity, CancellationToken cancellationToken)
-            => Task.CompletedTask;
-    }
-
-    private static GutscheinEntity Existing(string gutscheinnummer) => new()
-    {
-        Gutscheinnummer = gutscheinnummer,
-        RowKey = gutscheinnummer,
-        Kaufdatum = new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero),
-        Betrag = 50
-    };
+    private static GutscheinEntity Purchased(string gutscheinnummer)
+        => InMemoryGutscheinStore.Gutschein(gutscheinnummer, new DateTimeOffset(2025, 1, 2, 0, 0, 0, TimeSpan.Zero));
 
     private static AddGutschein.Handler CreateHandler(IGutscheinStore store)
         => new(store, NullLogger<AddGutschein.Handler>.Instance);
@@ -41,7 +17,7 @@ public sealed class AddGutscheinHandlerTests
     public async Task Blank_number_continues_the_highest_suffix_of_the_purchase_year()
     {
         // 2024 numbers must not raise the 2025 counter, and the suffix stays two digits.
-        InMemoryGutscheinStore store = new(Existing("202417"), Existing("202503"), Existing("202511"));
+        InMemoryGutscheinStore store = new(Purchased("202417"), Purchased("202503"), Purchased("202511"));
         AddGutschein.Handler handler = CreateHandler(store);
 
         var (result, error) = await handler.HandleAsync(
