@@ -10,8 +10,9 @@
     "format:check": "prettier --check .",
     "preview": "astro preview",
     "astro": "astro",
-    "pretest": "playwright install chromium",
-    "test": "playwright test"
+    "test": "vitest run",
+    "pretest:e2e": "playwright install chromium",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/ts-plugin": "^1.10.11",
@@ -25,6 +26,7 @@
     "@types/node": "^26.4.0",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.11"
   }
 }

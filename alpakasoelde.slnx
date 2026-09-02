@@ -1,6 +1,8 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/dashboard-api/dashboard-api.csproj" />
+    <Project Path="src/dashboard-api-tests/dashboard-api-tests.csproj" />
     <Project Path="src/website-api/website-api.csproj" />
+    <Project Path="src/website-api-tests/website-api-tests.csproj" />
   </Folder>
 </Solution>

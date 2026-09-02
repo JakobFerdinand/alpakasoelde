@@ -29,6 +29,7 @@ bin/
 obj/
 
 test-results/
+playwright-report/
 
 # compiled bicep artifacts
 infrastructure/*.json
