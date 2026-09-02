@@ -101,7 +101,7 @@ public sealed class AddGutschein
 
         public async Task<(AddResult? Result, string? Error)> HandleAsync(AddCommand command, CancellationToken cancellationToken)
         {
-            if (!DateTimeOffset.TryParse(command.Kaufdatum, out DateTimeOffset kaufdatum))
+            if (!GutscheinDates.TryParseDate(command.Kaufdatum, out DateTimeOffset kaufdatum))
             {
                 return (null, "Das Kaufdatum ist ungültig.");
             }
@@ -111,7 +111,7 @@ public sealed class AddGutschein
                 return (null, "Der Betrag muss größer als 0 sein.");
             }
 
-            if (!string.IsNullOrWhiteSpace(command.EingeloestAm) && !DateTimeOffset.TryParse(command.EingeloestAm, out _))
+            if (!string.IsNullOrWhiteSpace(command.EingeloestAm) && !GutscheinDates.TryParseDate(command.EingeloestAm, out _))
             {
                 return (null, "Das Einlösedatum ist ungültig.");
             }
@@ -125,12 +125,12 @@ public sealed class AddGutschein
             }
 
             DateTimeOffset? eingeloestAm = null;
-            if (!string.IsNullOrWhiteSpace(command.EingeloestAm))
+            if (GutscheinDates.TryParseDate(command.EingeloestAm, out DateTimeOffset parsedEingeloestAm))
             {
-                eingeloestAm = DateTimeOffset.Parse(command.EingeloestAm).Date;
+                eingeloestAm = parsedEingeloestAm;
             }
 
-            if (eingeloestAm is not null && eingeloestAm < kaufdatum.Date)
+            if (eingeloestAm is not null && eingeloestAm < kaufdatum)
             {
                 return (null, "Das Einlösedatum darf nicht vor dem Kaufdatum liegen.");
             }
@@ -158,7 +158,7 @@ public sealed class AddGutschein
             GutscheinEntity entity = new()
             {
                 Gutscheinnummer = gutscheinnummer,
-                Kaufdatum = kaufdatum.Date,
+                Kaufdatum = kaufdatum,
                 Betrag = command.Betrag.Value,
                 EingeloestAm = eingeloestAm,
                 VerkauftAn = verkauftAn,

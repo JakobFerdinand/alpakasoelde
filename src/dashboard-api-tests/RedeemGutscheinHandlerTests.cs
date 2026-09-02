@@ -26,16 +26,50 @@ public sealed class RedeemGutscheinHandlerTests
         Assert.NotNull(result);
         Assert.Equal("202501", result.Gutscheinnummer);
         Assert.Equal("2025-06-15", result.EingeloestAm);
-        // Only the date is asserted: the handler converts through `DateTimeOffset.Date`,
-        // so the stored offset follows whatever time zone the host runs in.
-        Assert.Equal(new DateTime(2025, 6, 15), gutschein.EingeloestAm!.Value.Date);
+        Assert.Equal(new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero), gutschein.EingeloestAm);
         Assert.Equal(1, store.UpdateCount);
+    }
+
+    [Theory]
+    // The day as written is the day stored, whatever the host time zone is: a bare
+    // date, an instant late in the day, and an instant carrying its own offset.
+    [InlineData("2025-06-15")]
+    [InlineData("2025-06-15T23:30:00Z")]
+    [InlineData("2025-06-15T01:30:00+02:00")]
+    public async Task The_redemption_day_does_not_depend_on_the_host_time_zone(string eingeloestAm)
+    {
+        GutscheinEntity gutschein = InMemoryGutscheinStore.Gutschein("202501", Kaufdatum);
+        InMemoryGutscheinStore store = new(gutschein);
+
+        var (result, error) = await CreateHandler(store).HandleAsync(
+            new RedeemGutschein.RedeemCommand("202501", eingeloestAm),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(error);
+        Assert.Equal("2025-06-15", result!.EingeloestAm);
+        Assert.Equal(new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero), gutschein.EingeloestAm);
     }
 
     [Fact]
     public async Task Redeeming_on_the_purchase_day_itself_is_allowed()
     {
         InMemoryGutscheinStore store = new(InMemoryGutscheinStore.Gutschein("202501", Kaufdatum));
+
+        var (result, error) = await CreateHandler(store).HandleAsync(
+            new RedeemGutschein.RedeemCommand("202501", "2025-03-01"),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(error);
+        Assert.Equal("2025-03-01", result!.EingeloestAm);
+    }
+
+    [Fact]
+    public async Task A_row_written_by_a_non_utc_host_is_still_compared_by_its_day()
+    {
+        // Kaufdatum stored as local midnight in Vienna, i.e. the previous day in UTC.
+        InMemoryGutscheinStore store = new(InMemoryGutscheinStore.Gutschein(
+            "202501",
+            new DateTimeOffset(2025, 3, 1, 0, 0, 0, TimeSpan.FromHours(2))));
 
         var (result, error) = await CreateHandler(store).HandleAsync(
             new RedeemGutschein.RedeemCommand("202501", "2025-03-01"),

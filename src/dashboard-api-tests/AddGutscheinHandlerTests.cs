@@ -33,7 +33,43 @@ public sealed class AddGutscheinHandlerTests
         Assert.Equal("202512", stored.RowKey);
         Assert.Equal("Anna Huber", stored.VerkauftAn);
         Assert.Equal(75, stored.Betrag);
+        Assert.Equal(new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero), stored.Kaufdatum);
         Assert.Null(stored.EingeloestAm);
+    }
+
+    [Theory]
+    // The day as written is the day stored, whatever the host time zone is: a bare
+    // date, an instant late in the day, and an instant carrying its own offset —
+    // which also decides the year the number is issued for.
+    [InlineData("2025-06-15")]
+    [InlineData("2025-06-15T23:30:00Z")]
+    [InlineData("2025-06-15T01:30:00+02:00")]
+    public async Task The_purchase_day_does_not_depend_on_the_host_time_zone(string kaufdatum)
+    {
+        InMemoryGutscheinStore store = new();
+        AddGutschein.Handler handler = CreateHandler(store);
+
+        var (result, error) = await handler.HandleAsync(
+            new AddGutschein.AddCommand(null, kaufdatum, 75, null, null),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(error);
+        Assert.Equal("202501", result!.Gutscheinnummer);
+        Assert.Equal(new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero), Assert.Single(store.Entities).Kaufdatum);
+    }
+
+    [Fact]
+    public async Task A_redemption_date_is_stored_as_a_plain_day_too()
+    {
+        InMemoryGutscheinStore store = new();
+        AddGutschein.Handler handler = CreateHandler(store);
+
+        var (_, error) = await handler.HandleAsync(
+            new AddGutschein.AddCommand(null, "2025-06-15", 75, "2025-07-01T18:45:00Z", null),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(error);
+        Assert.Equal(new DateTimeOffset(2025, 7, 1, 0, 0, 0, TimeSpan.Zero), Assert.Single(store.Entities).EingeloestAm);
     }
 
     [Theory]

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using dashboard_api.shared.entities;
@@ -84,7 +85,7 @@ public sealed class RedeemGutschein
                 return (null, "Die Gutscheinnummer darf nicht leer sein.");
             }
 
-            if (!DateTimeOffset.TryParse(command.EingeloestAm, out DateTimeOffset eingeloestAm))
+            if (!GutscheinDates.TryParseDate(command.EingeloestAm, out DateTimeOffset eingeloestAm))
             {
                 return (null, "Das Einlösedatum ist ungültig.");
             }
@@ -97,20 +98,19 @@ public sealed class RedeemGutschein
 
             if (existing.EingeloestAm is not null)
             {
-                return (null, $"Der Gutschein wurde bereits am {existing.EingeloestAm.Value:yyyy-MM-dd} eingelöst.");
+                return (null, $"Der Gutschein wurde bereits am {existing.EingeloestAm.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)} eingelöst.");
             }
 
-            DateTimeOffset normalizedEingeloestAm = eingeloestAm.Date;
-            if (normalizedEingeloestAm < existing.Kaufdatum.Date)
+            if (eingeloestAm < GutscheinDates.ToDay(existing.Kaufdatum))
             {
                 return (null, "Das Einlösedatum darf nicht vor dem Kaufdatum liegen.");
             }
 
-            existing.EingeloestAm = normalizedEingeloestAm;
+            existing.EingeloestAm = eingeloestAm;
             await _store.UpdateAsync(existing, cancellationToken).ConfigureAwait(false);
             _logger.LogInformation("Gutschein {Gutscheinnummer} wurde eingelöst", command.Gutscheinnummer);
 
-            return (new RedeemResult(existing.Gutscheinnummer, normalizedEingeloestAm.ToString("yyyy-MM-dd")), null);
+            return (new RedeemResult(existing.Gutscheinnummer, eingeloestAm.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)), null);
         }
     }
 }
