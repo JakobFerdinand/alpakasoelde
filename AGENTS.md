@@ -13,6 +13,7 @@
 - Use `pnpm` (not `npm`) for all package manager commands in the Astro projects.
 - `cd src/website && pnpm install && pnpm dev` — launches the marketing site with hot reload.
 - `cd src/website && pnpm run build` — runs `astro check` and builds to `dist/`.
+- `cd src/website && pnpm run format` — formats with Prettier (`pnpm run format:check` verifies without writing); same scripts exist in `src/dashboard`.
 - `cd src/dashboard && pnpm install && pnpm dev` — starts the internal dashboard; run `pnpm run build` before shipping changes.
 - `cd src/dashboard-api && dotnet run` — compiles and serves the dashboard API locally (Azure Functions Core Tools required). `dotnet run` builds the project and starts the Functions host from the correct output directory, so prefer it over `dotnet build` + `func start` for .NET isolated projects.
 - `cd src/website-api && dotnet run` — same workflow for the public API facade.
@@ -21,6 +22,7 @@
 
 ## Coding Style & Naming Conventions
 - Use two-space indentation in Astro/TS files, PascalCase component filenames, and keep copy in dedicated `.astro` or `.md` fragments.
+- Formatting in both Astro projects is enforced by Prettier (`.prettierrc` per project: two-space indent, single quotes, 100-column print width) with `prettier-plugin-astro`, plus `prettier-plugin-svelte` in `src/dashboard`. Run `pnpm run format` before committing; do not hand-format `.astro`/`.svelte` against it.
 - Co-locate styles with the component and rely on the shared CSS variables exposed by the layout.
 - In C#, keep one public type per file, use PascalCase for types, camelCase for locals, and `const` for shared environment keys.
 - Azure Functions follow a vertical-slice layout: define command/query records, handler, interfaces (stores/utilities), and function entry in the same file; prefer dependency injection via `Program.cs`.

@@ -6,6 +6,8 @@
     "dev": "astro dev",
     "build": "astro build",
     "check": "astro check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "preview": "astro preview",
     "astro": "astro",
     "pretest": "playwright install chromium",
@@ -21,6 +23,8 @@
     "@astrojs/check": "^0.9.10",
     "@playwright/test": "^1.62.1",
     "@types/node": "^26.4.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-astro": "^0.14.1",
     "typescript": "^6.0.3"
   }
 }
