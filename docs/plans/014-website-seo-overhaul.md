@@ -40,14 +40,27 @@ Make `src/website` competitive for the local searches it should already win („
 
 - [x] Delete the obsolete `/terrapreta` page
 - [x] Write the plan (`docs/plans/014-website-seo-overhaul.md`)
-- [ ] 1. Per-page descriptions + `Head.astro` prop surface (`description`, `ogImage`, `brandSuffix`, `structuredData`)
-- [ ] 2. `public/og-default.jpg` 1200×630 + OG/Twitter tag rework
-- [ ] 3. Hero images through `<Image>` with `layout="full-width"` + `priority`
-- [ ] 4. Homepage title/H1 rewrite — **also updates `e2e/home.spec.ts`**
-- [ ] 5. Full `LocalBusiness` JSON-LD, homepage-only, reconciled with the Google Business Profile
-- [ ] 6. `noindex` on 404/403/nachricht-gesendet; drop `meta keywords`; sitemap `lastmod`
-- [ ] 7. Navbar sub-page links; heading hierarchy; per-image `Slideshow` alt text
-- [ ] 8. Verify: `pnpm run check`, `pnpm test`, `pnpm run test:e2e`, `pnpm run build` + measure `dist/_astro` weight before/after
+- [x] 1. Per-page descriptions + `Head.astro` prop surface (`description`, `ogImage`, `brandSuffix`, `structuredData`)
+- [x] 2. `public/og-default.jpg` 1200×630 + OG/Twitter tag rework
+- [x] 3. Hero images through `<Image>` with `layout="full-width"` + `priority`
+- [x] 4. Homepage title/H1 rewrite — **also updates `e2e/home.spec.ts`**
+- [x] 5. Full `LocalBusiness` JSON-LD, homepage-only — **GBP reconciliation still outstanding**
+- [x] 6. `noindex` on 404/403/nachricht-gesendet; drop `meta keywords`; sitemap `lastmod`
+- [x] 7. Navbar sub-page links; heading hierarchy; per-image `Slideshow` alt text
+- [x] 8. Verify: `astro check` 0 errors, 12 Vitest, 3 Playwright, clean build
+- [ ] Confirm the schema against the Google Business Profile, then deploy and run the post-deploy checks in section 8
+
+## As built — where this diverged from the plan
+
+Implemented on `feat/website-seo-overhaul`, one commit per section.
+
+- **`ImpressionBreak.astro` had the same defect as the heroes** and was converted alongside them. The plan named only `Hero`/`ServiceHero`, but `ImpressionBreak` also built a CSS background from the raw import, and it accounted for six of the nine unoptimized JPEGs. Converting it drops the `role="img"` wrapper and its sr-only caption, since the alt text now sits on a real `img`.
+- **`fit`/`position` could not be passed to `<Image>`.** Astro hands `position` straight to Sharp as a crop gravity, which accepts only named values — the percentage offsets these images are framed with (`center 40%`) fail the build with `CouldNotTransformImage`. The framing stays in CSS as `object-position`, which is what it was as `background-position` anyway; `object-fit: cover` in the component stylesheet does the cropping.
+- **`dist/_astro` grew from 8.2 MB to 12 MB**, the opposite direction from the plan's expectation, because `layout="full-width"` writes every srcset variant to disk. Delivered bytes are what dropped: the `/produkte` hero now offers 95 KB (640w) through 747 KB (2048w) in place of a single 1019 KB JPEG, so a 390 px phone pulls 155 KB where it used to pull the lot.
+- **`#alpakas` had no heading at all**, which the plan's heading survey missed — every sibling section carries an h2 and the navbar links to it as "Alpakas". Added "Unsere Alpakas".
+- **`.section h1` had to be added to `global.css`.** Promoting the legal/error/confirmation pages from h2 to h1 would otherwise have dropped them out of `.section h2`'s centring and sizing and silently restyled five pages.
+- **Two files were touched that the plan did not anticipate:** `src/styles/global.css` (the rule above) and `src/pages/_yoga.astro` (the draft needs a `description` like every other page, or `astro check` fails once it is routed).
+- **Formatting:** every file touched here already failed `prettier --check` before this branch (confirmed against `HEAD~1`), consistent with the note in `AGENTS.md` that the tree was never reformatted. Running `--write` over them would bury these changes in whole-file reflows, so the new code matches its surrounding style instead.
 
 ## 1. Per-page descriptions
 
