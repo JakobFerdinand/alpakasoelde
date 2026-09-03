@@ -9,11 +9,81 @@ import ImpressionBreak from '../components/ImpressionBreak.astro';
 import Impression1 from '../images/impressions/impression_1.jpg';
 import Impression117 from '../images/impressions/impression_117.jpg';
 import Impression54 from '../images/impressions/impression_54.jpg';
+
+// The single LocalBusiness node for the site, emitted here only. Every value is
+// taken from the Impressum (`impressum.astro`) and the OpenStreetMap marker in
+// `Contact.astro` — those stay the source of truth, so an address change edits
+// them and this together.
+//
+// NOTE: this must stay character-identical to the Google Business Profile for
+// name, telephone and url; a mismatch between schema and GBP ranks worse in the
+// local pack than incomplete schema does. "Frauenstein" is the hamlet, 4962
+// Mining the postal town, which is why addressLocality is Mining.
+//
+// `openingHours` is deliberately absent: the farm runs by appointment, and a
+// guessed schedule earns a "geschlossen" label in the local pack.
+const business = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': 'https://alpakasoelde.at/#business',
+  name: 'Alpakasölde',
+  description: 'Kleiner Alpakahof in Frauenstein bei Mining, Oberösterreich',
+  url: 'https://alpakasoelde.at',
+  telephone: '+43 699 81375946',
+  email: 'kontakt@alpakasoelde.at',
+  image: new URL('/og-default.jpg', Astro.site).toString(),
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Frauenstein 12',
+    postalCode: '4962',
+    addressLocality: 'Mining',
+    addressRegion: 'Oberösterreich',
+    addressCountry: 'AT',
+  },
+  // Rounded to 6 decimals (~11 cm); the marker in Contact.astro carries 14,
+  // which is false precision.
+  geo: { '@type': 'GeoCoordinates', latitude: 48.285706, longitude: 13.167817 },
+  areaServed: { '@type': 'AdministrativeArea', name: 'Oberösterreich' },
+  priceRange: '€€',
+  // Replaces the old `serviceType` array, which is not a LocalBusiness
+  // property and so was ignored.
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Angebote',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: 'Alpakawanderungen',
+          url: 'https://alpakasoelde.at/alpaka-wanderungen/',
+        },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: 'Wollverarbeitungs-Workshop',
+          url: 'https://alpakasoelde.at/wollverarbeitung/',
+        },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: 'Hofladen & Alpakaprodukte',
+          url: 'https://alpakasoelde.at/produkte/',
+        },
+      },
+    ],
+  },
+};
 ---
 
 <Layout
   title="Alpakahof & Alpakawanderungen in Frauenstein, Oberösterreich"
   brandSuffix={false}
+  structuredData={business}
   description="Kleiner Alpakahof in Frauenstein bei Mining, Oberösterreich: Alpakawanderungen, Hofbesuche und Wolle direkt vom Tier. Jetzt Termin anfragen."
   navTransparentOnHero={true}
   hideLogoOnTransparent={true}

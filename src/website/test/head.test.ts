@@ -17,10 +17,21 @@ const render = async (pathname: string, props?: Record<string, unknown>) => {
 
 const requiredProps = { title: 'Alpakasölde', description: 'Kleiner Alpakahof in Frauenstein.' };
 
-test('Head emits JSON-LD that parses as valid structured data', async () => {
-  const html = await render('/', requiredProps);
+const ldJsonOf = (html: string) =>
+  html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)?.[1];
 
-  const ldJson = html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+test('Head emits JSON-LD that parses as valid structured data', async () => {
+  const html = await render('/', {
+    ...requiredProps,
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name: 'Alpakasölde',
+      image: `${site}/og-default.jpg`,
+    },
+  });
+
+  const ldJson = ldJsonOf(html);
   expect(ldJson, 'no application/ld+json block was rendered').toBeTruthy();
 
   // A payload escaped by Astro instead of inlined would not survive JSON.parse.
@@ -28,6 +39,14 @@ test('Head emits JSON-LD that parses as valid structured data', async () => {
   expect(structuredData['@type']).toBe('LocalBusiness');
   expect(structuredData.name).toBe('Alpakasölde');
   expect(structuredData.image).toMatch(new RegExp(`^${site}`));
+});
+
+// The business node belongs on the homepage only; repeating it verbatim on
+// every page adds nothing and multiplies what an address change has to touch.
+test('Head emits no JSON-LD for a page that passes none', async () => {
+  const html = await render('/impressum', requiredProps);
+
+  expect(ldJsonOf(html)).toBeUndefined();
 });
 
 test('Head derives the canonical URL and title from the rendered route', async () => {

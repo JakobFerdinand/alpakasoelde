@@ -8,6 +8,7 @@ interface Props {
   ogImage?: string;
   ogImageAlt?: string;
   brandSuffix?: boolean;
+  structuredData?: Record<string, unknown>;
 }
 
 // `title` and `description` are deliberately required: a default description
@@ -25,27 +26,16 @@ const {
   // The homepage title already carries the brand, and " | Alpakasölde" on top
   // of it would read "… | Alpakasölde | Alpakasölde".
   brandSuffix = true,
+  // Only the homepage passes this. An identical LocalBusiness node repeated on
+  // every page tells Google nothing extra and multiplies what one address
+  // change has to touch.
+  structuredData,
 } = Astro.props;
 
 const fullTitle = brandSuffix ? `${title} | Alpakasölde` : title;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 const ogImageUrl = new URL(ogImage, Astro.site).toString();
 
-const structuredData = {
-  "@context": "https://schema.org",
-  "@type": "LocalBusiness",
-  name: "Alpakasölde",
-  description: "Kleiner Alpakahof in Frauenstein, Oberösterreich",
-  image: ogImageUrl,
-  address: {
-    "@type": "PostalAddress",
-    addressCountry: "AT",
-    addressRegion: "Oberösterreich",
-  },
-  areaServed: "Oberösterreich",
-  serviceType: ["Alpakawanderungen", "Tiererlebnisse", "Wollworkshops", "Alpakafotos", "Hofbesuche"],
-  priceRange: "€€",
-};
 ---
 <link rel="icon" type="image/svg+xml" href={Favicon.src} />
 <meta name="generator" content={Astro.generator} />
@@ -78,5 +68,9 @@ const structuredData = {
 <meta name="twitter:image:alt" content={ogImageAlt} />
 
 <!-- Structured Data -->
-<script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
+{
+  structuredData && (
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />
+  )
+}
 

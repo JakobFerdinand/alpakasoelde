@@ -11,6 +11,7 @@ interface Props {
   description: string;
   robots?: string;
   brandSuffix?: boolean;
+  structuredData?: Record<string, unknown>;
   navTransparentOnHero?: boolean;
   hideLogoOnTransparent?: boolean;
 }
@@ -20,6 +21,7 @@ const {
   description,
   robots,
   brandSuffix,
+  structuredData,
   navTransparentOnHero = false,
   hideLogoOnTransparent = false,
 } = Astro.props;
@@ -30,7 +32,13 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <Head title={title} description={description} robots={robots} brandSuffix={brandSuffix} />
+    <Head
+      title={title}
+      description={description}
+      robots={robots}
+      brandSuffix={brandSuffix}
+      structuredData={structuredData}
+    />
   </head>
 <body
   data-nav-transparent={navTransparentOnHero}
