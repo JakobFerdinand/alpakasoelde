@@ -86,3 +86,27 @@ updates:
       nuget-all:
         patterns:
           - "*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/website-api-tests/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      nuget-all:
+        patterns:
+          - "*"
+
+  - package-ecosystem: "nuget"
+    directory: "/src/dashboard-api-tests/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: "Europe/Vienna"
+    groups:
+      nuget-all:
+        patterns:
+          - "*"
