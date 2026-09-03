@@ -165,6 +165,8 @@ public sealed class Assistant
 
 		public const string NoAnswerReply = "Das brauche ich in mehreren Schritten — frag mich bitte gezielter.";
 
+		public const string TruncatedReply = "Die Antwort wurde zu lang und deshalb abgeschnitten. Bitte stell die Frage etwas gezielter, zum Beispiel mit einem konkreten Zeitraum.";
+
 		public const string BrokenSessionReply = "Der Gesprächsverlauf konnte nicht gelesen werden. Bitte starte ein neues Gespräch.";
 
 		/// <summary>The agent-loop budget. Overridden only by tests; production keeps the 40 second cap.</summary>
@@ -204,8 +206,26 @@ public sealed class Assistant
 				return (null, TimeoutReply);
 			}
 
-			// An empty reply is what running out of tool-calling rounds looks like from here.
-			string reply = string.IsNullOrWhiteSpace(response.Text) ? NoAnswerReply : response.Text;
+			// An empty reply has two very different causes, and telling the user the wrong one is worse than
+			// saying nothing: 'length' means the output budget ran out (the reasoning tokens count against
+			// it), while anything else here means the tool-calling rounds ran out before an answer.
+			string reply;
+			if (!string.IsNullOrWhiteSpace(response.Text))
+			{
+				reply = response.Text;
+			}
+			else if (response.FinishReason == ChatFinishReason.Length)
+			{
+				_logger.LogWarning("The assistant used its whole output budget before writing an answer.");
+				reply = TruncatedReply;
+			}
+			else
+			{
+				_logger.LogWarning(
+					"The assistant produced no text; finish reason {FinishReason}.",
+					response.FinishReason?.Value ?? "unbekannt");
+				reply = NoAnswerReply;
+			}
 
 			JsonElement next = await SerializeWithinCapAsync(session, cancellationToken).ConfigureAwait(false);
 			return (new AskResult(reply, next, _tools.Invocations), null);

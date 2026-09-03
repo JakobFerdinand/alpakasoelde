@@ -116,7 +116,8 @@ services.AddScoped<AIAgent>(sp => new ChatClientAgent(
         {
             Instructions = SystemPrompt,
             Tools = sp.GetRequiredService<AssistantTools>().All,
-            MaxOutputTokens = 800,
+            MaxOutputTokens = 2000,
+            Reasoning = new ReasoningOptions { Effort = ReasoningEffort.Low },
         },
     }));
 
@@ -207,6 +208,7 @@ The point of putting this in .NET is that it stays testable with the harness tha
 - **The 45-second cap bounds the agent loop.** `MaximumIterationsPerRequest = 4`. A question needing more is answered with „Das brauche ich in mehreren Schritten — frag mich bitte gezielter."
 - **Two OpenAI SDKs now coexist in the repo** — `website-api` on `Azure.AI.OpenAI` 2.1.0, `dashboard-api` on `OpenAI` 2.13.0. They are separate projects so nothing conflicts at build time, but the eventual tidy-up is to migrate `SpamClassifier` to the `OpenAI` SDK too, which Azure's migration guidance now recommends. Out of scope here: it would touch a fail-open code path with no way to test the failure mode against the real service.
 - **Reflection-based tool schemas need JIT.** Fine on the isolated worker as configured; only a Native AOT publish would require source-generated `JsonSerializerOptions` via `AIJsonUtilities`.
+- **`gpt-5-nano` spends `MaxOutputTokens` on reasoning before it writes a word.** The first deployed version used 800 and answered normal questions with an empty string and `finish_reason: length` — the tools had run correctly, but the reasoning tokens had eaten the whole budget, so the island showed the „mehrere Schritte" fallback. Measured against the live deployment at a realistic prompt size (1.589 tokens): default effort burns ~768 reasoning tokens per round and 4,4 s, `Effort = Low` burns ~64 and 1,6 s for the same answer. Hence 2000 tokens and low effort — and the empty-text fallback now separates `FinishReason.Length` from a genuinely exhausted tool loop, because telling the user to „frag gezielter" when the budget was the problem sends them the wrong way.
 - **The model can still be wrong about what it reads.** The tool trace is the mitigation: every number is traceable to a tool call whose equivalent is visible on a dashboard page.
 - **Quota is the real dependency.** One assistant question costs orders of magnitude more tokens than one spam classification. The separate deployment protects the spam filter, but the assistant itself will 429 under a tight TPM grant — confirm quota before building.
 - **`GetGutscheine`, `GetMessages` and `Events` load whole tables** (`Query<T>()` with no filter). That is the repo's documented stance at current volume, and the tools clamp what reaches the model, but the *Functions host* still materialises everything on every tool call — the same cost the dashboard pages already pay.

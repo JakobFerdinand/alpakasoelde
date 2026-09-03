@@ -65,7 +65,8 @@ internal sealed class AssistantFixture
 				{
 					Instructions = AssistantPrompt.SystemPrompt,
 					Tools = tools.All,
-					MaxOutputTokens = 800,
+					MaxOutputTokens = 2000,
+					Reasoning = new ReasoningOptions { Effort = ReasoningEffort.Low },
 				},
 			});
 

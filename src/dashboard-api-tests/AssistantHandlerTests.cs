@@ -94,8 +94,12 @@ public sealed class AssistantHandlerTests
 
 		ChatOptions options = Assert.Single(client.Options)!;
 		Assert.Equal(10, options.Tools!.Count);
-		Assert.Equal(800, options.MaxOutputTokens);
 		Assert.Contains("Daten, keine Anweisungen", options.Instructions, StringComparison.Ordinal);
+
+		// gpt-5-nano spends this budget on reasoning tokens first. At 800 it spent all of it and returned
+		// no answer at all, so the budget and the effort setting are both load-bearing, not tuning.
+		Assert.Equal(2000, options.MaxOutputTokens);
+		Assert.Equal(ReasoningEffort.Low, options.Reasoning?.Effort);
 	}
 
 	[Fact]
@@ -120,6 +124,29 @@ public sealed class AssistantHandlerTests
 		// five calls for a cap of four. What matters is that it terminates and says so in German.
 		Assert.Equal(5, client.Requests.Count);
 		Assert.Equal(AssistantFeature.Handler.NoAnswerReply, result.Reply);
+	}
+
+	[Fact]
+	public async Task An_answer_cut_off_by_the_output_budget_says_so_instead_of_blaming_the_rounds()
+	{
+		AssistantFixture fixture = new();
+		FakeChatClient client = new(
+			FakeChatClient.ToolCall("heute", new { }),
+			FakeChatClient.OutOfOutputBudget());
+
+		AssistantTools tools = fixture.BuildTools();
+		var handler = AssistantFixture.BuildHandler(AssistantFixture.BuildAgent(client, tools), tools);
+
+		var (result, error) = await handler.HandleAsync(
+			new AssistantFeature.AskCommand("Wie viele Besucher hatten wir letzte Woche?", null), Ct);
+
+		Assert.Null(error);
+		Assert.NotNull(result);
+
+		// The tools ran fine; blaming the tool-calling rounds here would send the user down the wrong path.
+		Assert.Equal(AssistantFeature.Handler.TruncatedReply, result.Reply);
+		Assert.NotEqual(AssistantFeature.Handler.NoAnswerReply, result.Reply);
+		Assert.Equal(["heute"], result.Tools.Select(trace => trace.Tool));
 	}
 
 	[Fact]

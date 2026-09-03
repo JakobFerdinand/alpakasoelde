@@ -61,6 +61,13 @@ internal sealed class FakeChatClient(params ChatResponse[] scripted) : IChatClie
 	/// <summary>A plain assistant answer, ending the round trip.</summary>
 	public static ChatResponse Text(string text) => new(new ChatMessage(ChatRole.Assistant, text));
 
+	/// <summary>
+	/// What a reasoning model returns when its output budget is gone: no text and finish reason 'length'.
+	/// On gpt-5-nano the reasoning tokens are drawn from that same budget, so this is reachable.
+	/// </summary>
+	public static ChatResponse OutOfOutputBudget() =>
+		new(new ChatMessage(ChatRole.Assistant, string.Empty)) { FinishReason = ChatFinishReason.Length };
+
 	/// <summary>A tool call, the way a provider emits one — arguments arrive as JSON, not as CLR values.</summary>
 	public static ChatResponse ToolCall(string name, object arguments)
 	{
