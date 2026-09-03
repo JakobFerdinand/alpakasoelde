@@ -53,6 +53,19 @@ test('Head advertises a rasterised social card with its dimensions', async () =>
   expect(html).not.toMatch(/og:image" content="[^"]*\.svg"/);
 });
 
+// The homepage title carries the brand itself, so appending the suffix would
+// render "… | Alpakasölde | Alpakasölde".
+test('Head can opt out of the brand suffix', async () => {
+  // Ampersand-free so the assertions do not have to mirror Astro's escaping.
+  const title = 'Alpakahof in Frauenstein, Oberösterreich';
+
+  const html = await render('/', { ...requiredProps, title, brandSuffix: false });
+
+  expect(html).toContain(`<title>${title}</title>`);
+  expect(html).toContain(`<meta property="og:title" content="${title}">`);
+  expect(html).not.toContain('| Alpakasölde');
+});
+
 test('Head puts the page description into all three description tags', async () => {
   const description = 'Geführte Alpakawanderung im Innviertel, inklusive Hofbesuch.';
 

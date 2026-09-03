@@ -3,8 +3,11 @@ import { expect, test } from '@playwright/test';
 test('the landing page renders its hero and links into the contact section', async ({ page }) => {
   await page.goto('/');
 
-  await expect(page).toHaveTitle('Willkommen | Alpakasölde');
-  await expect(page.getByRole('heading', { level: 1, name: 'Alpakasölde' })).toBeAttached();
+  // Matched loosely on purpose: the exact title is SEO copy that will be
+  // retuned, and pinning it verbatim made this test fail for the rewrite
+  // rather than for a regression.
+  await expect(page).toHaveTitle(/Alpakahof.*Frauenstein/);
+  await expect(page.getByRole('heading', { level: 1, name: /Alpakasölde/ })).toBeAttached();
 
   const cta = page.getByRole('link', { name: 'Jetzt Alpaka-Tour buchen' });
   await expect(cta).toBeVisible();

@@ -7,6 +7,7 @@ interface Props {
   robots?: string;
   ogImage?: string;
   ogImageAlt?: string;
+  brandSuffix?: boolean;
 }
 
 // `title` and `description` are deliberately required: a default description
@@ -21,8 +22,12 @@ const {
   // stay a 1200x630 raster — no social platform rasterizes an SVG og:image.
   ogImage = "/og-default.jpg",
   ogImageAlt = "Alpakas auf der Weide der Alpakasölde",
+  // The homepage title already carries the brand, and " | Alpakasölde" on top
+  // of it would read "… | Alpakasölde | Alpakasölde".
+  brandSuffix = true,
 } = Astro.props;
 
+const fullTitle = brandSuffix ? `${title} | Alpakasölde` : title;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
 const ogImageUrl = new URL(ogImage, Astro.site).toString();
 
@@ -44,7 +49,7 @@ const structuredData = {
 ---
 <link rel="icon" type="image/svg+xml" href={Favicon.src} />
 <meta name="generator" content={Astro.generator} />
-<title>{title} | Alpakasölde</title>
+<title>{fullTitle}</title>
 
 <!-- SEO Meta Tags -->
 <meta name="description" content={description} />
@@ -55,7 +60,7 @@ const structuredData = {
 
 <!-- Open Graph / Social Media -->
 <meta property="og:type" content="website" />
-<meta property="og:title" content={`${title} | Alpakasölde`} />
+<meta property="og:title" content={fullTitle} />
 <meta property="og:description" content={description} />
 <meta property="og:site_name" content="Alpakasölde" />
 <meta property="og:url" content={canonicalUrl} />
@@ -67,7 +72,7 @@ const structuredData = {
 
 <!-- Twitter Cards -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content={`${title} | Alpakasölde`} />
+<meta name="twitter:title" content={fullTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImageUrl} />
 <meta name="twitter:image:alt" content={ogImageAlt} />
