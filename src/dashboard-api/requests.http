@@ -171,3 +171,93 @@ GET {{base}}/api/pageviews/sessions/{{pageviewSessionId}}
 # Expect 404
 
 GET {{base}}/api/pageviews/sessions/not-a-real-id
+
+###
+
+# Assistant — one tool is enough to answer this
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "Wie viele Gutscheine sind noch offen?"
+}
+
+# Response (excerpt):
+# {
+#   "reply": "Aktuell sind 3 Gutscheine offen.",
+#   "session": { "stateBag": { } },
+#   "tools": [ { "tool": "gutscheine", "arguments": "{\"nurOffen\":true}" } ],
+#   "usage": {
+#     "inputTokens": 479, "outputTokens": 373, "reasoningTokens": 320, "cachedInputTokens": 0,
+#     "cost": 0.000483, "currency": "EUR",
+#     "inputPricePerMillion": 0.1717, "outputPricePerMillion": 1.0733
+#   }
+# }
+# Tokens are summed over every tool round of the turn; cost is an estimate from AssistantPricing.
+
+###
+
+# Assistant — needs two tools: today's date first, then the events
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "Wann war das letzte Scheren, und wie lange ist das her?"
+}
+
+###
+
+# Assistant — needs no tool at all
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "Wer bist du und was kannst du?"
+}
+
+###
+
+# Assistant — data the tools deliberately cannot reach, must say so instead of inventing
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "Wie lautet die E-Mail-Adresse der letzten Kontaktanfrage?"
+}
+
+###
+
+# Assistant — follow-up. Paste the "session" object from the previous response verbatim,
+# otherwise the question has no antecedent and the answer will say so.
+
+@assistantSession={"stateBag":{}}
+
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "Und im Mai?",
+  "session": {{assistantSession}}
+}
+
+###
+
+# Assistant — expect 400, the question is empty
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "   "
+}
+
+###
+
+# Assistant — expect 400, the session blob is over the 32 KB cap
+# (replace the padding with >32768 characters to actually trip it)
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "Und im Mai?",
+  "session": { "padding": "REPLACE-WITH-MORE-THAN-32768-CHARACTERS" }
+}

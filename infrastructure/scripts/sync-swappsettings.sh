@@ -17,7 +17,7 @@ WEBSITE_SITE="${WEBSITE_SITE:-alpakasoelde}"
 DASHBOARD_SITE="${DASHBOARD_SITE:-alpakasoelde-dashboard}"
 
 WEBSITE_KEYS=(StorageConnection AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_ACCOUNT_NAME APPLICATIONINSIGHTS_CONNECTION_STRING EmailConnection EmailSenderAddress ReceiverEmailAddresses OpenAiEndpoint OpenAiApiKey OpenAiDeployment)
-DASHBOARD_KEYS=(StorageConnection AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_ACCOUNT_NAME)
+DASHBOARD_KEYS=(StorageConnection AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_ACCOUNT_NAME OpenAiEndpoint OpenAiApiKey OpenAiAssistantDeployment)
 
 # Key Vault secret names only allow alphanumerics and hyphens, so app setting
 # names are stored with '_' replaced by '-' (see seed-keyvault.sh).
