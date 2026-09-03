@@ -85,6 +85,25 @@ test('Head can opt out of the brand suffix', async () => {
   expect(html).not.toContain('| Alpakasölde');
 });
 
+// 404, 403 and nachricht-gesendet were all "index, follow": the prop existed
+// on Head from the start but no page ever passed it.
+test('Head honours a noindex request', async () => {
+  const html = await render('/nachricht-gesendet', {
+    ...requiredProps,
+    robots: 'noindex, follow',
+  });
+
+  expect(html).toContain('<meta name="robots" content="noindex, follow">');
+});
+
+// Ignored by every major engine since ~2009, and its presence invites the
+// belief that it does something.
+test('Head no longer emits a keywords tag', async () => {
+  const html = await render('/', requiredProps);
+
+  expect(html).not.toContain('name="keywords"');
+});
+
 test('Head puts the page description into all three description tags', async () => {
   const description = 'Geführte Alpakawanderung im Innviertel, inklusive Hofbesuch.';
 

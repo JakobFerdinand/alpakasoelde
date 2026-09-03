@@ -17,6 +17,9 @@ export default defineConfig({
   integrations: [
     sitemap({
       filter: (page) => !notIndexable.has(new URL(page).pathname),
+      // A static build genuinely republishes every page, so the build time is
+      // an honest lastmod.
+      lastmod: new Date(),
     }),
   ],
 });
