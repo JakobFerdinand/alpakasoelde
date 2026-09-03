@@ -1,6 +1,8 @@
 <script lang="ts">
   import { ChevronDown, RotateCcw, Send, Sparkles } from '@lucide/svelte';
 
+  import { toNumber } from '../utils/formatters';
+
   type ToolTrace = {
     tool: string;
     arguments: string;
@@ -13,6 +15,36 @@
     Arguments?: string;
   };
 
+  type Usage = {
+    inputTokens: number;
+    outputTokens: number;
+    reasoningTokens: number;
+    cachedInputTokens: number;
+    cost: number;
+    currency: string;
+    inputPricePerMillion: number;
+    outputPricePerMillion: number;
+  };
+
+  type UsageRaw = {
+    inputTokens?: number | string | null;
+    InputTokens?: number | string | null;
+    outputTokens?: number | string | null;
+    OutputTokens?: number | string | null;
+    reasoningTokens?: number | string | null;
+    ReasoningTokens?: number | string | null;
+    cachedInputTokens?: number | string | null;
+    CachedInputTokens?: number | string | null;
+    cost?: number | string | null;
+    Cost?: number | string | null;
+    currency?: string | null;
+    Currency?: string | null;
+    inputPricePerMillion?: number | string | null;
+    InputPricePerMillion?: number | string | null;
+    outputPricePerMillion?: number | string | null;
+    OutputPricePerMillion?: number | string | null;
+  };
+
   type AskResultRaw = {
     reply?: string;
     Reply?: string;
@@ -20,6 +52,8 @@
     Session?: unknown;
     tools?: ToolTraceRaw[];
     Tools?: ToolTraceRaw[];
+    usage?: UsageRaw | null;
+    Usage?: UsageRaw | null;
   };
 
   type ProblemDetails = {
@@ -34,6 +68,7 @@
     role: 'user' | 'assistant';
     text: string;
     tools: ToolTrace[];
+    verbrauch: Usage | null;
   };
 
   const starterPrompts = [
@@ -50,9 +85,40 @@
   let fehler = $state('');
   let naechsteId = 0;
   let eingabe = $state<HTMLTextAreaElement | null>(null);
+  let gesamtEingabeTokens = $state(0);
+  let gesamtAusgabeTokens = $state(0);
+  let gesamtDenkTokens = $state(0);
+  let gesamtKosten = $state(0);
+  let letzterVerbrauch = $state<Usage | null>(null);
 
   const kannSenden = $derived(!laedt && frage.trim().length > 0);
   const istLeer = $derived(messages.length === 0 && !laedt && !fehler);
+
+  const zahlFormat = new Intl.NumberFormat('de-AT');
+
+  /** Formats a token count, falling back to 0 for anything unusable. */
+  const formatTokens = (wert: number): string => zahlFormat.format(Math.round(toNumber(wert)));
+
+  /** Formats an amount with enough decimals that fractions of a cent stay visible. */
+  const formatBetrag = (wert: number, waehrung: string): string =>
+    new Intl.NumberFormat('de-AT', {
+      style: 'currency',
+      currency: /^[A-Za-z]{3}$/.test(waehrung) ? waehrung : 'EUR',
+      minimumFractionDigits: 4,
+      maximumFractionDigits: 4,
+    }).format(toNumber(wert));
+
+  const preisHinweis = $derived(
+    letzterVerbrauch
+      ? `Schätzung auf Basis von ${formatBetrag(
+          letzterVerbrauch.inputPricePerMillion,
+          letzterVerbrauch.currency,
+        )}/1 Mio. Token Eingabe und ${formatBetrag(
+          letzterVerbrauch.outputPricePerMillion,
+          letzterVerbrauch.currency,
+        )}/1 Mio. Token Ausgabe`
+      : '',
+  );
 
   /**
    * Normalizes a tool trace, handling both camelCase and PascalCase field names.
@@ -64,6 +130,29 @@
 
   const normalizeToolTraces = (eintraege: ToolTraceRaw[] | null | undefined): ToolTrace[] =>
     Array.isArray(eintraege) ? eintraege.map(normalizeToolTrace) : [];
+
+  /**
+   * Normalizes the per-request usage, handling both camelCase and PascalCase field names.
+   * Older or partial responses carry no usage at all, which stays `null`.
+   */
+  const normalizeUsage = (verbrauch: UsageRaw | null | undefined): Usage | null => {
+    if (!verbrauch) return null;
+
+    return {
+      inputTokens: toNumber(verbrauch.inputTokens ?? verbrauch.InputTokens),
+      outputTokens: toNumber(verbrauch.outputTokens ?? verbrauch.OutputTokens),
+      reasoningTokens: toNumber(verbrauch.reasoningTokens ?? verbrauch.ReasoningTokens),
+      cachedInputTokens: toNumber(verbrauch.cachedInputTokens ?? verbrauch.CachedInputTokens),
+      cost: toNumber(verbrauch.cost ?? verbrauch.Cost),
+      currency: verbrauch.currency ?? verbrauch.Currency ?? 'EUR',
+      inputPricePerMillion: toNumber(
+        verbrauch.inputPricePerMillion ?? verbrauch.InputPricePerMillion,
+      ),
+      outputPricePerMillion: toNumber(
+        verbrauch.outputPricePerMillion ?? verbrauch.OutputPricePerMillion,
+      ),
+    };
+  };
 
   /** Puts the unanswered question back into the textarea and drops its pending bubble. */
   function zuruecksetzenNachFehler(gestellteFrage: string, meldung: string) {
@@ -80,6 +169,11 @@
     session = null;
     fehler = '';
     frage = '';
+    gesamtEingabeTokens = 0;
+    gesamtAusgabeTokens = 0;
+    gesamtDenkTokens = 0;
+    gesamtKosten = 0;
+    letzterVerbrauch = null;
     eingabe?.focus();
   }
 
@@ -89,7 +183,10 @@
 
     fehler = '';
     frage = '';
-    messages = [...messages, { id: naechsteId++, role: 'user', text: bereinigt, tools: [] }];
+    messages = [
+      ...messages,
+      { id: naechsteId++, role: 'user', text: bereinigt, tools: [], verbrauch: null },
+    ];
     laedt = true;
 
     try {
@@ -111,6 +208,14 @@
       const daten: AskResultRaw = await antwort.json();
       const antwortText = daten.reply ?? daten.Reply ?? '';
       session = daten.session ?? daten.Session ?? null;
+      const verbrauch = normalizeUsage(daten.usage ?? daten.Usage);
+      if (verbrauch) {
+        gesamtEingabeTokens += verbrauch.inputTokens;
+        gesamtAusgabeTokens += verbrauch.outputTokens;
+        gesamtDenkTokens += verbrauch.reasoningTokens;
+        gesamtKosten += verbrauch.cost;
+        letzterVerbrauch = verbrauch;
+      }
       messages = [
         ...messages,
         {
@@ -118,6 +223,7 @@
           role: 'assistant',
           text: antwortText || 'Darauf habe ich keine Antwort gefunden.',
           tools: normalizeToolTraces(daten.tools ?? daten.Tools),
+          verbrauch,
         },
       ];
     } catch (e) {
@@ -182,22 +288,36 @@
           {#each messages as nachricht (nachricht.id)}
             <li class="blase" class:user={nachricht.role === 'user'}>
               <div class="blasen-text">{nachricht.text}</div>
-              {#if nachricht.role === 'assistant' && nachricht.tools.length > 0}
+              {#if nachricht.role === 'assistant' && (nachricht.tools.length > 0 || nachricht.verbrauch)}
                 <details class="daten">
                   <summary>
                     <ChevronDown aria-hidden="true" />
-                    <span>Verwendete Daten ({nachricht.tools.length})</span>
+                    <span>
+                      Verwendete Daten{nachricht.tools.length > 0
+                        ? ` (${nachricht.tools.length})`
+                        : ''}
+                    </span>
                   </summary>
-                  <ul class="daten-liste">
-                    {#each nachricht.tools as spur, index (index)}
-                      <li>
-                        <code class="werkzeug">{spur.tool || 'unbekannt'}</code>
-                        {#if spur.arguments}
-                          <code class="argumente">{spur.arguments}</code>
-                        {/if}
-                      </li>
-                    {/each}
-                  </ul>
+                  {#if nachricht.tools.length > 0}
+                    <ul class="daten-liste">
+                      {#each nachricht.tools as spur, index (index)}
+                        <li>
+                          <code class="werkzeug">{spur.tool || 'unbekannt'}</code>
+                          {#if spur.arguments}
+                            <code class="argumente">{spur.arguments}</code>
+                          {/if}
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                  {#if nachricht.verbrauch}
+                    <p class="antwort-verbrauch">
+                      {formatTokens(nachricht.verbrauch.inputTokens)} Token rein ·
+                      {formatTokens(nachricht.verbrauch.outputTokens)} raus (davon
+                      {formatTokens(nachricht.verbrauch.reasoningTokens)} Denken) · ≈
+                      {formatBetrag(nachricht.verbrauch.cost, nachricht.verbrauch.currency)}
+                    </p>
+                  {/if}
                 </details>
               {/if}
             </li>
@@ -216,6 +336,14 @@
         <p class="error" role="alert">{fehler}</p>
       {/if}
     </div>
+
+    {#if letzterVerbrauch}
+      <p class="verbrauch" title={preisHinweis}>
+        Dieses Gespräch: {formatTokens(gesamtEingabeTokens)} Token rein ·
+        {formatTokens(gesamtAusgabeTokens)} raus (davon {formatTokens(gesamtDenkTokens)} Denken) · ≈
+        {formatBetrag(gesamtKosten, letzterVerbrauch.currency)}
+      </p>
+    {/if}
 
     <form class="eingabe" onsubmit={onSubmit}>
       <label class="sr-only" for="assistent-frage">Frage an den Assistenten</label>
@@ -414,6 +542,19 @@
   .argumente {
     color: rgba(0, 32, 73, 0.7);
     overflow-wrap: anywhere;
+  }
+
+  .antwort-verbrauch {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    color: rgba(0, 32, 73, 0.6);
+  }
+
+  .verbrauch {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(0, 32, 73, 0.55);
+    cursor: help;
   }
 
   .denkt {
