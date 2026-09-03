@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../layouts/DashboardLayout.astro';
+import AssistantChat from '../components/AssistantChat.svelte';
+---
+
+<DashboardLayout title="Assistent">
+  <AssistantChat client:only="svelte" />
+</DashboardLayout>

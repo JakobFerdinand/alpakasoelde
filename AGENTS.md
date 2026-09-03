@@ -44,6 +44,9 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 - website-api endpoints are `AuthorizationLevel.Anonymous` because the public site calls them; dashboard-api endpoints are `AuthorizationLevel.Function` because SWA injects the key — keep each side as it is.
 - Handlers return a validation/result record that the function maps to problem-details JSON with `title`/`status`/`detail`, and both frontends surface `detail`.
 - Environment-variable names belong in each project's `shared/EnvironmentVariables.cs`, and a new setting also needs a Key Vault secret (with `_` written as `-`) plus an entry in the key arrays of `infrastructure/scripts/sync-swappsettings.sh`, which replaces the SWA's entire settings list and therefore silently drops anything missing from those arrays.
+- `dashboard-api/features/assistant/` exposes the read handlers as agent tools over Azure OpenAI (`Microsoft.Agents.AI` + the plain `OpenAI` SDK, pinned to 2.12.0 because `Microsoft.Extensions.AI.OpenAI` 10.9.0 excludes 2.13.0), is read-only by construction, and keeps conversation state in the browser as a serialised `AgentSession` rather than in a table.
+- `GetMessages` is deliberately absent from that tool surface and `gutscheine` drops `VerkauftAn`, because the Datenschutzerklärung's Azure OpenAI disclosure is purpose-bound to spam classification — adding either needs a privacy-policy change first.
+- The two APIs now use different OpenAI SDKs (`website-api` on `Azure.AI.OpenAI` 2.1.0, `dashboard-api` on `OpenAI` 2.12.0); they are separate projects, so keep the versions apart rather than unifying one side alone.
 - `features/messages/SpamClassifier.cs` fails open: missing config or any Azure OpenAI error classifies as legit and still emails, while spam is stored with `IsSpam = true` and never emailed.
 - Alpaka images sit in a private `alpakas` blob container and are served as short-lived SAS URLs signed with `AZURE_STORAGE_ACCOUNT_NAME`/`AZURE_STORAGE_ACCOUNT_KEY`, so those are required beyond `StorageConnection` and a key rotation must be followed by `sync-swappsettings.sh`.
 - Both `local.settings.json` are committed with empty placeholder values — never paste real connection strings or keys into them.
@@ -67,7 +70,7 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 
 ## Docs & commits
 
-- Design docs go to `docs/plans/` numbered in creation order (next is `013-`), looser notes to `docs/ideas/`, never the repository root.
+- Design docs go to `docs/plans/` numbered in creation order (next is `014-`), looser notes to `docs/ideas/`, never the repository root.
 - Commits and PR titles follow Karma/Conventional form `<type>(<scope>): <subject>` with a lowercase imperative subject and no trailing period, scoped by area (`website`, `dashboard`, `website-api`, `dashboard-api`, `infra`); the PR title becomes the squash-merge message.
 
 ## Maintaining this file

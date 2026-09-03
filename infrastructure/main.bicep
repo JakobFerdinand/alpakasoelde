@@ -69,6 +69,21 @@ param openAiModelName string = 'gpt-5-nano'
 @description('Model version to deploy for the spam classifier.')
 param openAiModelVersion string = '2025-08-07'
 
+@description('Global Standard capacity (thousands of tokens per minute) of the spam classifier deployment.')
+param openAiCapacity int = 20
+
+@description('Name of the model deployment for the dashboard assistant.')
+param openAiAssistantDeploymentName string = 'assistant-nano'
+
+@description('Model to deploy for the dashboard assistant.')
+param openAiAssistantModelName string = 'gpt-5-nano'
+
+@description('Model version to deploy for the dashboard assistant.')
+param openAiAssistantModelVersion string = '2025-08-07'
+
+@description('Global Standard capacity (thousands of tokens per minute) of the dashboard assistant deployment.')
+param openAiAssistantCapacity int = 10
+
 @description('Name of the public static web app.')
 param websiteSiteName string
 
@@ -140,8 +155,21 @@ module openAi './modules/openai.bicep' = {
   params: {
     openAiName: openAiName
     location: openAiLocation
-    deploymentName: openAiDeploymentName
-    modelName: openAiModelName
-    modelVersion: openAiModelVersion
+    // The spam classifier must stay first: the module loops in array order, so
+    // reordering these entries would rename the already deployed deployments.
+    deployments: [
+      {
+        name: openAiDeploymentName
+        model: openAiModelName
+        version: openAiModelVersion
+        capacity: openAiCapacity
+      }
+      {
+        name: openAiAssistantDeploymentName
+        model: openAiAssistantModelName
+        version: openAiAssistantModelVersion
+        capacity: openAiAssistantCapacity
+      }
+    ]
   }
 }
