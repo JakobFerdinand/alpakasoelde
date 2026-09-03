@@ -56,6 +56,7 @@ So: **one request, one answer, inside 45 seconds**, served by the Functions app 
 - **Every tool result is capped.** Handlers happily return 180 days of rows; the model must not receive them. Each tool takes an explicit window/limit, and the slice clamps rows (≤50) and serialised size (≤32 KB) before handing anything to the model.
 - **Conversation state lives in the browser, as a serialised `AgentSession`.** Each reply carries the session JSON from `SerializeSessionAsync`; the next request posts it back and the handler rehydrates it with `DeserializeSessionAsync`. No session table, no new retention question, no new partition key — and the session blob never leaves the authenticated dashboard. Its serialised size is capped (32 KB) and the oldest turns are dropped when it grows past that.
 - **The reply carries its trace.** The response includes which tools ran with which arguments, and the island renders them under the answer, so „woher kommt die Zahl?" is answerable without reading logs.
+- **The reply carries its cost.** `AgentResponse.Usage` reports input, output, reasoning and cached tokens summed over every tool round of the turn, so the response passes them on and the island keeps a running total for the conversation. The money figure is an estimate: the framework has no pricing table — cost is a billing concept, not a model one — and the Azure retail price API publishes no `gpt-5-nano` meter for `germanywestcentral`, so `AssistantPricing` holds the region's Global Standard nano-tier list rates as constants. The rates travel in the response and the island shows them, so a wrong rate is visible rather than silently wrong.
 - **Tool output is data, never instructions.** Referrer hosts, event comments and paths are attacker-influenced strings. The system prompt says so explicitly, and the read-only tool set bounds the damage: there is no tool that writes, deletes, mails or fetches a URL.
 
 ## Milestones (tracked)
@@ -80,7 +81,9 @@ New file `src/dashboard-api/features/assistant/Assistant.cs`, namespace `Dashboa
 ```csharp
 public sealed record AskCommand(string Question, JsonElement? Session);
 public sealed record ToolTrace(string Tool, string Arguments);
-public sealed record AskResult(string Reply, JsonElement Session, IReadOnlyList<ToolTrace> Tools);
+public sealed record AskResult(string Reply, JsonElement Session, IReadOnlyList<ToolTrace> Tools, UsageInfo Usage);
+public sealed record UsageInfo(long InputTokens, long OutputTokens, long ReasoningTokens, long CachedInputTokens,
+    decimal Cost, string Currency, decimal InputPricePerMillion, decimal OutputPricePerMillion);
 ```
 
 `[Function("assistant")]`, `Route = "assistant"`, POST only. It deserialises the body, rejects an empty question, one over 2 000 characters, or a session blob over 32 KB with problem-details JSON (`title`/`status`/`detail`, matching every other slice), and hands `AskCommand` to `Handler`.
@@ -170,7 +173,8 @@ A shared `Clamp` helper enforces the row and byte caps and appends a `hinweis: "
   - message list with user/assistant bubbles using the farm palette tokens from `global.css`;
   - a textarea + send button; Enter sends, Shift+Enter breaks;
   - while waiting: a disabled input and a „denkt nach…" indicator (there is no token stream to show);
-  - under each answer, a collapsed „Verwendete Daten" block listing the `Tools` trace;
+  - under each answer, a collapsed „Verwendete Daten" block listing the `Tools` trace and that answer's tokens and cost;
+  - a quiet strip showing the conversation's running token and cost total, reset by „Neues Gespräch";
   - errors render the `detail` from the problem-details body, like the other islands;
   - a few German starter prompts as buttons on the empty state, so the tool surface is discoverable.
 - Icons from `@lucide/svelte` (`Sparkles`, `Send`, `ChevronDown`). No new npm dependencies.

@@ -182,6 +182,19 @@ Content-Type: application/json
   "question": "Wie viele Gutscheine sind noch offen?"
 }
 
+# Response (excerpt):
+# {
+#   "reply": "Aktuell sind 3 Gutscheine offen.",
+#   "session": { "stateBag": { } },
+#   "tools": [ { "tool": "gutscheine", "arguments": "{\"nurOffen\":true}" } ],
+#   "usage": {
+#     "inputTokens": 479, "outputTokens": 373, "reasoningTokens": 320, "cachedInputTokens": 0,
+#     "cost": 0.000483, "currency": "EUR",
+#     "inputPricePerMillion": 0.1717, "outputPricePerMillion": 1.0733
+#   }
+# }
+# Tokens are summed over every tool round of the turn; cost is an estimate from AssistantPricing.
+
 ###
 
 # Assistant — needs two tools: today's date first, then the events

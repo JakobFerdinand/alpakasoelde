@@ -157,7 +157,21 @@ public sealed class Assistant
 
 	public sealed record ToolTrace(string Tool, string Arguments);
 
-	public sealed record AskResult(string Reply, JsonElement Session, IReadOnlyList<ToolTrace> Tools);
+	public sealed record AskResult(string Reply, JsonElement Session, IReadOnlyList<ToolTrace> Tools, UsageInfo Usage);
+
+	/// <summary>
+	/// What this turn cost. Tokens come from the agent framework and are summed across every tool round;
+	/// the money figure is an estimate, so the rates behind it travel with it — see <see cref="AssistantPricing"/>.
+	/// </summary>
+	public sealed record UsageInfo(
+		long InputTokens,
+		long OutputTokens,
+		long ReasoningTokens,
+		long CachedInputTokens,
+		decimal Cost,
+		string Currency,
+		decimal InputPricePerMillion,
+		decimal OutputPricePerMillion);
 
 	public sealed class Handler(AIAgent agent, AssistantTools tools, ILogger<Handler> logger)
 	{
@@ -228,7 +242,7 @@ public sealed class Assistant
 			}
 
 			JsonElement next = await SerializeWithinCapAsync(session, cancellationToken).ConfigureAwait(false);
-			return (new AskResult(reply, next, _tools.Invocations), null);
+			return (new AskResult(reply, next, _tools.Invocations, AssistantPricing.Estimate(response.Usage)), null);
 		}
 
 		/// <summary>
