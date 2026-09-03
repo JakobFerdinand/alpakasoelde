@@ -61,10 +61,10 @@ So: **one request, one answer, inside 45 seconds**, served by the Functions app 
 ## Milestones (tracked)
 
 - [x] Write the plan (`docs/plans/013-dashboard-assistant.md`)
-- [ ] Confirm Azure OpenAI quota for a second deployment in `germanywestcentral` — unverified (`az` unavailable), but on plan `002`'s recorded 5.000-unit grant the account lands at 30 units (20 + 10), so no increase is needed
-- [x] `infrastructure`: parameterise `openai.bicep` for a second deployment, wire into `main.bicep`/`main.bicepparam` — `az bicep build` + `what-if` still outstanding, `az` was unavailable
+- [x] Confirm Azure OpenAI quota for a second deployment in `germanywestcentral` — verified against the live subscription: `OpenAI.GlobalStandard.gpt-5-nano` is 20 used of 5.000, so the assistant's 10 lands at 30/5.000 and no increase is needed
+- [x] `infrastructure`: parameterise `openai.bicep` for a second deployment, wire into `main.bicep`/`main.bicepparam`, `az bicep build` + `what-if`
 - [x] `DASHBOARD_KEYS` in `sync-swappsettings.sh`
-- [ ] Key Vault secret `OpenAiAssistantDeployment` — **still open**, and `sync-swappsettings.sh` aborts without it
+- [x] Key Vault secret `OpenAiAssistantDeployment` (= `assistant-nano`)
 - [x] `dashboard-api`: `shared/EnvironmentVariables.cs`, `local.settings.json` placeholders, package references
 - [x] `dashboard-api`: `features/assistant/AssistantTools.cs` + `Assistant.cs`, registration in `Program.cs`
 - [x] `dashboard-api-tests`: fake `IChatClient`, tool-dispatch and guard-rail tests
@@ -155,6 +155,7 @@ A shared `Clamp` helper enforces the row and byte caps and appends a `hinweis: "
 - New parameters in `main.bicep`/`main.bicepparam`: `openAiAssistantDeploymentName = 'assistant-nano'` on model `gpt-5-nano`, plus version and capacity. Naming the *deployment* separately from the model is what keeps the quota isolated while still starting on the cheap model.
 - **Confirm quota first.** Plan `002` recorded 5 000 TPM granted for `OpenAI.GlobalStandard.gpt-5-nano` on this subscription, and quota is per subscription/region/model/deployment-type — a second deployment of the same model draws from the same pool unless the grant is raised. A tool-calling assistant sends the tool schemas plus the conversation plus every tool result on every round; budget roughly 10–20 k tokens per question. Raise the grant (or place the assistant on `gpt-5-mini`, which has its own pool) if the numbers say so — but they do not: the deployment ships at capacity 10 next to the classifier's 20, against a grant of 5.000, so the assistant stays inside the existing pool and the quota is **not** a blocker.
 - `gpt-5-nano` and `gpt-5-mini` both retire 2027-02-09; the deployment version is a parameter so the bump is a one-line infra change.
+- **Verified against the live subscription (2026-09-03).** Quota `OpenAI.GlobalStandard.gpt-5-nano` reads 20 used of 5.000, and the deployed `gpt-5-nano` is model `gpt-5-nano`/version `2025-08-07`/GlobalStandard/capacity 20 — byte-identical to what the template declares. `what-if` run against this branch and against `main` produces the same change set except for a single **Create** of `assistant-nano`: no Delete, no Replace, and the seven pre-existing `Modify` entries (server-defaulted `currentCapacity`, `raiPolicyName`, `versionUpgradeOption` and the static-site properties) are unchanged drift that predates this work.
 - Key Vault `kv-alpakasoelde` gains `OpenAiAssistantDeployment` (secret name `OpenAiAssistantDeployment`); `OpenAiEndpoint`/`OpenAiApiKey` already exist.
 - **`sync-swappsettings.sh` `DASHBOARD_KEYS` must be extended** to `(StorageConnection AZURE_STORAGE_ACCOUNT_KEY AZURE_STORAGE_ACCOUNT_NAME OpenAiEndpoint OpenAiApiKey OpenAiAssistantDeployment)`. That array replaces the SWA's entire settings list; anything missing from it is silently dropped on the next run.
 - `DashboardApi.Shared.EnvironmentVariables` gains the three names; `src/dashboard-api/local.settings.json` gains empty placeholders (never real values).
