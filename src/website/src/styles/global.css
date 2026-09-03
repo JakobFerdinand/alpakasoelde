@@ -42,6 +42,10 @@ html {
   scroll-margin-top: calc(var(--nav-height) + 1rem);
 }
 
+/* h1 is included because the legal, error and confirmation pages open their
+   only section with one: they used to start at h2, which left every page but
+   the heroes without an h1. They should keep looking exactly the same. */
+.section h1,
 .section h2 {
   text-align: center;
   font-size: 1.875rem;

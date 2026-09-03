@@ -13,7 +13,12 @@ import heroImage from "../images/impressions/impression_64.jpg";
 
 import impression_72 from "../images/impressions/impression_72.jpg";
 
-const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
+const images = [
+  { src: Wanderung1, alt: 'Zwei weiße Alpakas mit Halter auf der Wiese im Abendlicht' },
+  { src: Wanderung2, alt: 'Alpaka an der roten Leine auf einem Feldweg neben einem grünen Getreidefeld' },
+  { src: Wanderung3, alt: 'Zwei Wanderer führen ein schwarzes und ein braunes Alpaka über eine winterliche Wiese' },
+  { src: Wanderung4, alt: 'Drei Alpakas werden auf einem Güterweg durch die Felder geführt' },
+];
 ---
 
 <Layout
@@ -35,7 +40,7 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
 
   <section class="details section">
     <div class="container">
-      <h3>Details</h3>
+      <h2>Details</h2>
       <p>
         Bei einer gemütlichen Runde über unsere Felder lernst du die Tiere
         kennen und kannst die Landschaft genießen.
@@ -59,7 +64,7 @@ const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
 
   <section class="info-box section">
     <div class="container">
-      <h3>Ausflugstipps</h3>
+      <h2>Ausflugstipps</h2>
       <p>
         Für eine Stärkung nach der Wanderung empfiehlt sich die
         <a
