@@ -1,24 +1,37 @@
 ---
 import Favicon from "../images/favicon.svg";
-import Logo from "../images/AS_Symbolik_Schwarz.svg";
 
 interface Props {
   title: string;
   description: string;
   robots?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
 }
 
 // `title` and `description` are deliberately required: a default description
 // is what made all pages ship the same snippet, so `astro check` should fail
 // on a page that forgets to write its own.
-const { title, description, robots = "index, follow" } = Astro.props;
+const {
+  title,
+  description,
+  robots = "index, follow",
+  // Lives in `public/` rather than `src/images/` so the URL carries no build
+  // hash: links already shared keep resolving after the next deploy. It must
+  // stay a 1200x630 raster — no social platform rasterizes an SVG og:image.
+  ogImage = "/og-default.jpg",
+  ogImageAlt = "Alpakas auf der Weide der Alpakasölde",
+} = Astro.props;
+
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImageUrl = new URL(ogImage, Astro.site).toString();
 
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
   name: "Alpakasölde",
   description: "Kleiner Alpakahof in Frauenstein, Oberösterreich",
-  image: new URL(Favicon.src, Astro.site).toString(),
+  image: ogImageUrl,
   address: {
     "@type": "PostalAddress",
     addressCountry: "AT",
@@ -37,7 +50,7 @@ const structuredData = {
 <meta name="description" content={description} />
 <meta name="keywords" content="Alpakas, Alpakahof, Alpakawanderung, Frauenstein, Österreich, Tiererlebnisse, Wollworkshops, Alpakafotos, Hofbesuche" />
 <meta name="author" content="Alpakasölde" />
-<link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
+<link rel="canonical" href={canonicalUrl} />
 <meta name="robots" content={robots} />
 
 <!-- Open Graph / Social Media -->
@@ -45,14 +58,19 @@ const structuredData = {
 <meta property="og:title" content={`${title} | Alpakasölde`} />
 <meta property="og:description" content={description} />
 <meta property="og:site_name" content="Alpakasölde" />
-<meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).toString()} />
-<meta property="og:image" content={new URL(Logo.src, Astro.site).toString()} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:locale" content="de_AT" />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={ogImageAlt} />
 
 <!-- Twitter Cards -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={`${title} | Alpakasölde`} />
 <meta name="twitter:description" content={description} />
-<meta name="twitter:image" content={new URL(Logo.src, Astro.site).toString()} />
+<meta name="twitter:image" content={ogImageUrl} />
+<meta name="twitter:image:alt" content={ogImageAlt} />
 
 <!-- Structured Data -->
 <script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />

@@ -40,6 +40,19 @@ test('Head derives the canonical URL and title from the rendered route', async (
   expect(html).toContain('<title>Alpakawanderungen | Alpakasölde</title>');
 });
 
+// SVG og:images render as a blank card on Facebook, WhatsApp, LinkedIn and X,
+// which is what the logo import used to produce.
+test('Head advertises a rasterised social card with its dimensions', async () => {
+  const html = await render('/', requiredProps);
+
+  expect(html).toContain(`<meta property="og:image" content="${site}/og-default.jpg">`);
+  expect(html).toContain(`<meta name="twitter:image" content="${site}/og-default.jpg">`);
+  expect(html).toContain('<meta property="og:image:width" content="1200">');
+  expect(html).toContain('<meta property="og:image:height" content="630">');
+  expect(html).toMatch(/<meta property="og:image:alt" content="[^"]+">/);
+  expect(html).not.toMatch(/og:image" content="[^"]*\.svg"/);
+});
+
 test('Head puts the page description into all three description tags', async () => {
   const description = 'Geführte Alpakawanderung im Innviertel, inklusive Hofbesuch.';
 
