@@ -3,11 +3,15 @@ import Favicon from "../images/favicon.svg";
 import Logo from "../images/AS_Symbolik_Schwarz.svg";
 
 interface Props {
-  title?: string;
+  title: string;
+  description: string;
   robots?: string;
 }
 
-const { title = "Alpakasölde", robots = "index, follow" } = Astro.props;
+// `title` and `description` are deliberately required: a default description
+// is what made all pages ship the same snippet, so `astro check` should fail
+// on a page that forgets to write its own.
+const { title, description, robots = "index, follow" } = Astro.props;
 
 const structuredData = {
   "@context": "https://schema.org",
@@ -30,7 +34,7 @@ const structuredData = {
 <title>{title} | Alpakasölde</title>
 
 <!-- SEO Meta Tags -->
-<meta name="description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+<meta name="description" content={description} />
 <meta name="keywords" content="Alpakas, Alpakahof, Alpakawanderung, Frauenstein, Österreich, Tiererlebnisse, Wollworkshops, Alpakafotos, Hofbesuche" />
 <meta name="author" content="Alpakasölde" />
 <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site).toString()} />
@@ -39,7 +43,7 @@ const structuredData = {
 <!-- Open Graph / Social Media -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content={`${title} | Alpakasölde`} />
-<meta property="og:description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+<meta property="og:description" content={description} />
 <meta property="og:site_name" content="Alpakasölde" />
 <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site).toString()} />
 <meta property="og:image" content={new URL(Logo.src, Astro.site).toString()} />
@@ -47,7 +51,7 @@ const structuredData = {
 <!-- Twitter Cards -->
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content={`${title} | Alpakasölde`} />
-<meta name="twitter:description" content="Kleiner Alpakahof in Frauenstein, Oberösterreich. Alpakaerlebnisse und Wanderungen." />
+<meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={new URL(Logo.src, Astro.site).toString()} />
 
 <!-- Structured Data -->

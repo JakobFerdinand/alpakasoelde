@@ -7,16 +7,18 @@ import '@fontsource/bricolage-grotesque/400.css';
 
 interface Props {
   title: string;
+  description: string;
+  robots?: string;
 }
 
-const { title } = Astro.props;
+const { title, description, robots } = Astro.props;
 ---
 <!doctype html>
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <Head title={title} />
+    <Head title={title} description={description} robots={robots} />
   </head>
   <body class="event-page-body">
     <a href="#main-content" class="skip-link">Zum Inhalt springen</a>

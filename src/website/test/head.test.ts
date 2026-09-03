@@ -15,8 +15,10 @@ const render = async (pathname: string, props?: Record<string, unknown>) => {
   });
 };
 
+const requiredProps = { title: 'Alpakasölde', description: 'Kleiner Alpakahof in Frauenstein.' };
+
 test('Head emits JSON-LD that parses as valid structured data', async () => {
-  const html = await render('/');
+  const html = await render('/', requiredProps);
 
   const ldJson = html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)?.[1];
   expect(ldJson, 'no application/ld+json block was rendered').toBeTruthy();
@@ -29,8 +31,37 @@ test('Head emits JSON-LD that parses as valid structured data', async () => {
 });
 
 test('Head derives the canonical URL and title from the rendered route', async () => {
-  const html = await render('/alpaka-wanderungen', { title: 'Alpakawanderungen' });
+  const html = await render('/alpaka-wanderungen', {
+    title: 'Alpakawanderungen',
+    description: 'Geführte Touren mit unseren Alpakas.',
+  });
 
   expect(html).toContain(`<link rel="canonical" href="${site}/alpaka-wanderungen">`);
   expect(html).toContain('<title>Alpakawanderungen | Alpakasölde</title>');
+});
+
+test('Head puts the page description into all three description tags', async () => {
+  const description = 'Geführte Alpakawanderung im Innviertel, inklusive Hofbesuch.';
+
+  const html = await render('/alpaka-wanderungen', { title: 'Alpaka-Wanderungen', description });
+
+  expect(html).toContain(`<meta name="description" content="${description}">`);
+  expect(html).toContain(`<meta property="og:description" content="${description}">`);
+  expect(html).toContain(`<meta name="twitter:description" content="${description}">`);
+});
+
+// The whole point of making `description` required is that two pages cannot
+// silently end up with the same snippet again; a reintroduced default would
+// make this pass with identical output.
+test('Head does not fall back to a shared description', async () => {
+  const [first, second] = await Promise.all([
+    render('/produkte', { title: 'Produkte', description: 'Wolle und Accessoires aus dem Hofladen.' }),
+    render('/impressum', { title: 'Impressum', description: 'Anbieterkennzeichnung und Kontaktdaten.' }),
+  ]);
+
+  const descriptionOf = (html: string) =>
+    html.match(/<meta name="description" content="([^"]*)"/)?.[1];
+
+  expect(descriptionOf(first)).toBe('Wolle und Accessoires aus dem Hofladen.');
+  expect(descriptionOf(second)).toBe('Anbieterkennzeichnung und Kontaktdaten.');
 });
