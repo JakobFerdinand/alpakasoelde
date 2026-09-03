@@ -11,6 +11,9 @@ const notIndexable = new Set(['/403/', '/nachricht-gesendet/']);
 // https://astro.build/config
 export default defineConfig({
   site: 'https://alpakasoelde.at',
+  // The hero and impression bands render through `<Image layout="full-width">`,
+  // and the layout only gets its sizing styles when this is on.
+  image: { responsiveStyles: true },
   integrations: [
     sitemap({
       filter: (page) => !notIndexable.has(new URL(page).pathname),
