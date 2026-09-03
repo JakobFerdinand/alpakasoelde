@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ChevronDown, RotateCcw, Send, Sparkles } from '@lucide/svelte';
+  import { ArrowDown, ArrowUp, ChevronDown, RotateCcw, Send, Sparkles } from '@lucide/svelte';
 
   import { toNumber } from '../utils/formatters';
 
@@ -312,10 +312,16 @@
                   {/if}
                   {#if nachricht.verbrauch}
                     <p class="antwort-verbrauch">
-                      {formatTokens(nachricht.verbrauch.inputTokens)} Token rein ·
-                      {formatTokens(nachricht.verbrauch.outputTokens)} raus (davon
-                      {formatTokens(nachricht.verbrauch.reasoningTokens)} Denken) · ≈
-                      {formatBetrag(nachricht.verbrauch.cost, nachricht.verbrauch.currency)}
+                      <ArrowDown size={13} aria-hidden="true" /><span class="sr-only">Eingabe</span
+                      >{formatTokens(nachricht.verbrauch.inputTokens)}/<ArrowUp
+                        size={13}
+                        aria-hidden="true"
+                      /><span class="sr-only">Ausgabe</span>{formatTokens(
+                        nachricht.verbrauch.outputTokens,
+                      )} Tokens ({formatTokens(nachricht.verbrauch.reasoningTokens)} Thinking) ≈ {formatBetrag(
+                        nachricht.verbrauch.cost,
+                        nachricht.verbrauch.currency,
+                      )}
                     </p>
                   {/if}
                 </details>
@@ -339,9 +345,13 @@
 
     {#if letzterVerbrauch}
       <p class="verbrauch" title={preisHinweis}>
-        Dieses Gespräch: {formatTokens(gesamtEingabeTokens)} Token rein ·
-        {formatTokens(gesamtAusgabeTokens)} raus (davon {formatTokens(gesamtDenkTokens)} Denken) · ≈
-        {formatBetrag(gesamtKosten, letzterVerbrauch.currency)}
+        <ArrowDown size={13} aria-hidden="true" /><span class="sr-only">Eingabe</span>{formatTokens(
+          gesamtEingabeTokens,
+        )}/<ArrowUp size={13} aria-hidden="true" /><span class="sr-only">Ausgabe</span
+        >{formatTokens(gesamtAusgabeTokens)} Tokens ({formatTokens(gesamtDenkTokens)} Thinking) ≈ {formatBetrag(
+          gesamtKosten,
+          letzterVerbrauch.currency,
+        )}
       </p>
     {/if}
 
@@ -548,6 +558,11 @@
     margin: 0.5rem 0 0;
     font-size: 0.8rem;
     color: rgba(0, 32, 73, 0.6);
+  }
+
+  .antwort-verbrauch :global(svg),
+  .verbrauch :global(svg) {
+    vertical-align: -0.15em;
   }
 
   .verbrauch {
