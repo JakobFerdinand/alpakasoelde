@@ -1,0 +1,18 @@
+---
+// The container renders Astro components; this host is the smallest possible
+// stand-in for the `.astro` pages that mount the dashboard's Svelte islands.
+import Card from '../../src/components/Card.svelte';
+
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
+  class?: string;
+}
+
+const { eyebrow, title, subtitle, class: className } = Astro.props;
+---
+
+<Card {eyebrow} {title} {subtitle} class={className}>
+  <p>42 Gutscheine</p>
+</Card>

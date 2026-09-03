@@ -8,8 +8,8 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 - `pnpm dev` / `pnpm run check` / `pnpm run build` per Astro project — `build` is plain `astro build`, so type and template errors only surface from `pnpm run check` (CI runs both, separately).
 - `cd src/dashboard && pnpm run check:svelte` runs `svelte-check`; CI does not, so run it yourself after touching `.svelte`.
 - `cd src/<api> && dotnet run` starts a Functions host from the correct output directory; `dotnet build` + `func start` does not work for isolated-worker projects.
-- `dotnet build alpakasoelde.slnx` builds both APIs; there are no test projects, and `global.json` pins SDK 10.0.0 with Microsoft.Testing.Platform as the runner for any that get added.
-- `src/website/playwright.config.ts` exists but its `tests/` directory does not, so `pnpm test` there collects nothing.
+- `dotnet build alpakasoelde.slnx` builds both APIs plus the xUnit projects in `src/website-api-tests` and `src/dashboard-api-tests`, which `dotnet test` runs through the Microsoft.Testing.Platform runner pinned in `global.json` — that runner needs `dotnet test --project <csproj>`, not a bare path, when targeting one project.
+- `pnpm test` runs Vitest in both Astro projects (`test/**/*.test.ts`, components through Astro's Container API), and `pnpm run test:e2e` runs Playwright on Chromium in `src/website` (`e2e/`, starting its own dev server on port 4331 via `astro.config.e2e.mjs`); both deploy workflows run them, so a failing test blocks the deploy.
 - Exercise API endpoints by hand through each project's `requests.http`, and extend it when adding an endpoint.
 - Infra: `az bicep build --file infrastructure/main.bicep` (likewise `main-subscription.bicep`) validates; `az deployment group what-if --resource-group RG-Alpakasoelde --template-file infrastructure/main.bicep --parameters infrastructure/main.bicepparam` previews.
 
