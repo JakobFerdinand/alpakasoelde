@@ -1,22 +1,22 @@
 ---
-import ImpressionBreak from "../components/ImpressionBreak.astro";
+import ImpressionBreak from '../components/ImpressionBreak.astro';
 import Layout from '../layouts/Layout.astro';
-import ServiceHero from "../components/ServiceHero.astro";
+import ServiceHero from '../components/ServiceHero.astro';
 
-import heroImage from "../images/impressions/impression_32.jpg";
+import heroImage from '../images/impressions/impression_32.jpg';
 
-import impression_102 from "../images/impressions/impression_102.jpg";
+import impression_102 from '../images/impressions/impression_102.jpg';
 ---
 
 <Layout
-  title="Wollverarbeitungs-Workshop"
-  description="Wollworkshop am Alpakahof: erlebe Kardieren und Spinnen am Spinnrad und verfolge, was mit der Alpakawolle nach dem Scheren passiert."
+  title="Workshops am Alpakahof"
+  description="Alpaka-Yoga sowie Filzen und Spinnen mit Alpakawolle: Unsere Workshops sind für Gruppen individuell vereinbar."
   navTransparentOnHero={true}
   hideLogoOnTransparent={false}
 >
   <ServiceHero
-    title="Wollverarbeitungs-Workshop"
-    description="Lerne in unserem Workshop, wie du Rohwolle in wunderschöne Garne verwandeln kannst."
+    title="Workshops am Alpakahof"
+    description="Gemeinsam Zeit verbringen, Neues ausprobieren und unseren Alpakas ganz nah sein."
     image={heroImage}
     imageAlt="Rohwolle wird am Hof zu Garn verarbeitet"
     className="service-hero"
@@ -24,20 +24,23 @@ import impression_102 from "../images/impressions/impression_102.jpg";
 
   <section class="service-page section">
     <div class="container">
-      <h2>Der Workshop im Detail</h2>
+      <h2>Unser Workshop-Angebot</h2>
+      <h3>Alpaka-Yoga</h3>
+      <p>Genießt eine besondere gemeinsame Auszeit beim Yoga inmitten unserer Alpakas.</p>
+      <h3>Filzen und Spinnen</h3>
       <p>
-        Erfahre, wo unsere Wolle herkommt und wie sie nach dem Scheren
-        vorbereitet wird. Du lernst, die Fasern zu kadieren und am
-        Spinnrad zu spinnen.
+        Lernt unsere Alpakawolle kennen und probiert selbst aus, wie sie beim Filzen und am Spinnrad
+        verarbeitet wird.
+      </p>
+      <p>
+        <strong>Alle Workshops sind für Gruppen individuell vereinbar.</strong>
+        Schreibt uns über das <a href="/#kontakt">Kontaktformular</a>, damit wir Inhalt und Termin
+        gemeinsam abstimmen können.
       </p>
     </div>
   </section>
 
-  <ImpressionBreak
-    image={impression_102}
-    alt="Richard im Stall"
-    backgroundPosition="center 40%"
-  />
+  <ImpressionBreak image={impression_102} alt="Richard im Stall" backgroundPosition="center 40%" />
 </Layout>
 
 <style>
