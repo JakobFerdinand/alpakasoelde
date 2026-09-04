@@ -4,10 +4,14 @@ import { Image } from 'astro:assets';
 import JohannNeugierig from '../images/alpakas/johann_neugierig.png';
 ---
 
-<Layout title="403 Kein Zutritt">
+<Layout
+  title="403 Kein Zutritt"
+  robots="noindex, follow"
+  description="Dieser Bereich von alpakasoelde.at ist dem internen Dashboard vorbehalten."
+>
   <section class="service-page section">
     <div class="container">
-      <h2>403 Kein Zutritt</h2>
+      <h1>403 Kein Zutritt</h1>
       <p class="alpaca-highlight">Hier kommen nur Dashboard-Alpakas vorbei. Du scheinst keines zu sein!</p>
       <Image src={JohannNeugierig} alt="Ueberraschte Alpaka" class="alpaca-img" />
       <p style="text-align:center;margin-top:2rem;">

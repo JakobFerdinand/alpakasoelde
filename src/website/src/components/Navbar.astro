@@ -32,8 +32,15 @@ if (hideLogo) {
       />
     </a>
     <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="primary-navigation" aria-expanded="false">☰</button>
+    <!-- The three service pages were reachable only from the cards in
+         Services.astro, which left them on one internal link each and gave a
+         visitor already on /produkte a nav consisting entirely of links back
+         to the homepage. "Leistungen" is dropped because those pages are now
+         listed directly, which keeps the bar at six items. -->
     <ul id="primary-navigation" class="nav-links">
-      <li><a href="/#leistungen">Leistungen</a></li>
+      <li><a href="/alpaka-wanderungen">Wanderungen</a></li>
+      <li><a href="/wollverarbeitung">Wollverarbeitung</a></li>
+      <li><a href="/produkte">Produkte</a></li>
       <li><a href="/#alpakas">Alpakas</a></li>
       <li><a href="/#ueber-uns">Über uns</a></li>
       <li><a href="/#kontakt">Kontakt</a></li>
@@ -154,6 +161,14 @@ if (hideLogo) {
     gap: 1rem;
     margin: 0;
     padding: 0;
+  }
+
+  /* Six items no longer clear the logo on narrow desktop widths. */
+  @media (min-width: 768px) and (max-width: 1100px) {
+    .nav-links {
+      gap: 0.75rem;
+      font-size: 0.9375rem;
+    }
   }
 
   .nav-links a {

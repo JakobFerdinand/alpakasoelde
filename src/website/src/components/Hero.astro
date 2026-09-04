@@ -4,41 +4,66 @@ import Logo from "../images/AS_Gesamt_untereinander_Schurwolle.svg";
 import heroImage from "../images/hero.jpg";
 ---
 
-<section class="hero" style={`--hero-bg-image: url(${heroImage.src})`}>
+<section class="hero">
+  <Image
+    src={heroImage}
+    alt="Alpakaherde auf der Weide der Alpakasölde in Frauenstein"
+    layout="full-width"
+    priority
+    class="hero-photo"
+  />
   <Image src={Logo} alt="Alpakasölde Logo" class="hero-image" />
-  <h1 class="sr-only">Alpakasölde</h1>
+  <h1 class="sr-only">Alpakasölde — Alpakahof in Frauenstein, Oberösterreich</h1>
   <p>Erlebe unvergessliche Momente mit unseren Alpakas in Frauenstein.</p>
   <a href="#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
 </section>
 
 <style>
   .hero {
+    position: relative;
+    isolation: isolate;
     margin-top: calc(-1 * var(--nav-height, 80px));
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    background-image: linear-gradient(
-        rgba(0, 0, 0, 0.35),
-        rgba(0, 0, 0, 0.35)
-      ),
-      var(--hero-bg-image);
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    overflow: hidden;
     color: var(--schurwolle);
     padding: calc(5rem + var(--nav-height, 80px)) 1rem 5rem;
   }
 
-  .hero img {
+  /* The photo used to be a CSS background, which kept it out of Astro's image
+     pipeline: no srcset, no webp, and invisible to the preload scanner even
+     though it is the page's LCP element. */
+  .hero-photo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -2;
+  }
+
+  /* Was baked into `background-image` as a linear-gradient layer. */
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.35);
+    z-index: -1;
+  }
+
+  /* Scoped to the wordmark on purpose: a bare `.hero img` now also matches
+     the background photo and would collapse it to the logo's size. */
+  .hero-image {
     width: 16rem;
     height: 10rem;
     margin-bottom: 1.5rem;
   }
 
   @media (min-width: 768px) {
-    .hero img {
+    .hero-image {
       width: 35rem;
       height: 15rem;
     }

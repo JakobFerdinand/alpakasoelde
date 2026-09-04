@@ -8,11 +8,23 @@ import '@fontsource/bricolage-grotesque/400.css';
 
 interface Props {
   title: string;
+  description: string;
+  robots?: string;
+  brandSuffix?: boolean;
+  structuredData?: Record<string, unknown>;
   navTransparentOnHero?: boolean;
   hideLogoOnTransparent?: boolean;
 }
 
-const { title, navTransparentOnHero = false, hideLogoOnTransparent = false } = Astro.props;
+const {
+  title,
+  description,
+  robots,
+  brandSuffix,
+  structuredData,
+  navTransparentOnHero = false,
+  hideLogoOnTransparent = false,
+} = Astro.props;
 ---
 
 <!doctype html>
@@ -20,7 +32,13 @@ const { title, navTransparentOnHero = false, hideLogoOnTransparent = false } = A
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <Head title={title} />
+    <Head
+      title={title}
+      description={description}
+      robots={robots}
+      brandSuffix={brandSuffix}
+      structuredData={structuredData}
+    />
   </head>
 <body
   data-nav-transparent={navTransparentOnHero}

@@ -15,10 +15,23 @@ const render = async (pathname: string, props?: Record<string, unknown>) => {
   });
 };
 
-test('Head emits JSON-LD that parses as valid structured data', async () => {
-  const html = await render('/');
+const requiredProps = { title: 'Alpakasölde', description: 'Kleiner Alpakahof in Frauenstein.' };
 
-  const ldJson = html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+const ldJsonOf = (html: string) =>
+  html.match(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/)?.[1];
+
+test('Head emits JSON-LD that parses as valid structured data', async () => {
+  const html = await render('/', {
+    ...requiredProps,
+    structuredData: {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      name: 'Alpakasölde',
+      image: `${site}/og-default.jpg`,
+    },
+  });
+
+  const ldJson = ldJsonOf(html);
   expect(ldJson, 'no application/ld+json block was rendered').toBeTruthy();
 
   // A payload escaped by Astro instead of inlined would not survive JSON.parse.
@@ -28,9 +41,91 @@ test('Head emits JSON-LD that parses as valid structured data', async () => {
   expect(structuredData.image).toMatch(new RegExp(`^${site}`));
 });
 
+// The business node belongs on the homepage only; repeating it verbatim on
+// every page adds nothing and multiplies what an address change has to touch.
+test('Head emits no JSON-LD for a page that passes none', async () => {
+  const html = await render('/impressum', requiredProps);
+
+  expect(ldJsonOf(html)).toBeUndefined();
+});
+
 test('Head derives the canonical URL and title from the rendered route', async () => {
-  const html = await render('/alpaka-wanderungen', { title: 'Alpakawanderungen' });
+  const html = await render('/alpaka-wanderungen', {
+    title: 'Alpakawanderungen',
+    description: 'Geführte Touren mit unseren Alpakas.',
+  });
 
   expect(html).toContain(`<link rel="canonical" href="${site}/alpaka-wanderungen">`);
   expect(html).toContain('<title>Alpakawanderungen | Alpakasölde</title>');
+});
+
+// SVG og:images render as a blank card on Facebook, WhatsApp, LinkedIn and X,
+// which is what the logo import used to produce.
+test('Head advertises a rasterised social card with its dimensions', async () => {
+  const html = await render('/', requiredProps);
+
+  expect(html).toContain(`<meta property="og:image" content="${site}/og-default.jpg">`);
+  expect(html).toContain(`<meta name="twitter:image" content="${site}/og-default.jpg">`);
+  expect(html).toContain('<meta property="og:image:width" content="1200">');
+  expect(html).toContain('<meta property="og:image:height" content="630">');
+  expect(html).toMatch(/<meta property="og:image:alt" content="[^"]+">/);
+  expect(html).not.toMatch(/og:image" content="[^"]*\.svg"/);
+});
+
+// The homepage title carries the brand itself, so appending the suffix would
+// render "… | Alpakasölde | Alpakasölde".
+test('Head can opt out of the brand suffix', async () => {
+  // Ampersand-free so the assertions do not have to mirror Astro's escaping.
+  const title = 'Alpakahof in Frauenstein, Oberösterreich';
+
+  const html = await render('/', { ...requiredProps, title, brandSuffix: false });
+
+  expect(html).toContain(`<title>${title}</title>`);
+  expect(html).toContain(`<meta property="og:title" content="${title}">`);
+  expect(html).not.toContain('| Alpakasölde');
+});
+
+// 404, 403 and nachricht-gesendet were all "index, follow": the prop existed
+// on Head from the start but no page ever passed it.
+test('Head honours a noindex request', async () => {
+  const html = await render('/nachricht-gesendet', {
+    ...requiredProps,
+    robots: 'noindex, follow',
+  });
+
+  expect(html).toContain('<meta name="robots" content="noindex, follow">');
+});
+
+// Ignored by every major engine since ~2009, and its presence invites the
+// belief that it does something.
+test('Head no longer emits a keywords tag', async () => {
+  const html = await render('/', requiredProps);
+
+  expect(html).not.toContain('name="keywords"');
+});
+
+test('Head puts the page description into all three description tags', async () => {
+  const description = 'Geführte Alpakawanderung im Innviertel, inklusive Hofbesuch.';
+
+  const html = await render('/alpaka-wanderungen', { title: 'Alpaka-Wanderungen', description });
+
+  expect(html).toContain(`<meta name="description" content="${description}">`);
+  expect(html).toContain(`<meta property="og:description" content="${description}">`);
+  expect(html).toContain(`<meta name="twitter:description" content="${description}">`);
+});
+
+// The whole point of making `description` required is that two pages cannot
+// silently end up with the same snippet again; a reintroduced default would
+// make this pass with identical output.
+test('Head does not fall back to a shared description', async () => {
+  const [first, second] = await Promise.all([
+    render('/produkte', { title: 'Produkte', description: 'Wolle und Accessoires aus dem Hofladen.' }),
+    render('/impressum', { title: 'Impressum', description: 'Anbieterkennzeichnung und Kontaktdaten.' }),
+  ]);
+
+  const descriptionOf = (html: string) =>
+    html.match(/<meta name="description" content="([^"]*)"/)?.[1];
+
+  expect(descriptionOf(first)).toBe('Wolle und Accessoires aus dem Hofladen.');
+  expect(descriptionOf(second)).toBe('Anbieterkennzeichnung und Kontaktdaten.');
 });
