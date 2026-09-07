@@ -16,8 +16,8 @@
   "dependencies": {
     "@astrojs/svelte": "^9.0.1",
     "@astrojs/ts-plugin": "^1.10.11",
-    "@lucide/svelte": "^1.38.0",
-    "astro": "^7.2.9",
+    "@lucide/svelte": "^1.40.0",
+    "astro": "^7.3.1",
     "d3-array": "^3.2.4",
     "d3-scale": "^4.0.2",
     "layerchart": "^2.3.1",
@@ -29,12 +29,12 @@
     "@astrojs/check": "^0.9.10",
     "@types/d3-array": "^3.2.2",
     "@types/d3-scale": "^4.0.9",
-    "@types/node": "^26.4.0",
+    "@types/node": "^26.4.1",
     "prettier": "^3.9.6",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-svelte": "^4.1.1",
     "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   }
 }
