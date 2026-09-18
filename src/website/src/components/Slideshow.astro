@@ -14,29 +14,19 @@ export interface StorySlide {
 interface Props {
   slides: StorySlide[];
   label: string;
-  variant?: 'product' | 'hike';
   eyebrow?: string;
   subline?: string;
   season?: 'sommer' | 'winter';
   lightbox?: boolean;
 }
 
-const {
-  slides,
-  label,
-  variant = 'product',
-  eyebrow,
-  subline,
-  season = 'sommer',
-  lightbox = true,
-} = Astro.props;
+const { slides, label, eyebrow, subline, season = 'sommer', lightbox = true } = Astro.props;
 
-const intervalMs = variant === 'hike' ? 9000 : 7000;
+const intervalMs = 7000;
 ---
 
 <section
   class="story"
-  data-variant={variant}
   data-season={season}
   data-js="false"
   style={`--interval-ms:${intervalMs}ms`}
@@ -600,36 +590,19 @@ const intervalMs = variant === 'hike' ? 9000 : 7000;
     }
   }
 
-  [data-variant='product'] {
-    --frame-ratio: 4 / 5;
-  }
-
-  [data-variant='hike'] {
-    --frame-ratio: 3 / 4;
-  }
-
-  @media (min-width: 768px) {
-    [data-variant='product'] {
-      --frame-ratio: 3 / 2;
-    }
-
-    [data-variant='hike'] {
-      --frame-ratio: 16 / 9;
-    }
-  }
-
   .slide-card {
     position: relative;
     overflow: hidden;
     border-radius: 1rem;
     background-color: var(--schurwolle);
     box-shadow: 0 12px 32px rgba(31, 31, 29, 0.14);
-    aspect-ratio: var(--frame-ratio);
+    aspect-ratio: 4 / 5;
     margin: 0;
   }
 
   @media (min-width: 768px) {
     .slide-card {
+      aspect-ratio: 3 / 2;
       border-radius: 1.25rem;
       box-shadow: 0 24px 64px rgba(31, 31, 29, 0.18);
     }
