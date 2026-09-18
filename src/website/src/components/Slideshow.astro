@@ -15,12 +15,11 @@ interface Props {
   slides: StorySlide[];
   label: string;
   eyebrow?: string;
-  subline?: string;
   season?: 'sommer' | 'winter';
   lightbox?: boolean;
 }
 
-const { slides, label, eyebrow, subline, season = 'sommer', lightbox = true } = Astro.props;
+const { slides, label, eyebrow, season = 'sommer', lightbox = true } = Astro.props;
 
 const intervalMs = 7000;
 ---
@@ -34,10 +33,9 @@ const intervalMs = 7000;
   aria-roledescription="Karussell"
   aria-label={label}
 >
-  {(eyebrow || subline) && (
+  {eyebrow && (
     <header class="story-header">
-      {eyebrow && <p class="story-eyebrow">{eyebrow}</p>}
-      {subline && <p class="story-subline">{subline}</p>}
+      <p class="story-eyebrow">{eyebrow}</p>
     </header>
   )}
 
@@ -537,12 +535,6 @@ const intervalMs = 7000;
     width: 2rem;
     height: 2px;
     background: var(--bluetenhonig);
-  }
-
-  .story-subline {
-    margin: 0;
-    color: var(--taubenblau);
-    font-size: clamp(1rem, 1.6vw, 1.25rem);
   }
 
   .deck-wrap {
