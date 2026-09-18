@@ -1,23 +1,47 @@
 ---
-import ImpressionBreak from "../components/ImpressionBreak.astro";
-import Layout from "../layouts/Layout.astro";
-import ServiceHero from "../components/ServiceHero.astro";
-import Slideshow from "../components/Slideshow.astro";
+import ImpressionBreak from '../components/ImpressionBreak.astro';
+import Layout from '../layouts/Layout.astro';
+import ServiceHero from '../components/ServiceHero.astro';
+import Slideshow from '../components/Slideshow.astro';
 
-import Wanderung1 from "../images/wanderungen/wanderung1.jpg";
-import Wanderung2 from "../images/wanderungen/wanderung2.jpg";
-import Wanderung3 from "../images/wanderungen/wanderung3.jpg";
-import Wanderung4 from "../images/wanderungen/wanderung4.jpg";
+import Wanderung1 from '../images/wanderungen/wanderung1.jpg';
+import Wanderung2 from '../images/wanderungen/wanderung2.jpg';
+import Wanderung3 from '../images/wanderungen/wanderung3.jpg';
+import Wanderung4 from '../images/wanderungen/wanderung4.jpg';
 
-import heroImage from "../images/impressions/impression_64.jpg";
+import heroImage from '../images/impressions/impression_64.jpg';
 
-import impression_72 from "../images/impressions/impression_72.jpg";
+import impression_72 from '../images/impressions/impression_72.jpg';
 
-const images = [
-  { src: Wanderung1, alt: 'Zwei weiße Alpakas mit Halter auf der Wiese im Abendlicht' },
-  { src: Wanderung2, alt: 'Alpaka an der roten Leine auf einem Feldweg neben einem grünen Getreidefeld' },
-  { src: Wanderung3, alt: 'Zwei Wanderer führen ein schwarzes und ein braunes Alpaka über eine winterliche Wiese' },
-  { src: Wanderung4, alt: 'Drei Alpakas werden auf einem Güterweg durch die Felder geführt' },
+const slides = [
+  {
+    src: Wanderung1,
+    alt: 'Alpakas und ihre Begleiter beim Start der Wanderung am Hof',
+    kicker: 'Moment 01',
+    title: 'Start am Hof',
+    text: 'Nach dem Kennenlernen sucht sich jedes Alpaka seinen Menschen für die nächsten zwei Stunden – meistens entscheidet die Fresslaune.',
+  },
+  {
+    src: Wanderung2,
+    alt: 'Alpakas wandern mit ihren Menschen über einen Feldweg in den Inn-Auen',
+    kicker: 'Moment 02',
+    title: 'Die Runde beginnt',
+    text: 'Durch die Inn-Auen geht es gemütlich voran – immer im Tempo des gemächlichsten Vierbeins.',
+  },
+  {
+    src: Wanderung3,
+    alt: 'Die Wandergruppe hält mit Blick über das Europareservat Unterer Inn',
+    kicker: 'Moment 03',
+    title: 'Pause mit Aussicht',
+    text: 'Mitten in den Inn-Auen bleibt die Runde stehen: Zeit für Streicheleinheiten, Fotos und das weite Grün des Europareservats.',
+  },
+  {
+    src: Wanderung4,
+    alt: 'Alpakas auf dem Heimweg zur Alpakasölde',
+    kicker: 'Moment 04',
+    title: 'Zurück am Hof',
+    text: 'Nach zwei Stunden kehren alle gemeinsam heim – müde Beine, volle Herzen und garantiert ein Foto zu viel.',
+  },
 ];
 ---
 
@@ -35,32 +59,48 @@ const images = [
     imagePosition="center 40%"
     className="wander-hero"
   >
-    <a href="/#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
+    <a href="/#kontakt" class="btn">
+      Jetzt Alpaka-Tour buchen
+    </a>
   </ServiceHero>
 
   <section class="details section">
     <div class="container">
       <h2>Details</h2>
       <p>
-        Bei einer gemütlichen Runde über unsere Felder lernst du die Tiere
-        kennen und kannst die Landschaft genießen.
+        Bei einer gemütlichen Runde über unsere Felder lernst du die Tiere kennen und kannst die
+        Landschaft genießen.
       </p>
       <ul class="details-list">
-        <li><strong>Preis:</strong> 30&nbsp;€ pro Person mit Tier, gerne erstellen wir bei Anfrage ein individuelles Angebot für Familien und Gruppen</li>
-        <li><strong>Dauer:</strong> ca. 2&nbsp;Stunden</li>
-        <li><strong>Hinweis:</strong> Hunde können leider nicht mitwandern</li>
         <li>
-          <strong>Begleitung:</strong> Bei Kindern unter 14 Jahren ist pro Alpaka
-          eine Begleitperson notwendig
+          <strong>Preis:</strong> 30&nbsp;€ pro Person mit Tier, gerne erstellen wir bei Anfrage ein
+          individuelles Angebot für Familien und Gruppen
+        </li>
+        <li>
+          <strong>Dauer:</strong> ca. 2&nbsp;Stunden
+        </li>
+        <li>
+          <strong>Hinweis:</strong> Hunde können leider nicht mitwandern
+        </li>
+        <li>
+          <strong>Begleitung:</strong> Bei Kindern unter 14 Jahren ist pro Alpaka eine Begleitperson
+          notwendig
         </li>
       </ul>
       <div style="text-align: center; margin-top: 3rem;">
-        <a href="/#kontakt" class="btn">Jetzt Alpaka-Tour buchen</a>
+        <a href="/#kontakt" class="btn">
+          Jetzt Alpaka-Tour buchen
+        </a>
       </div>
     </div>
   </section>
 
-  <Slideshow images={images} />
+  <Slideshow
+    slides={slides}
+    label="Momentaufnahmen von der Wanderung"
+    eyebrow="Unterwegs am Inn"
+    lightbox
+  />
 
   <section class="info-box section">
     <div class="container">
@@ -71,8 +111,10 @@ const images = [
           href="https://www.burg-frauenstein.com/"
           class="link"
           target="_blank"
-          rel="noopener noreferrer">Burgschänke Frauenstein</a
+          rel="noopener noreferrer"
         >
+          Burgschänke Frauenstein
+        </a>
         mit regionaler Küche und gemütlichem Gastgarten.
       </p>
       <p>
@@ -81,21 +123,21 @@ const images = [
           href="https://www.naturium-am-inn.eu/"
           class="link"
           target="_blank"
-          rel="noopener noreferrer">Naturium Ering</a
-        >. Dort erhältst du spannende Einblicke in die Vogelwelt des
-        Europareservats Unterer Inn und kannst von Aussichtstürmen seltene Arten
-        beobachten.
+          rel="noopener noreferrer"
+        >
+          Naturium Ering
+        </a>
+        . Dort erhältst du spannende Einblicke in die Vogelwelt des Europareservats Unterer Inn und
+        kannst von Aussichtstürmen seltene Arten beobachten.
       </p>
     </div>
   </section>
-
 
   <ImpressionBreak
     image={impression_72}
     alt="Alpakas auf der Weide"
     backgroundPosition="center 40%"
   />
-
 </Layout>
 
 <style>
@@ -117,5 +159,4 @@ const images = [
     color: var(--schurwolle);
     text-align: center;
   }
-
 </style>
