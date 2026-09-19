@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import FormField from './FormField.svelte';
-  import Modal from './Modal.svelte';
-  import { calculateAge } from '../utils/formatters';
+  import FormField from '../ui/FormField.svelte';
+  import Modal from '../ui/Modal.svelte';
+  import { calculateAge } from '../../utils/formatters';
 
   type Alpaka = {
     Id: string;
@@ -115,7 +115,9 @@
       alert('Ereignis erfolgreich gespeichert.');
     } catch (error) {
       console.error('Fehler beim Speichern des Ereignisses', error);
-      alert(error instanceof Error ? error.message : 'Das Ereignis konnte nicht gespeichert werden.');
+      alert(
+        error instanceof Error ? error.message : 'Das Ereignis konnte nicht gespeichert werden.',
+      );
     } finally {
       eventSubmitting = false;
     }
@@ -142,10 +144,21 @@
     <div class="alpaka-header">
       <h2>Alpakas</h2>
       <div class="alpaka-actions">
-        <button id="add-event-toggle" class="add-btn" aria-label="Neues Ereignis erfassen" title="Ereignis erfassen" onclick={openEventLightbox}>
+        <button
+          id="add-event-toggle"
+          class="add-btn"
+          aria-label="Neues Ereignis erfassen"
+          title="Ereignis erfassen"
+          onclick={openEventLightbox}
+        >
           <span aria-hidden="true">&#128197;</span>
         </button>
-        <button id="add-alpaka-toggle" class="add-btn" aria-label="Neues Alpaka hinzufügen" onclick={() => (alpakaModalOpen = true)}>+</button>
+        <button
+          id="add-alpaka-toggle"
+          class="add-btn"
+          aria-label="Neues Alpaka hinzufügen"
+          onclick={() => (alpakaModalOpen = true)}>+</button
+        >
       </div>
     </div>
     <table id="alpaka-table" class="alpaka-table">
@@ -180,7 +193,9 @@
                 {#if alpaka.ImageUrl}
                   <img class="alpaka-profile-photo" src={alpaka.ImageUrl} alt={alpaka.Name} />
                 {:else}
-                  <div class="alpaka-profile-placeholder">{alpaka.Name.charAt(0).toUpperCase()}</div>
+                  <div class="alpaka-profile-placeholder">
+                    {alpaka.Name.charAt(0).toUpperCase()}
+                  </div>
                 {/if}
               </td>
               <td class="alpaka-name">{alpaka.Name}</td>
@@ -193,12 +208,32 @@
   </div>
 
   <Modal bind:open={alpakaModalOpen} label="Neues Alpaka hinzufügen">
-    <form id="add-alpaka-form" class="alpaka-form" method="post" action="/api/alpakas" enctype="multipart/form-data" onsubmit={onAddAlpakaSubmit}>
+    <form
+      id="add-alpaka-form"
+      class="alpaka-form"
+      method="post"
+      action="/api/alpakas"
+      enctype="multipart/form-data"
+      onsubmit={onAddAlpakaSubmit}
+    >
       <FormField label="Name" id="alpaka-name" required>
-        <input id="alpaka-name" name="name" type="text" maxlength="100" required bind:value={alpakaName} />
+        <input
+          id="alpaka-name"
+          name="name"
+          type="text"
+          maxlength="100"
+          required
+          bind:value={alpakaName}
+        />
       </FormField>
       <FormField label="Geburtsdatum" id="alpaka-geburtsdatum" required>
-        <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required bind:value={alpakaGeburtsdatum} />
+        <input
+          id="alpaka-geburtsdatum"
+          name="geburtsdatum"
+          type="date"
+          required
+          bind:value={alpakaGeburtsdatum}
+        />
       </FormField>
       <FormField label="Foto" id="alpaka-photo">
         <input
@@ -206,7 +241,8 @@
           name="photo"
           type="file"
           accept=".png,.jpg,.jpeg"
-          onchange={(event) => (photoFile = (event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
+          onchange={(event) =>
+            (photoFile = (event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
         />
       </FormField>
       <button type="submit" class="primary-button">Neues Alpaka anlegen</button>
@@ -216,7 +252,13 @@
   <Modal bind:open={eventModalOpen} label="Neues Ereignis erfassen">
     <form id="add-event-form" class="alpaka-form" novalidate onsubmit={onAddEventSubmit}>
       <FormField label="Ereignis" id="event-type" required>
-        <select id="event-type" name="eventType" required bind:value={eventType} bind:this={eventTypeSelect}>
+        <select
+          id="event-type"
+          name="eventType"
+          required
+          bind:value={eventType}
+          bind:this={eventTypeSelect}
+        >
           <option value="">Bitte auswählen</option>
           <option value="Entwurmen">Entwurmen</option>
           <option value="Nägel schneiden">Nägel schneiden</option>
@@ -227,23 +269,59 @@
           <option value="Sonstiges">Sonstiges</option>
         </select>
       </FormField>
-      <FormField label="Alpakas" id="event-alpakas" hint="Mit gedrückter STRG/Cmd Taste mehrere Alpakas auswählen." required>
-        <select id="event-alpakas" name="alpakaIds" multiple size="5" required bind:value={selectedAlpakaIds} bind:this={eventAlpakasSelect}>
+      <FormField
+        label="Alpakas"
+        id="event-alpakas"
+        hint="Mit gedrückter STRG/Cmd Taste mehrere Alpakas auswählen."
+        required
+      >
+        <select
+          id="event-alpakas"
+          name="alpakaIds"
+          multiple
+          size="5"
+          required
+          bind:value={selectedAlpakaIds}
+          bind:this={eventAlpakasSelect}
+        >
           {#each sortedAlpacas as alpaka}
             <option value={alpaka.Id}>{alpaka.Name}</option>
           {/each}
         </select>
       </FormField>
       <FormField label="Datum" id="event-date" required>
-        <input id="event-date" name="eventDate" type="date" required bind:value={eventDate} bind:this={eventDateInput} />
+        <input
+          id="event-date"
+          name="eventDate"
+          type="date"
+          required
+          bind:value={eventDate}
+          bind:this={eventDateInput}
+        />
       </FormField>
       <FormField label="Kosten (optional)" id="event-cost">
-        <input id="event-cost" name="cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" bind:value={eventCost} />
+        <input
+          id="event-cost"
+          name="cost"
+          type="number"
+          min="0"
+          step="0.01"
+          inputmode="decimal"
+          placeholder="0,00"
+          bind:value={eventCost}
+        />
       </FormField>
       <FormField label="Notiz" id="event-comment">
-        <textarea id="event-comment" name="comment" rows="3" placeholder="Details zum Ereignis" bind:value={eventComment}></textarea>
+        <textarea
+          id="event-comment"
+          name="comment"
+          rows="3"
+          placeholder="Details zum Ereignis"
+          bind:value={eventComment}></textarea>
       </FormField>
-      <button type="submit" class="primary-button" disabled={eventSubmitting}>Ereignis speichern</button>
+      <button type="submit" class="primary-button" disabled={eventSubmitting}
+        >Ereignis speichern</button
+      >
     </form>
   </Modal>
 </section>

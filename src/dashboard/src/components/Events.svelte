@@ -1,5 +1,5 @@
 <script lang="ts">
-  import EventList from './EventList.svelte';
+  import EventList from './alpakas/EventList.svelte';
 </script>
 
 <section class="dashboard-events section">

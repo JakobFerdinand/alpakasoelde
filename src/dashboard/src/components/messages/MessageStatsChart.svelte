@@ -136,8 +136,11 @@
 
       {#if hasData}
         <div class="chart-legend" aria-hidden="true">
-          <span class="legend-item"><span class="legend-swatch legend-swatch-legit"></span>Legit</span>
-          <span class="legend-item"><span class="legend-swatch legend-swatch-spam"></span>Spam</span>
+          <span class="legend-item"
+            ><span class="legend-swatch legend-swatch-legit"></span>Legit</span
+          >
+          <span class="legend-item"><span class="legend-swatch legend-swatch-spam"></span>Spam</span
+          >
         </div>
       {/if}
 

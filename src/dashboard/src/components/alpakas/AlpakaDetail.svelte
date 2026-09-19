@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import EventList from './EventList.svelte';
-  import { normalizeEvents, type EventListItem } from './event-list';
-  import { calculateAge, formatDateForInput, formatDateLong } from '../utils/formatters';
+  import { normalizeEvents, type EventListItem } from '../../utils/events';
+  import { calculateAge, formatDateForInput, formatDateLong } from '../../utils/formatters';
 
   type Alpaka = {
     Id: string;
@@ -24,7 +24,9 @@
   let photoFile = $state<File | null>(null);
 
   const loading = $derived(currentAlpaka === null && error === '');
-  const alpakaEvents = $derived<EventListItem[] | null>(currentAlpaka ? normalizeEvents(currentAlpaka.Events ?? []) : null);
+  const alpakaEvents = $derived<EventListItem[] | null>(
+    currentAlpaka ? normalizeEvents(currentAlpaka.Events ?? []) : null,
+  );
 
   const searchParams = new URLSearchParams(window.location.search);
   const alpakaId = searchParams.get('id');
@@ -121,7 +123,7 @@
 <section class="alpaka-detail section">
   <div class="container">
     <a class="back-link" href="/">&larr; Zurück zur Übersicht</a>
-    <div class="alpaka-detail-card" class:loading={loading}>
+    <div class="alpaka-detail-card" class:loading>
       <div class="alpaka-detail-header">
         <p class="alpaka-detail-title">Alpaka Details</p>
         {#if currentAlpaka}
@@ -175,11 +177,24 @@
             <form id="alpaka-edit-form" class="alpaka-edit-form" onsubmit={submitEdit}>
               <div class="form-field">
                 <label for="alpaka-name">Name*</label>
-                <input id="alpaka-name" name="name" type="text" maxlength="100" required bind:value={name} />
+                <input
+                  id="alpaka-name"
+                  name="name"
+                  type="text"
+                  maxlength="100"
+                  required
+                  bind:value={name}
+                />
               </div>
               <div class="form-field">
                 <label for="alpaka-geburtsdatum">Geburtsdatum*</label>
-                <input id="alpaka-geburtsdatum" name="geburtsdatum" type="date" required bind:value={geburtsdatum} />
+                <input
+                  id="alpaka-geburtsdatum"
+                  name="geburtsdatum"
+                  type="date"
+                  required
+                  bind:value={geburtsdatum}
+                />
               </div>
               <div class="form-field">
                 <label for="alpaka-photo">Neues Foto (optional)</label>
@@ -188,13 +203,16 @@
                   name="photo"
                   type="file"
                   accept=".png,.jpg,.jpeg"
-                  onchange={(event) => (photoFile = (event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
+                  onchange={(event) =>
+                    (photoFile = (event.currentTarget as HTMLInputElement).files?.[0] ?? null)}
                 />
                 <p class="form-hint">Maximal 15 MB, .png, .jpg oder .jpeg</p>
               </div>
               <div class="form-actions">
                 <button type="button" class="ghost-button" onclick={exitEditMode}>Abbrechen</button>
-                <button type="submit" class="primary-button" disabled={saving}>Änderungen speichern</button>
+                <button type="submit" class="primary-button" disabled={saving}
+                  >Änderungen speichern</button
+                >
               </div>
               {#if status}
                 <p class="edit-status" role="status">{status}</p>

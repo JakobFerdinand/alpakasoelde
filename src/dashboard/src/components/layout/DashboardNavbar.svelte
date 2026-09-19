@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { Menu } from '@lucide/svelte';
-  import Logo from '../images/AS_Symbolik_Backstein.svg?url';
+  import Logo from '../../images/AS_Symbolik_Backstein.svg?url';
 
   let expanded = $state(false);
   let userName = $state('');
@@ -24,6 +24,25 @@
   }
 
   onMount(loadUser);
+  const groups = [
+    {
+      label: 'Hof',
+      links: [
+        { href: '/', label: 'Übersicht' },
+        { href: '/alpakas', label: 'Alpakas' },
+        { href: '/gutscheine', label: 'Gutscheine' },
+        { href: '/assistent', label: 'Assistent' },
+      ],
+    },
+    {
+      label: 'Website',
+      links: [
+        { href: '/messages', label: 'Nachrichten' },
+        { href: '/pageviews', label: 'Statistik' },
+        { href: '/sitzungen', label: 'Sitzungen' },
+      ],
+    },
+  ];
 </script>
 
 <nav class="navbar">
@@ -32,19 +51,33 @@
       <img style="width:60px;height:60px" src={Logo} alt="Alpakasölde Logo" />
     </a>
     <a href="https://alpakasoelde.at" class="app-link">Zur App</a>
-    <ul id="dashboard-navigation" class="nav-links" class:open={expanded}>
-      <li><a href="/" onclick={closeMenu}>Übersicht</a></li>
-      <li><a href="/messages" onclick={closeMenu}>Nachrichten</a></li>
-      <li><a href="/pageviews" onclick={closeMenu}>Statistik</a></li>
-      <li><a href="/sitzungen" onclick={closeMenu}>Sitzungen</a></li>
-      <li><a href="/assistent" onclick={closeMenu}>Assistent</a></li>
-      <li><a href="/gutscheine" onclick={closeMenu}>Gutscheine</a></li>
-      <li class="user-info">
+    <div id="dashboard-navigation" class="nav-links" class:open={expanded}>
+      {#each groups as group (group.label)}
+        <div class="nav-group">
+          <span class="group-label">{group.label}</span>
+          <ul class="group-links">
+            {#each group.links as link (link.href)}
+              <li><a href={link.href} onclick={closeMenu}>{link.label}</a></li>
+            {/each}
+          </ul>
+        </div>
+      {/each}
+      <div class="user-info">
         <span class="user-name">{userName}</span>
-        <img class="avatar" src={userName ? `https://github.com/${userName}.png` : undefined} alt={userName} />
-      </li>
-    </ul>
-    <button class="nav-toggle" aria-label="Menü öffnen" aria-controls="dashboard-navigation" aria-expanded={expanded} onclick={() => (expanded = !expanded)}>
+        <img
+          class="avatar"
+          src={userName ? `https://github.com/${userName}.png` : undefined}
+          alt={userName}
+        />
+      </div>
+    </div>
+    <button
+      class="nav-toggle"
+      aria-label="Menü öffnen"
+      aria-controls="dashboard-navigation"
+      aria-expanded={expanded}
+      onclick={() => (expanded = !expanded)}
+    >
       <Menu aria-hidden="true" />
     </button>
   </div>
@@ -63,12 +96,32 @@
     align-items: center;
   }
   .nav-links {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+    padding: 0;
+    margin-left: auto;
+    align-items: center;
+  }
+  .nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .group-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--weidegruen);
+    line-height: 1;
+  }
+  .group-links {
     list-style: none;
     display: flex;
     gap: 1rem;
     margin: 0;
     padding: 0;
-    margin-left: auto;
     align-items: center;
   }
   .nav-links a {
@@ -109,6 +162,7 @@
     .nav-links {
       display: none;
       flex-direction: column;
+      align-items: stretch;
       background-color: var(--schurwolle);
       position: absolute;
       top: 100%;
@@ -119,6 +173,17 @@
     }
     .nav-links.open {
       display: flex;
+    }
+    .group-label {
+      margin-bottom: 0.25rem;
+    }
+    .group-links {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+    .nav-group {
+      padding-bottom: 0.75rem;
     }
     .nav-toggle {
       display: block;
