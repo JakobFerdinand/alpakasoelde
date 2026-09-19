@@ -1,22 +1,8 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
-import EventList from '../components/alpakas/EventList.svelte';
-import MessageStatsChart from '../components/messages/MessageStatsChart.svelte';
+import OverviewDashboard from '../components/overview/OverviewDashboard.svelte';
 ---
 
 <DashboardLayout title="Dashboard">
-  <section class="dashboard-events section">
-    <div class="container">
-      <div class="events-header">
-        <h2>Letzte Ereignisse</h2>
-      </div>
-      <EventList
-        client:only="svelte"
-        id="events-content"
-        fetchUrl="/api/events"
-        emptyText="Noch keine Ereignisse vorhanden."
-      />
-    </div>
-  </section>
-  <MessageStatsChart client:only="svelte" />
+  <OverviewDashboard client:only="svelte" />
 </DashboardLayout>
