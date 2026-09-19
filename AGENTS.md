@@ -31,11 +31,12 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 
 ## Dashboard — `src/dashboard`
 
-- `src/pages/*.astro` are thin wrappers mounting Svelte islands with `client:only="svelte"`; logic lives in `src/components`, helpers in `src/utils`, charts on `layerchart` + `d3-scale`.
+- `src/pages/*.astro` are thin wrappers mounting Svelte islands with `client:only="svelte"`; logic lives in `src/components` (grouped into `alpakas/`, `gutscheine/`, `messages/`, `pageviews/`, `assistant/`, `overview/`, `ui/`, `layout/`), helpers in `src/utils`, charts on `layerchart` + `d3-scale`.
+- Routes follow the same split: business pages sit at `/alpakas` + `/alpakas/detail` and `/gutscheine`, website-management pages under `/website/*`, and the SPA fallback in `staticwebapp.config.json` rewrites any path without a built file to `/index.html`, so path-shaped dynamic routes are impossible — the alpaka detail carries its id as `?id=` on `/alpakas/detail`.
 - Use `@lucide/svelte` in Svelte and `lucide-astro` in `.astro` for icons; add no other icon source.
 - Data comes from same-origin `/api/...` fetches resolved by the SWA linked API, and there is no base-URL setting, so a dashboard running on `pnpm dev` alone has no API.
 - Access control is SWA EasyAuth: `staticwebapp.config.json` limits `/*` to roles `admin` and `collaborator`, and `DashboardNavbar.svelte` reads `/.auth/me`.
-- API JSON casing is inconsistent, which is why `utils/gutschein.ts` normalizes camelCase and PascalCase keys — reuse those normalizers instead of trusting one casing.
+- API JSON casing is inconsistent, which is why `utils/gutschein.ts` and `utils/events.ts` normalize camelCase and PascalCase keys — reuse those normalizers instead of trusting one casing.
 
 ## APIs — `src/website-api`, `src/dashboard-api`
 
