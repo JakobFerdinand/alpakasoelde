@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Card from './Card.svelte';
-  import { formatCurrency, formatDate, toNumber } from '../utils/formatters';
-  import type { Gutschein } from '../utils/gutschein';
+  import Card from '../ui/Card.svelte';
+  import { formatCurrency, formatDate, toNumber } from '../../utils/formatters';
+  import type { Gutschein } from '../../utils/gutschein';
 
   let {
     gutscheine,

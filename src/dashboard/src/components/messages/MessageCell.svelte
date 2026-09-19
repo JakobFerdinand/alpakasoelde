@@ -12,14 +12,10 @@
   });
 </script>
 
-<div class="message-clamp" class:expanded={expanded}>
+<div class="message-clamp" class:expanded>
   <span class="message-text" bind:this={textEl}>{message || '–'}</span>
   {#if showToggle}
-    <button
-      type="button"
-      class="message-toggle"
-      onclick={() => (expanded = !expanded)}
-    >
+    <button type="button" class="message-toggle" onclick={() => (expanded = !expanded)}>
       {expanded ? 'Weniger' : 'Mehr'}
     </button>
   {/if}

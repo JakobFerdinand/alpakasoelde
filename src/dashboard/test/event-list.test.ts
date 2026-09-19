@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { EVENT_TYPE_ICON_KEYS, normalizeEvents } from '../src/components/event-list';
+import { EVENT_TYPE_ICON_KEYS, normalizeEvents } from '../src/utils/events';
 
 test('normalizeEvents accepts both API casings and defaults the rest', () => {
   const events = normalizeEvents([

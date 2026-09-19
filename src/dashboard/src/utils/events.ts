@@ -14,7 +14,7 @@ export const normalizeEvents = (events: unknown): EventListItem[] => {
     eventDate: (event as any).eventDate ?? (event as any).EventDate ?? '',
     alpakaNames: (event as any).alpakaNames ?? (event as any).AlpakaNames ?? [],
     comment: (event as any).comment ?? (event as any).Comment ?? '',
-    cost: (event as any).cost ?? (event as any).Cost ?? null
+    cost: (event as any).cost ?? (event as any).Cost ?? null,
   }));
 };
 
@@ -25,5 +25,5 @@ export const EVENT_TYPE_ICON_KEYS: Record<string, string> = {
   scheren: 'shears',
   impfen: 'syringe',
   gesundheitscheck: 'stethoscope',
-  'heu kaufen': 'wheat'
+  'heu kaufen': 'wheat',
 };

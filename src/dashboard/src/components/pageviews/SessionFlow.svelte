@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { ArrowLeft, TimerOff, X } from '@lucide/svelte';
-  import { formatDuration, formatTimestamp } from '../utils/formatters';
+  import { formatDuration, formatTimestamp } from '../../utils/formatters';
 
   type SessionSummary = {
     SessionId: string;
@@ -41,7 +41,14 @@
   type MinPages = 1 | 2;
 
   type TraceRow =
-    | { Kind: 'event'; Event: SessionEvent; Index: number; OffsetPct: number; WidthPct: number; IsLast: boolean }
+    | {
+        Kind: 'event';
+        Event: SessionEvent;
+        Index: number;
+        OffsetPct: number;
+        WidthPct: number;
+        IsLast: boolean;
+      }
     | { Kind: 'gap'; Label: string };
 
   const periods: { label: string; value: Period }[] = [
@@ -62,7 +69,9 @@
   let activeController: AbortController | null = null;
   let detailController: AbortController | null = null;
 
-  let selectedSessionId = $state<string | null>(new URLSearchParams(window.location.search).get('id'));
+  let selectedSessionId = $state<string | null>(
+    new URLSearchParams(window.location.search).get('id'),
+  );
   let sessions = $state<SessionListResult | null>(null);
   let detail = $state<SessionDetailResult | null>(null);
   let period = $state<Period>('28');
@@ -79,12 +88,16 @@
     sessionCount === 0 ? 0 : sessionList.reduce((acc, s) => acc + s.PageViews, 0) / sessionCount,
   );
   const avgDuration = $derived(
-    sessionCount === 0 ? 0 : sessionList.reduce((acc, s) => acc + s.DurationSeconds, 0) / sessionCount,
+    sessionCount === 0
+      ? 0
+      : sessionList.reduce((acc, s) => acc + s.DurationSeconds, 0) / sessionCount,
   );
   const bounceShare = $derived(
     sessionCount === 0 ? 0 : sessionList.filter((s) => s.PageViews === 1).length / sessionCount,
   );
-  const resultSummary = $derived(sessionCount === 0 ? '' : `${formatNumber(sessionCount)} Sitzungen`);
+  const resultSummary = $derived(
+    sessionCount === 0 ? '' : `${formatNumber(sessionCount)} Sitzungen`,
+  );
 
   const traceEvents = $derived(detail?.Events ?? []);
   const traceRows = $derived.by(() => {
@@ -96,18 +109,27 @@
     for (let i = 0; i < traceEvents.length; i++) {
       const current = traceEvents[i];
       if (i > 0) {
-        const gapMs = Date.parse(current.TimestampUtc) - Date.parse(traceEvents[i - 1].TimestampUtc);
+        const gapMs =
+          Date.parse(current.TimestampUtc) - Date.parse(traceEvents[i - 1].TimestampUtc);
         if (gapMs > gapThresholdMs) {
           rows.push({ Kind: 'gap', Label: formatDuration(gapMs / 1000) });
         }
       }
       const isLast = i === traceEvents.length - 1;
-      const offsetPct = spanMs > 0 ? ((Date.parse(current.TimestampUtc) - startMs) / spanMs) * 100 : 0;
+      const offsetPct =
+        spanMs > 0 ? ((Date.parse(current.TimestampUtc) - startMs) / spanMs) * 100 : 0;
       const widthPct =
         !isLast && current.DwellSeconds !== null && spanMs > 0
           ? Math.max(((current.DwellSeconds as number) / (spanMs / 1000)) * 100, 2)
           : 0;
-      rows.push({ Kind: 'event', Event: current, Index: i, OffsetPct: offsetPct, WidthPct: widthPct, IsLast: isLast });
+      rows.push({
+        Kind: 'event',
+        Event: current,
+        Index: i,
+        OffsetPct: offsetPct,
+        WidthPct: widthPct,
+        IsLast: isLast,
+      });
     }
     return rows;
   });
@@ -117,11 +139,16 @@
   }
 
   function formatDecimal(value: number): string {
-    return new Intl.NumberFormat('de-AT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
+    return new Intl.NumberFormat('de-AT', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(value);
   }
 
   function formatPercent(value: number): string {
-    return new Intl.NumberFormat('de-AT', { style: 'percent', maximumFractionDigits: 1 }).format(value);
+    return new Intl.NumberFormat('de-AT', { style: 'percent', maximumFractionDigits: 1 }).format(
+      value,
+    );
   }
 
   function shortId(value: string | null): string {
@@ -183,7 +210,9 @@
     errorDetail = '';
     detail = null;
     try {
-      const res = await fetch(`/api/pageviews/sessions/${encodeURIComponent(id)}`, { signal: controller.signal });
+      const res = await fetch(`/api/pageviews/sessions/${encodeURIComponent(id)}`, {
+        signal: controller.signal,
+      });
       if (res.status === 404) {
         errorDetail = 'Sitzung nicht gefunden.';
         return;
@@ -201,7 +230,7 @@
 
   async function openSession(id: string) {
     selectedSessionId = id;
-    history.replaceState(null, '', `/sitzungen?id=${encodeURIComponent(id)}`);
+    history.replaceState(null, '', `/website/sitzungen?id=${encodeURIComponent(id)}`);
     await loadDetail(id);
   }
 
@@ -285,7 +314,11 @@
           </dl>
           {#if summary.VisitorId}
             {@const visitorId = summary.VisitorId}
-            <button type="button" class="ghost-button visitor-button" onclick={() => filterByVisitor(visitorId)}>
+            <button
+              type="button"
+              class="ghost-button visitor-button"
+              onclick={() => filterByVisitor(visitorId)}
+            >
               Sitzungen dieses Besuchers
             </button>
           {/if}
@@ -317,9 +350,15 @@
                   </div>
                   <div class="trace-track">
                     {#if row.IsLast}
-                      <span class="trace-bar-marker {barClass(row.Event.NavigationType)}" style={`left: ${row.OffsetPct}%`}></span>
+                      <span
+                        class="trace-bar-marker {barClass(row.Event.NavigationType)}"
+                        style={`left: ${row.OffsetPct}%`}
+                      ></span>
                     {:else}
-                      <span class="trace-bar {barClass(row.Event.NavigationType)}" style={`left: ${row.OffsetPct}%; width: ${row.WidthPct}%`}></span>
+                      <span
+                        class="trace-bar {barClass(row.Event.NavigationType)}"
+                        style={`left: ${row.OffsetPct}%; width: ${row.WidthPct}%`}
+                      ></span>
                     {/if}
                   </div>
                   <div class="trace-dwell">
@@ -350,8 +389,16 @@
                   <td>{i + 1}</td>
                   <td class="nowrap">{formatTimestamp(event.TimestampUtc)}</td>
                   <td>{event.Path}</td>
-                  <td>{event.NavigationType === null ? '–' : navigationText(event.NavigationType)}</td>
-                  <td class="nowrap">{i === traceEvents.length - 1 ? 'offen' : formatDuration(event.DwellSeconds)}</td>
+                  <td
+                    >{event.NavigationType === null
+                      ? '–'
+                      : navigationText(event.NavigationType)}</td
+                  >
+                  <td class="nowrap"
+                    >{i === traceEvents.length - 1
+                      ? 'offen'
+                      : formatDuration(event.DwellSeconds)}</td
+                  >
                   <td>{referrerOrDirect(event.ReferrerHost)}</td>
                   <td>{event.DeviceCategory}</td>
                 </tr>
@@ -401,7 +448,12 @@
         <div class="active-filter">
           <span class="filter-chip">
             Besucher: {visitorFilter.slice(0, 8)}…
-            <button type="button" class="chip-clear" aria-label="Besucherfilter entfernen" onclick={clearVisitorFilter}>
+            <button
+              type="button"
+              class="chip-clear"
+              aria-label="Besucherfilter entfernen"
+              onclick={clearVisitorFilter}
+            >
               <X class="chip-clear-icon" aria-hidden="true" />
             </button>
           </span>
@@ -477,7 +529,9 @@
                   <td class="nowrap">{session.EntryPath} → {session.ExitPath}</td>
                   <td>{referrerOrDirect(session.EntryReferrerHost)}</td>
                   <td>{session.DeviceCategory}</td>
-                  <td class="nowrap" title={session.VisitorId ?? undefined}>{shortId(session.VisitorId)}</td>
+                  <td class="nowrap" title={session.VisitorId ?? undefined}
+                    >{shortId(session.VisitorId)}</td
+                  >
                 </tr>
               {/each}
             {/if}

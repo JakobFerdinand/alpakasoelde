@@ -48,7 +48,9 @@
   }: Props = $props();
 
   const colorKeys = $derived(Array.from(new Set(rows.map((row) => row.Group))));
-  const keyColors = $derived(colorKeys.map((_, index) => chartPalette[index % chartPalette.length]));
+  const keyColors = $derived(
+    colorKeys.map((_, index) => chartPalette[index % chartPalette.length]),
+  );
   const groupedSeries = $derived(colorKeys.map((key, index) => ({ key, color: keyColors[index] })));
 
   const stackedData = $derived.by(() =>
@@ -124,9 +126,15 @@
       c="Group"
       cDomain={colorKeys}
       cRange={keyColors}
-      bind:context={context}
+      bind:context
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
+      transform={{
+        mode: 'domain',
+        axis: 'x',
+        scrollMode: 'scale',
+        scaleExtent: [1, maxZoomScale],
+        scrollActivationKey: 'control',
+      }}
       onTransform={handleTransform}
       padding={{ left: 32, bottom: 20, top: 8 }}
       tooltipContext={{ mode: 'band' }}
@@ -174,9 +182,15 @@
       yNice
       series={groupedSeries}
       seriesLayout="group"
-      bind:context={context}
+      bind:context
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
+      transform={{
+        mode: 'domain',
+        axis: 'x',
+        scrollMode: 'scale',
+        scaleExtent: [1, maxZoomScale],
+        scrollActivationKey: 'control',
+      }}
       onTransform={handleTransform}
       padding={{ left: 32, bottom: 20, top: 8 }}
       tooltipContext={{ mode: 'band' }}
@@ -187,7 +201,11 @@
           <Axis placement="left" grid rule />
           <Axis placement="bottom" rule format={formatAxisLabel} />
           {#each groupedSeries as series}
-            <Bars seriesKey={series.key} x1={(d: Record<string, string | number>) => series.key} strokeWidth={1} />
+            <Bars
+              seriesKey={series.key}
+              x1={(d: Record<string, string | number>) => series.key}
+              strokeWidth={1}
+            />
           {/each}
           <Highlight area />
         </Layer>
@@ -226,9 +244,15 @@
       padding={{ left: 32, bottom: 20, top: 36 }}
       height={300}
       legend={{ placement: 'top' }}
-      bind:context={context}
+      bind:context
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
+      transform={{
+        mode: 'domain',
+        axis: 'x',
+        scrollMode: 'scale',
+        scaleExtent: [1, maxZoomScale],
+        scrollActivationKey: 'control',
+      }}
       onTransform={handleTransform}
       tooltip={explorerTooltip}
       props={{
@@ -246,9 +270,15 @@
       padding={{ left: 32, bottom: 20, top: 36 }}
       height={300}
       legend={{ placement: 'top' }}
-      bind:context={context}
+      bind:context
       brush={{ axis: 'x', minExtent: { x: 1 } }}
-      transform={{ mode: 'domain', axis: 'x', scrollMode: 'scale', scaleExtent: [1, maxZoomScale], scrollActivationKey: 'control' }}
+      transform={{
+        mode: 'domain',
+        axis: 'x',
+        scrollMode: 'scale',
+        scaleExtent: [1, maxZoomScale],
+        scrollActivationKey: 'control',
+      }}
       onTransform={handleTransform}
       tooltip={explorerTooltip}
       props={{
