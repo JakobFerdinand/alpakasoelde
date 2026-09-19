@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import MessagesPage from '../../components/messages/MessagesPage.svelte';
+---
+
+<DashboardLayout title="Nachrichten">
+  <MessagesPage client:only="svelte" />
+</DashboardLayout>

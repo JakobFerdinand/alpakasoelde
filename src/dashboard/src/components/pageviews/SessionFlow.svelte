@@ -230,7 +230,7 @@
 
   async function openSession(id: string) {
     selectedSessionId = id;
-    history.replaceState(null, '', `/sitzungen?id=${encodeURIComponent(id)}`);
+    history.replaceState(null, '', `/website/sitzungen?id=${encodeURIComponent(id)}`);
     await loadDetail(id);
   }
 

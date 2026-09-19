@@ -37,9 +37,9 @@
     {
       label: 'Website',
       links: [
-        { href: '/messages', label: 'Nachrichten' },
-        { href: '/pageviews', label: 'Statistik' },
-        { href: '/sitzungen', label: 'Sitzungen' },
+        { href: '/website/messages', label: 'Nachrichten' },
+        { href: '/website/pageviews', label: 'Statistik' },
+        { href: '/website/sitzungen', label: 'Sitzungen' },
       ],
     },
   ];

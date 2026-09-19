@@ -36,7 +36,7 @@
   const sortedAlpacas = $derived([...alpacas].sort((a, b) => a.Name.localeCompare(b.Name)));
 
   function navigateToAlpaka(id: string) {
-    window.location.href = `/alpakas?id=${encodeURIComponent(id)}`;
+    window.location.href = `/alpakas/detail?id=${encodeURIComponent(id)}`;
   }
 
   function ensureAlpakaSelection() {

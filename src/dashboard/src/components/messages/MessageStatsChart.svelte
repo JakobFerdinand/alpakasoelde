@@ -80,7 +80,7 @@
     <div class="message-stats-card card">
       <div class="stats-header">
         <h2>Nachrichten</h2>
-        <a class="all-link" href="/messages">Alle anzeigen</a>
+        <a class="all-link" href="/website/messages">Alle anzeigen</a>
       </div>
 
       <div class="period-toggle" role="group" aria-label="Zeitraum wählen">
@@ -105,12 +105,12 @@
       {/if}
 
       <div class="kpi-row">
-        <a class="kpi-tile" href="/messages">
+        <a class="kpi-tile" href="/website/messages">
           <Inbox class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(total)}</span>
           <span class="kpi-label">Gesamt</span>
         </a>
-        <a class="kpi-tile kpi-tile-spam" href="/messages">
+        <a class="kpi-tile kpi-tile-spam" href="/website/messages">
           <ShieldAlert class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(spam)}</span>
           {#if spamPct !== null}
@@ -118,7 +118,7 @@
           {/if}
           <span class="kpi-label">Spam</span>
         </a>
-        <a class="kpi-tile kpi-tile-legit" href="/messages">
+        <a class="kpi-tile kpi-tile-legit" href="/website/messages">
           <MailCheck class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(legit)}</span>
           {#if legitPct !== null}
@@ -129,7 +129,7 @@
       </div>
 
       {#if stats && stats.OldCount > 0}
-        <a class="old-chip" href="/messages">
+        <a class="old-chip" href="/website/messages">
           {formatCount(stats.OldCount)} Nachricht{stats.OldCount === 1 ? '' : 'en'} älter als 6 Monate
         </a>
       {/if}
