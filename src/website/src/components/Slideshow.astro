@@ -280,6 +280,10 @@ const intervalMs = 7000;
     let touchX: number | null = null;
     let touchY: number | null = null;
     let deckTouches = 0;
+    // True when the lightbox's last touch was a drag/pinch rather than a tap;
+    // suppresses the click browsers can fire after such gestures so pinch-zoom
+    // and swipe navigation never close the lightbox.
+    let lbGestureMoved = false;
     let lastFocus: HTMLElement | null = null;
     let vtNames: HTMLElement[] = [];
     let lbIndex = 0;
@@ -704,8 +708,22 @@ const intervalMs = 7000;
     lbClose?.addEventListener('click', closeLightbox);
     lbPrev?.addEventListener('click', () => lbStep(-1));
     lbNext?.addEventListener('click', () => lbStep(1));
+    // A lightbox tap on anything but the photo, the caption or a control
+    // button is a backdrop tap; the (opaque, fullscreen) dialog has no visible
+    // ::backdrop of its own.
     dlg?.addEventListener('click', (e) => {
-      if (e.target === dlg) closeLightbox();
+      if (lbGestureMoved) {
+        lbGestureMoved = false;
+        return;
+      }
+      const t = e.target;
+      if (t instanceof Element && t !== dlg && t.closest('button, .lb-media img, .lb-caption')) {
+        return;
+      }
+      closeLightbox();
+    });
+    dlg?.addEventListener('pointerdown', (e) => {
+      if ((e as PointerEvent).pointerType === 'mouse') lbGestureMoved = false;
     });
     dlg?.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -719,7 +737,11 @@ const intervalMs = 7000;
     dlg?.addEventListener(
       'touchstart',
       (e: TouchEvent) => {
-        if (e.touches.length !== 1) return;
+        if (e.touches.length !== 1) {
+          lbGestureMoved = true;
+          return;
+        }
+        lbGestureMoved = false;
         touchX = e.touches[0]?.clientX ?? null;
         touchY = e.touches[0]?.clientY ?? null;
       },
@@ -732,12 +754,18 @@ const intervalMs = 7000;
         const t = e.changedTouches[0];
         const dx = t ? t.clientX - touchX : 0;
         const dy = t ? t.clientY - touchY : 0;
+        if (e.changedTouches.length > 1 || Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+          lbGestureMoved = true;
+        }
         touchX = null;
         touchY = null;
         if (Math.abs(dx) > 48 && Math.abs(dx) > 2 * Math.abs(dy)) lbStep(dx < 0 ? 1 : -1);
       },
       { passive: true },
     );
+    dlg?.addEventListener('touchcancel', () => {
+      lbGestureMoved = true;
+    });
     dlg?.addEventListener('close', () => {
       document.removeEventListener('keydown', fallbackKey);
       restoreAfterClose();
@@ -1212,11 +1240,6 @@ const intervalMs = 7000;
     inset: 0;
     z-index: 999;
     overflow: hidden;
-  }
-
-  .lightbox::backdrop {
-    background: rgba(31, 31, 29, 0.72);
-    backdrop-filter: blur(6px);
   }
 
   .lb-figure {
