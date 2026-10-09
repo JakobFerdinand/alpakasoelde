@@ -71,12 +71,7 @@ const intervalMs = 7000;
         >
           <figure class="slide-card">
             {lightbox ? (
-              <button
-                class="slide-media"
-                type="button"
-                aria-haspopup="dialog"
-                aria-label={`Bild ${i + 1} groß anzeigen`}
-              >
+              <button class="slide-media" type="button" disabled aria-haspopup="dialog">
                 <Image
                   src={slide.src}
                   alt={slide.alt}
@@ -105,6 +100,7 @@ const intervalMs = 7000;
                     <path d="M11 8v6M8 11h6"></path>
                   </svg>
                 </span>
+                <span class="sr-only">{' – Bild groß anzeigen'}</span>
               </button>
             ) : (
               <div class="slide-media">
@@ -268,6 +264,9 @@ const intervalMs = 7000;
     const intervalMs = Number.parseInt(story.style.getPropertyValue('--interval-ms'), 10) || 7000;
 
     story.dataset.js = 'true';
+    // The expand controls are disabled in markup so no-JS users never get a
+    // dead button; unlock them only once the script is up.
+    for (const btn of mediaBtns) btn.disabled = false;
 
     let active = 0;
     let autoState: 'idle' | 'running' | 'paused' | 'stopped' = 'idle';
@@ -860,6 +859,12 @@ const intervalMs = 7000;
 
   .story[data-js='true'] .slide-media {
     cursor: zoom-in;
+  }
+
+  /* Without JS the expand control stays disabled: it must read (and look)
+     like a plain image, not a dead operable control. */
+  .slide-media:disabled {
+    cursor: default;
   }
 
   .slide-media img {
