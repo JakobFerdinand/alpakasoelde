@@ -26,6 +26,7 @@ const intervalMs = 7000;
 <section
   class="story"
   data-js="false"
+  data-interval={intervalMs}
   style={`--interval-ms:${intervalMs}ms`}
   role="region"
   aria-roledescription="Karussell"
@@ -160,44 +161,150 @@ const intervalMs = 7000;
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
   const FINE_POINTER = matchMedia('(hover: hover) and (pointer: fine)');
 
+  // What the lightbox needs from each slide, read and trimmed once at init
+  // instead of re-querying the caption DOM on every open or step.
+  interface LightboxSlide {
+    img: HTMLImageElement | null;
+    alt: string;
+    kicker: string;
+    title: string;
+    text: string;
+    hasCaption: boolean;
+  }
+
+  // All lightbox parts collected once at init; a single missing part means
+  // the lightbox is not mounted at all rather than half-mounted.
+  interface LightboxElements {
+    dlg: HTMLElement;
+    lbFig: HTMLElement;
+    lbImg: HTMLImageElement;
+    lbCap: HTMLElement;
+    lbClose: HTMLButtonElement;
+    lbPrev: HTMLButtonElement;
+    lbNext: HTMLButtonElement;
+    lbKicker: HTMLElement;
+    lbTitle: HTMLElement;
+    lbText: HTMLElement;
+    lbCount: HTMLElement;
+    lbStatus: HTMLElement;
+  }
+
+  // What the lightbox may ask of the deck: the slide elements, the way to
+  // stop the deck's autoplay, and a no-animation jump for the restoration
+  // after close.
+  interface DeckHandle {
+    slides: HTMLElement[];
+    stopAutoplay: () => void;
+    showSlide: (index: number) => void;
+  }
+
   for (const story of document.querySelectorAll<HTMLElement>('.story')) {
     initStory(story);
   }
 
+  // Deck and lightbox both wrap around in either direction; fold any
+  // out-of-range index back into 0..length-1.
+  function wrap(index: number, length: number) {
+    return (index + length) % length;
+  }
+
   function initStory(story: HTMLElement) {
-    const deck = story.querySelector<HTMLElement>('.deck');
-    const dots = [...story.querySelectorAll<HTMLButtonElement>('.story-dot')];
-    const statusEl = story.querySelector<HTMLElement>('[data-slide-status]');
-    if (!deck || !statusEl) return;
+    const deckHandle = initDeck(story);
+    if (!deckHandle) return;
 
-    const deckBox: HTMLElement = deck;
-    const status: HTMLElement = statusEl;
+    const lb = findLightbox(story);
+    if (!lb) return;
 
-    const slides = [...deckBox.querySelectorAll<HTMLElement>('.slide')];
-    const mediaBtns = [...deckBox.querySelectorAll<HTMLButtonElement>('.slide-media')];
-    const prevBtn = story.querySelector<HTMLButtonElement>('.deck-prev');
-    const nextBtn = story.querySelector<HTMLButtonElement>('.deck-next');
-    const sibling = story.nextElementSibling;
-    const dlg = sibling && sibling.hasAttribute('data-lightbox') ? (sibling as HTMLElement) : null;
-    const lbImg = dlg?.querySelector<HTMLImageElement>('.lb-img');
-    const lbFig = dlg?.querySelector<HTMLElement>('.lb-figure');
-    const lbCap = dlg?.querySelector<HTMLElement>('.lb-caption');
-    const lbClose = dlg?.querySelector<HTMLButtonElement>('.lb-close');
-    const lbPrev = dlg?.querySelector<HTMLButtonElement>('.lb-prev');
-    const lbNext = dlg?.querySelector<HTMLButtonElement>('.lb-next');
-    const lbKicker = dlg?.querySelector<HTMLElement>('[data-lb-kicker]');
-    const lbTitle = dlg?.querySelector<HTMLElement>('[data-lb-title]');
-    const lbText = dlg?.querySelector<HTMLElement>('[data-lb-text]');
-    const lbCount = dlg?.querySelector<HTMLElement>('[data-lb-count]');
-    const lbStatus = dlg?.querySelector<HTMLElement>('[data-lb-status]');
-    const dlgNative =
-      !!dlg && typeof HTMLDialogElement !== 'undefined' && dlg instanceof HTMLDialogElement;
-    const intervalMs = Number.parseInt(story.style.getPropertyValue('--interval-ms'), 10) || 7000;
+    const openButtons = [...story.querySelectorAll<HTMLButtonElement>('.slide-media')];
+    const slideData = readLightboxSlides(deckHandle.slides);
 
     story.dataset.js = 'true';
     // The expand controls are disabled in markup so no-JS users never get a
     // dead button; unlock them only once the script is up.
-    for (const btn of mediaBtns) btn.disabled = false;
+    for (const btn of openButtons) btn.disabled = false;
+
+    initLightbox(lb, deckHandle, openButtons, slideData);
+  }
+
+  // Resolve the lightbox sibling and every part the script touches; return
+  // null when one of them is missing.
+  function findLightbox(story: HTMLElement): LightboxElements | null {
+    const dlg = story.nextElementSibling;
+    if (!(dlg instanceof HTMLElement) || !dlg.hasAttribute('data-lightbox')) return null;
+    const lbFig = dlg.querySelector<HTMLElement>('.lb-figure');
+    const lbImg = dlg.querySelector<HTMLImageElement>('.lb-img');
+    const lbCap = dlg.querySelector<HTMLElement>('.lb-caption');
+    const lbClose = dlg.querySelector<HTMLButtonElement>('.lb-close');
+    const lbPrev = dlg.querySelector<HTMLButtonElement>('.lb-prev');
+    const lbNext = dlg.querySelector<HTMLButtonElement>('.lb-next');
+    const lbKicker = dlg.querySelector<HTMLElement>('[data-lb-kicker]');
+    const lbTitle = dlg.querySelector<HTMLElement>('[data-lb-title]');
+    const lbText = dlg.querySelector<HTMLElement>('[data-lb-text]');
+    const lbCount = dlg.querySelector<HTMLElement>('[data-lb-count]');
+    const lbStatus = dlg.querySelector<HTMLElement>('[data-lb-status]');
+    if (
+      !lbFig ||
+      !lbImg ||
+      !lbCap ||
+      !lbClose ||
+      !lbPrev ||
+      !lbNext ||
+      !lbKicker ||
+      !lbTitle ||
+      !lbText ||
+      !lbCount ||
+      !lbStatus
+    ) {
+      return null;
+    }
+    return {
+      dlg,
+      lbFig,
+      lbImg,
+      lbCap,
+      lbClose,
+      lbPrev,
+      lbNext,
+      lbKicker,
+      lbTitle,
+      lbText,
+      lbCount,
+      lbStatus,
+    };
+  }
+
+  function readLightboxSlides(slides: HTMLElement[]): LightboxSlide[] {
+    return slides.map((slide) => {
+      const img = slide.querySelector<HTMLImageElement>('.slide-media img');
+      const caption = slide.querySelector<HTMLElement>('.slide-caption');
+      const kicker = caption?.querySelector('.caption-kicker') ?? null;
+      const title = caption?.querySelector('.caption-title') ?? null;
+      const text = caption?.querySelector('.caption-text') ?? null;
+      // hasCaption mirrors the presence of the caption's source elements,
+      // not the emptiness of their text.
+      return {
+        img,
+        alt: img?.alt ?? '',
+        kicker: kicker?.textContent?.trim() ?? '',
+        title: title?.textContent?.trim() ?? '',
+        text: text?.textContent?.trim() ?? '',
+        hasCaption: kicker !== null || title !== null || text !== null,
+      };
+    });
+  }
+
+  function initDeck(story: HTMLElement): DeckHandle | null {
+    // Non-null asserted so the type survives into the closures below, where
+    // control-flow narrowing would not; the runtime check stays.
+    const deck = story.querySelector<HTMLElement>('.deck')!;
+    const statusEl = story.querySelector<HTMLElement>('[data-slide-status]')!;
+    if (!deck || !statusEl) return null;
+
+    const slides = [...deck.querySelectorAll<HTMLElement>('.slide')];
+    const dots = [...story.querySelectorAll<HTMLButtonElement>('.story-dot')];
+    const prevBtn = story.querySelector<HTMLButtonElement>('.deck-prev');
+    const nextBtn = story.querySelector<HTMLButtonElement>('.deck-next');
+    const intervalMs = Number(story.dataset.interval);
 
     let active = 0;
     let autoState: 'idle' | 'running' | 'paused' | 'stopped' = 'idle';
@@ -209,14 +316,7 @@ const intervalMs = 7000;
     let programmaticScroll = false;
     let programmaticScrollTimer: number | undefined;
     let touchX: number | null = null;
-    let touchY: number | null = null;
     let deckTouches = 0;
-    // True when the lightbox's last touch was a drag/pinch rather than a tap;
-    // suppresses the click browsers can fire after such gestures so pinch-zoom
-    // and swipe navigation never close the lightbox.
-    let lbGestureMoved = false;
-    let vtNames: HTMLElement[] = [];
-    let lbIndex = 0;
 
     const midpoints = () => slides.map((s) => s.offsetLeft + s.offsetWidth / 2);
 
@@ -234,7 +334,7 @@ const intervalMs = 7000;
 
     function syncActive() {
       const mids = midpoints();
-      const center = deckBox.scrollLeft + deckBox.clientWidth / 2;
+      const center = deck.scrollLeft + deck.clientWidth / 2;
       let best = 0;
       mids.forEach((m, i) => {
         if (Math.abs(m - center) < Math.abs(mids[best] - center)) best = i;
@@ -242,7 +342,7 @@ const intervalMs = 7000;
       setActive(best);
     }
 
-    deckBox.addEventListener(
+    deck.addEventListener(
       'scroll',
       () => {
         if (programmaticScroll) {
@@ -260,7 +360,7 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    deckBox.addEventListener('scrollend', endProgrammaticScroll);
+    deck.addEventListener('scrollend', endProgrammaticScroll);
 
     function endProgrammaticScroll() {
       if (!programmaticScroll) {
@@ -278,15 +378,18 @@ const intervalMs = 7000;
       window.clearTimeout(programmaticScrollTimer);
     }
 
+    function scrollToSlide(i: number, smooth: boolean) {
+      deck.scrollTo({
+        left: midpoints()[i] - deck.clientWidth / 2,
+        behavior: smooth && !REDUCED.matches ? 'smooth' : 'auto',
+      });
+    }
+
     function goTo(i: number) {
-      const mids = midpoints();
       programmaticScroll = true;
       window.clearTimeout(programmaticScrollTimer);
       programmaticScrollTimer = window.setTimeout(endProgrammaticScroll, 700);
-      deckBox.scrollTo({
-        left: mids[i] - deckBox.clientWidth / 2,
-        behavior: REDUCED.matches ? 'auto' : 'smooth',
-      });
+      scrollToSlide(i, true);
       setActive(i);
     }
 
@@ -301,7 +404,7 @@ const intervalMs = 7000;
       );
     }
 
-    function update() {
+    function refreshAutoplay() {
       window.clearTimeout(timer);
       if (autoState !== 'stopped') autoState = eligible() ? 'running' : 'paused';
       story.dataset.autoplay = autoState;
@@ -323,7 +426,7 @@ const intervalMs = 7000;
     }
 
     function advance() {
-      goTo((active + 1) % slides.length);
+      goTo(wrap(active + 1, slides.length));
       arm();
     }
 
@@ -333,11 +436,11 @@ const intervalMs = 7000;
     }
 
     function announce(i: number) {
-      if (autoState === 'stopped') status.textContent = `Bild ${i + 1} von ${slides.length}`;
+      if (autoState === 'stopped') statusEl.textContent = `Bild ${i + 1} von ${slides.length}`;
     }
 
     function step(delta: number) {
-      const next = (active + delta + slides.length) % slides.length;
+      const next = wrap(active + delta, slides.length);
       goTo(next);
       announce(next);
     }
@@ -357,21 +460,21 @@ const intervalMs = 7000;
         announce(i);
       }),
     );
-    deckBox.addEventListener('keydown', (e) => {
+    deck.addEventListener('keydown', (e) => {
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       e.preventDefault();
       stopAutoplay();
       step(e.key === 'ArrowLeft' ? -1 : 1);
     });
 
-    deckBox.addEventListener('pointerdown', breakProgrammaticScroll);
+    deck.addEventListener('pointerdown', breakProgrammaticScroll);
     // Ken Burns is paused while the visitor drags/touch-scrolls the deck (§7);
     // the attribute lives on the story root (`.story[data-dragging]` selector).
     function setDragging(on: boolean) {
       if (on) story.dataset.dragging = '';
       else delete story.dataset.dragging;
     }
-    deckBox.addEventListener(
+    deck.addEventListener(
       'touchstart',
       (e) => {
         breakProgrammaticScroll();
@@ -381,7 +484,7 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    deckBox.addEventListener(
+    deck.addEventListener(
       'touchend',
       (e) => {
         deckTouches = e.touches.length;
@@ -389,11 +492,11 @@ const intervalMs = 7000;
         if (touchX === null) return;
         const dx = Math.abs(e.changedTouches[0].clientX - touchX);
         touchX = null;
-        if (dx > (slides[0]?.offsetWidth ?? deckBox.clientWidth) * 0.3) stopAutoplay();
+        if (dx > (slides[0]?.offsetWidth ?? deck.clientWidth) * 0.3) stopAutoplay();
       },
       { passive: true },
     );
-    deckBox.addEventListener(
+    deck.addEventListener(
       'touchcancel',
       (e) => {
         deckTouches = e.touches.length;
@@ -403,39 +506,86 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    deckBox.addEventListener('scrollend', () => setDragging(false));
-    deckBox.addEventListener('wheel', breakProgrammaticScroll, { passive: true });
+    deck.addEventListener('scrollend', () => setDragging(false));
+    deck.addEventListener('wheel', breakProgrammaticScroll, { passive: true });
 
     story.addEventListener('mouseenter', () => {
       if (!FINE_POINTER.matches) return;
       hovered = true;
-      update();
+      refreshAutoplay();
     });
     story.addEventListener('mouseleave', () => {
       hovered = false;
-      update();
+      refreshAutoplay();
     });
     story.addEventListener('focusin', () => {
       focused = true;
-      update();
+      refreshAutoplay();
     });
     story.addEventListener('focusout', (e: FocusEvent) => {
       if (e.relatedTarget instanceof Node && story.contains(e.relatedTarget)) return;
       focused = false;
-      update();
+      refreshAutoplay();
     });
     story.addEventListener('pointerdown', pause);
-    story.addEventListener('pointerup', update);
-    story.addEventListener('pointercancel', update);
-    document.addEventListener('visibilitychange', update);
+    story.addEventListener('pointerup', refreshAutoplay);
+    story.addEventListener('pointercancel', refreshAutoplay);
+    document.addEventListener('visibilitychange', refreshAutoplay);
 
     new IntersectionObserver(
       (entries) => {
         onscreen = entries.some((entry) => entry.isIntersecting);
-        update();
+        refreshAutoplay();
       },
       { threshold: 0.4 },
     ).observe(story);
+
+    return {
+      slides,
+      stopAutoplay,
+      // Jump without animation and mark the slide active; used when the
+      // lightbox closes so the deck reflects the last-shown image.
+      showSlide(index: number) {
+        breakProgrammaticScroll();
+        if (slides[index]) {
+          scrollToSlide(index, false);
+          setActive(index);
+        }
+      },
+    };
+  }
+
+  function initLightbox(
+    lb: LightboxElements,
+    deckHandle: DeckHandle,
+    openButtons: HTMLButtonElement[],
+    slideData: LightboxSlide[],
+  ) {
+    const {
+      dlg,
+      lbImg,
+      lbFig,
+      lbCap,
+      lbClose,
+      lbPrev,
+      lbNext,
+      lbKicker,
+      lbTitle,
+      lbText,
+      lbCount,
+      lbStatus,
+    } = lb;
+    const hasNativeDialog =
+      typeof HTMLDialogElement !== 'undefined' && dlg instanceof HTMLDialogElement;
+
+    let lbIndex = 0;
+    let transitionNamed: HTMLElement[] = [];
+    // True when the lightbox's last touch was a drag/pinch rather than a tap;
+    // suppresses the click browsers can fire after such gestures so pinch-zoom
+    // and swipe navigation never close the lightbox.
+    let lbGestureMoved = false;
+    let touchX: number | null = null;
+    let touchY: number | null = null;
 
     function lockScroll(lock: boolean) {
       const html = document.documentElement;
@@ -450,31 +600,41 @@ const intervalMs = 7000;
     }
 
     function clearVtNames() {
-      vtNames.forEach((el) => {
+      transitionNamed.forEach((el) => {
         el.style.viewTransitionName = '';
       });
-      vtNames = [];
+      transitionNamed = [];
+    }
+
+    // One helper for the open and close zoom view transitions: `from` carries
+    // the `story-zoom` name in the old state, `to` takes it over in the new
+    // one (duplicate names abort the transition); without the API, or under
+    // reduced motion, the change runs plainly.
+    function withZoomTransition(from: HTMLElement, to: HTMLElement, commit: () => void) {
+      const doc = document as Document & {
+        startViewTransition?(callback: () => void): { finished: Promise<void> };
+      };
+      if (!doc.startViewTransition || REDUCED.matches) {
+        commit();
+        return;
+      }
+      from.style.viewTransitionName = 'story-zoom';
+      transitionNamed = [from, to];
+      doc
+        .startViewTransition(() => {
+          from.style.viewTransitionName = '';
+          to.style.viewTransitionName = 'story-zoom';
+          commit();
+        })
+        .finished.finally(clearVtNames);
     }
 
     function restoreAfterClose() {
       lockScroll(false);
       // The deck must reflect the image last shown in the lightbox: jump
       // there without animation and hand focus to its open control.
-      breakProgrammaticScroll();
-      const btn = mediaBtns[lbIndex] ?? null;
-      if (slides[lbIndex]) {
-        const mids = midpoints();
-        deckBox.scrollTo({
-          left: mids[lbIndex] - deckBox.clientWidth / 2,
-          behavior: 'auto',
-        });
-        setActive(lbIndex);
-      }
-      if (btn) btn.focus();
-    }
-
-    function setLbPart(el: HTMLElement | null | undefined, source: Element | null | undefined) {
-      if (el) el.textContent = source?.textContent?.trim() ?? '';
+      deckHandle.showSlide(lbIndex);
+      openButtons[lbIndex]?.focus();
     }
 
     function lightboxSrc(img: HTMLImageElement) {
@@ -493,37 +653,31 @@ const intervalMs = 7000;
     }
 
     function setLbContent(i: number) {
-      const slide = slides[i];
-      const img = slide?.querySelector<HTMLImageElement>('.slide-media img');
-      if (!img || !lbImg) return;
+      const slide = slideData[i];
+      if (!slide?.img) return;
 
-      const srcset = img.getAttribute('srcset') ?? '';
+      const srcset = slide.img.getAttribute('srcset') ?? '';
       lbImg.sizes = '100vw';
       if (srcset) lbImg.srcset = srcset;
-      lbImg.src = lightboxSrc(img);
-      lbImg.alt = img.alt;
+      lbImg.src = lightboxSrc(slide.img);
+      lbImg.alt = slide.alt;
 
-      const caption = slide.querySelector<HTMLElement>('.slide-caption');
-      const kicker = caption?.querySelector('.caption-kicker');
-      const title = caption?.querySelector('.caption-title');
-      const text = caption?.querySelector('.caption-text');
-      setLbPart(lbKicker, kicker);
-      setLbPart(lbTitle, title);
-      setLbPart(lbText, text);
-      lbCap?.classList.toggle('is-empty', !kicker && !title && !text);
+      lbKicker.textContent = slide.kicker;
+      lbTitle.textContent = slide.title;
+      lbText.textContent = slide.text;
+      lbCap.classList.toggle('is-empty', !slide.hasCaption);
 
-      if (lbCount) lbCount.textContent = `${i + 1} / ${slides.length}`;
-      if (lbStatus) lbStatus.textContent = `Bild ${i + 1} von ${slides.length}`;
+      lbCount.textContent = `${i + 1} / ${slideData.length}`;
+      lbStatus.textContent = `Bild ${i + 1} von ${slideData.length}`;
     }
 
     function preload(i: number) {
-      const img = slides[i]?.querySelector<HTMLImageElement>('.slide-media img');
+      const img = slideData[i]?.img;
       if (!img) return;
       new Image().src = lightboxSrc(img);
     }
 
-    function fallbackKey(e: KeyboardEvent) {
-      if (!dlg) return;
+    function onFallbackKeydown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         e.preventDefault();
         closeLightbox();
@@ -544,92 +698,67 @@ const intervalMs = 7000;
     }
 
     function openLightbox(i: number) {
-      const slide = slides[i];
-      const fig = slide?.querySelector<HTMLElement>('.slide-card');
-      if (!dlg || !lbImg) return;
-      stopAutoplay();
+      const fig = deckHandle.slides[i]?.querySelector<HTMLElement>('.slide-card');
+      deckHandle.stopAutoplay();
 
       setLbContent(i);
       lbIndex = i;
-      preload((i + 1) % slides.length);
-      preload((i - 1 + slides.length) % slides.length);
+      preload(wrap(i + 1, slideData.length));
+      preload(wrap(i - 1, slideData.length));
 
       lockScroll(true);
 
-      if (!dlgNative) {
+      if (!hasNativeDialog) {
         dlg.setAttribute('role', 'dialog');
         dlg.setAttribute('aria-modal', 'true');
         dlg.classList.add('is-open');
-        document.addEventListener('keydown', fallbackKey);
-        lbClose?.focus();
+        document.addEventListener('keydown', onFallbackKeydown);
+        lbClose.focus();
         return;
       }
 
       const box = dlg as HTMLDialogElement;
-      const doc = document as Document & {
-        startViewTransition?(callback: () => void): { finished: Promise<void> };
-      };
-      if (doc.startViewTransition && fig && lbFig && !REDUCED.matches) {
-        // Old state: only the slide card carries the name; the lightbox figure
-        // takes it over in the new state (duplicate names abort the transition).
-        fig.style.viewTransitionName = 'story-zoom';
-        vtNames = [fig, lbFig];
-        doc
-          .startViewTransition(() => {
-            fig.style.viewTransitionName = '';
-            lbFig.style.viewTransitionName = 'story-zoom';
-            box.showModal();
-          })
-          .finished.finally(clearVtNames);
+      if (fig) {
+        // Old state: only the slide card carries the name; the lightbox
+        // figure takes it over in the new state.
+        withZoomTransition(fig, lbFig, () => box.showModal());
       } else {
         box.showModal();
       }
     }
 
     function lbStep(delta: number) {
-      if (!dlg || slides.length < 2) return;
-      lbIndex = (lbIndex + delta + slides.length) % slides.length;
+      if (slideData.length < 2) return;
+      lbIndex = wrap(lbIndex + delta, slideData.length);
       setLbContent(lbIndex);
-      preload((lbIndex + delta + slides.length) % slides.length);
+      preload(wrap(lbIndex + delta, slideData.length));
     }
 
     function closeLightbox() {
-      if (!dlg) return;
-      document.removeEventListener('keydown', fallbackKey);
-      if (!dlgNative) {
+      document.removeEventListener('keydown', onFallbackKeydown);
+      if (!hasNativeDialog) {
         dlg.classList.remove('is-open');
         restoreAfterClose();
         return;
       }
       const box = dlg as HTMLDialogElement;
-      const fig = slides[lbIndex]?.querySelector<HTMLElement>('.slide-card');
-      const doc = document as Document & {
-        startViewTransition?(callback: () => void): { finished: Promise<void> };
-      };
-      if (doc.startViewTransition && fig && lbFig && !REDUCED.matches) {
+      const fig = deckHandle.slides[lbIndex]?.querySelector<HTMLElement>('.slide-card');
+      if (fig) {
         // Reverse of open: old state = lightbox figure, new state = slide card.
-        lbFig.style.viewTransitionName = 'story-zoom';
-        vtNames = [fig, lbFig];
-        doc
-          .startViewTransition(() => {
-            lbFig.style.viewTransitionName = '';
-            fig.style.viewTransitionName = 'story-zoom';
-            box.close();
-          })
-          .finished.finally(clearVtNames);
+        withZoomTransition(lbFig, fig, () => box.close());
       } else {
         box.close();
       }
     }
 
-    mediaBtns.forEach((btn, i) => btn.addEventListener('click', () => openLightbox(i)));
-    lbClose?.addEventListener('click', closeLightbox);
-    lbPrev?.addEventListener('click', () => lbStep(-1));
-    lbNext?.addEventListener('click', () => lbStep(1));
+    openButtons.forEach((btn, i) => btn.addEventListener('click', () => openLightbox(i)));
+    lbClose.addEventListener('click', closeLightbox);
+    lbPrev.addEventListener('click', () => lbStep(-1));
+    lbNext.addEventListener('click', () => lbStep(1));
     // A lightbox tap on anything but the photo, the caption or a control
     // button is a backdrop tap; the (opaque, fullscreen) dialog has no visible
     // ::backdrop of its own.
-    dlg?.addEventListener('click', (e) => {
+    dlg.addEventListener('click', (e) => {
       if (lbGestureMoved) {
         lbGestureMoved = false;
         return;
@@ -642,10 +771,10 @@ const intervalMs = 7000;
     });
     // Reset here even for touch/pen: pointerdown fires before touchstart,
     // which sets the flag again for multi-touch gestures.
-    dlg?.addEventListener('pointerdown', () => {
+    dlg.addEventListener('pointerdown', () => {
       lbGestureMoved = false;
     });
-    dlg?.addEventListener('keydown', (e: KeyboardEvent) => {
+    dlg.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         lbStep(-1);
@@ -654,7 +783,7 @@ const intervalMs = 7000;
         lbStep(1);
       }
     });
-    dlg?.addEventListener(
+    dlg.addEventListener(
       'touchstart',
       (e: TouchEvent) => {
         if (e.touches.length > 1) {
@@ -671,7 +800,7 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    dlg?.addEventListener(
+    dlg.addEventListener(
       'touchend',
       (e: TouchEvent) => {
         if (touchX === null || touchY === null) return;
@@ -687,13 +816,13 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    dlg?.addEventListener('touchcancel', () => {
+    dlg.addEventListener('touchcancel', () => {
       lbGestureMoved = true;
       touchX = null;
       touchY = null;
     });
-    dlg?.addEventListener('close', () => {
-      document.removeEventListener('keydown', fallbackKey);
+    dlg.addEventListener('close', () => {
+      document.removeEventListener('keydown', onFallbackKeydown);
       restoreAfterClose();
     });
   }
