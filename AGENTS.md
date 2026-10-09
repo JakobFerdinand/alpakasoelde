@@ -24,6 +24,7 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 - Pages in `src/pages`, components in `src/components`, `Layout.astro` and `WorkshopLayout.astro` as layouts, farm palette tokens in `src/styles/global.css`.
 - Astro-only: never introduce React, Vue, or Svelte here, keep `<script>` blocks rare, and prefer CSS (`:has`, form-control toggles) for UI state.
 - The JSON-LD in `Head.astro` must keep `is:inline set:html={JSON.stringify(...)}`; anything else escapes the payload into invalid structured data.
+- The farm's address, contact details, coordinates and the three services live in `src/data/farm.ts`, which also builds the homepage JSON-LD, so callers read them from there instead of hardcoding them.
 - `@astrojs/sitemap` emits `sitemap-index.xml` plus `sitemap-0.xml` at build time and `public/robots.txt` points at the index, so a new page needs no manual entry — but a route that must stay out of search results has to go into the `notIndexable` set in `astro.config.mjs`, which already excludes `/403/` and `/nachricht-gesendet/` (Astro drops `404` itself).
 - Pages prefixed with `_` such as `_yoga.astro` are intentionally unrouted drafts.
 - The pageview beacon in `Layout.astro` fires only on `alpakasoelde.at`/`www.alpakasoelde.at`, so analytics cannot be exercised locally or on a PR preview.

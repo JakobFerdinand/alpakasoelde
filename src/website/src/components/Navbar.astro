@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import Logo from "../images/AS_Symbolik_Taubenblau.svg";
 import LogoSchurwolle from "../images/AS_Symbolik_Schurwolle.svg";
+import { services } from "../data/farm";
 
 interface Props {
   initialTransparent?: boolean;
@@ -38,9 +39,7 @@ if (hideLogo) {
          to the homepage. "Leistungen" is dropped because those pages are now
          listed directly, which keeps the bar at six items. -->
     <ul id="primary-navigation" class="nav-links">
-      <li><a href="/alpaka-wanderungen">Wanderungen</a></li>
-      <li><a href="/wollverarbeitung">Wollverarbeitung</a></li>
-      <li><a href="/produkte">Produkte</a></li>
+      {services.map((service) => <li><a href={service.path}>{service.navLabel}</a></li>)}
       <li><a href="/#alpakas">Alpakas</a></li>
       <li><a href="/#ueber-uns">Über uns</a></li>
       <li><a href="/#kontakt">Kontakt</a></li>
