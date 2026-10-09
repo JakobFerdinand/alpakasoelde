@@ -901,6 +901,9 @@ const intervalMs = 7000;
     inset-inline: 0;
     bottom: 0;
     z-index: 2;
+    /* The caption covers the lower part of the photo; clicks there must fall
+       through to the image button underneath. */
+    pointer-events: none;
     padding: 3.5rem 1.25rem max(1.25rem, env(safe-area-inset-bottom));
     color: var(--schurwolle);
     background: linear-gradient(

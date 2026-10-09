@@ -8,10 +8,6 @@ const imageButton = (page: Page, n: number) =>
     .getByRole('button', { name: /Bild groß anzeigen/ })
     .nth(n);
 
-// The caption overlays the lower part of each slide and does not forward
-// clicks, so aim for the clear image area near the top of the slide.
-const imageButtonOptions = { position: { x: 100, y: 60 } } as const;
-
 test.describe('the slideshow deck', () => {
   test('moves the current slide via buttons and direct navigation', async ({ page }) => {
     await page.goto('/produkte');
@@ -40,7 +36,7 @@ test.describe('the slideshow lightbox', () => {
   }) => {
     await page.goto('/produkte');
 
-    await imageButton(page, 0).click(imageButtonOptions);
+    await imageButton(page, 0).click();
     const lightbox = page.getByRole('dialog', { name: 'Bildansicht' });
     await expect(lightbox).toBeVisible();
 
@@ -67,7 +63,7 @@ test.describe('the slideshow lightbox', () => {
   test('closes on a backdrop click but not when the photo itself is clicked', async ({ page }) => {
     await page.goto('/produkte');
 
-    await imageButton(page, 0).click(imageButtonOptions);
+    await imageButton(page, 0).click();
     const lightbox = page.getByRole('dialog', { name: 'Bildansicht' });
     await expect(lightbox).toBeVisible();
 
@@ -80,6 +76,24 @@ test.describe('the slideshow lightbox', () => {
     // A click on the empty area of the fullscreen dialog is a backdrop tap.
     await lightbox.click({ position: { x: 5, y: 200 } });
     await expect(lightbox).toBeHidden();
+  });
+
+  test('opens from the caption of a slide', async ({ page }) => {
+    await page.goto('/produkte');
+
+    // The caption overlays the lower part of the photo; clicking its title
+    // must fall through to the image button underneath. Pointer-events: none
+    // on the caption redirects a real hit to the image button, so drive an
+    // actual mouse click at the title instead of a locator click whose
+    // hit-target check would flag that.
+    await slideshow(page).scrollIntoViewIfNeeded();
+    const captionTitle = slideshow(page).getByText('Strickgabel', { exact: true }).first();
+    const box = (await captionTitle.boundingBox())!;
+    await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+
+    const lightbox = page.getByRole('dialog', { name: 'Bildansicht' });
+    await expect(lightbox).toBeVisible();
+    await expect(lightbox.getByText('Strickgabel', { exact: true })).toBeVisible();
   });
 });
 
