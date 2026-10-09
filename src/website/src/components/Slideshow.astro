@@ -792,7 +792,7 @@ const intervalMs = 7000;
     overflow: hidden;
     border-radius: 1rem;
     background-color: var(--schurwolle);
-    box-shadow: 0 12px 32px rgba(31, 31, 29, 0.14);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--schwarz) 14%, transparent);
     aspect-ratio: 4 / 5;
     margin: 0;
   }
@@ -801,7 +801,7 @@ const intervalMs = 7000;
     .slide-card {
       aspect-ratio: 3 / 2;
       border-radius: 1.25rem;
-      box-shadow: 0 24px 64px rgba(31, 31, 29, 0.18);
+      box-shadow: 0 24px 64px color-mix(in srgb, var(--schwarz) 18%, transparent);
     }
   }
 
@@ -839,7 +839,7 @@ const intervalMs = 7000;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: rgba(251, 247, 237, 0.92);
+    background: color-mix(in srgb, var(--schurwolle) 92%, transparent);
     color: var(--taubenblau);
     border: 1px solid var(--taubenblau);
   }
@@ -868,8 +868,16 @@ const intervalMs = 7000;
     z-index: 1;
     pointer-events: none;
     background:
-      radial-gradient(120% 90% at 50% 40%, rgba(225, 177, 74, 0.06), transparent 62%),
-      radial-gradient(140% 115% at 50% 50%, transparent 58%, rgba(31, 31, 29, 0.18) 100%);
+      radial-gradient(
+        120% 90% at 50% 40%,
+        color-mix(in srgb, var(--bluetenhonig) 6%, transparent),
+        transparent 62%
+      ),
+      radial-gradient(
+        140% 115% at 50% 50%,
+        transparent 58%,
+        color-mix(in srgb, var(--schwarz) 18%, transparent) 100%
+      );
   }
 
   .slide-media::after {
@@ -897,9 +905,9 @@ const intervalMs = 7000;
     color: var(--schurwolle);
     background: linear-gradient(
       to top,
-      rgba(31, 31, 29, 0.95) 0%,
-      rgba(31, 31, 29, 0.62) 42%,
-      rgba(31, 31, 29, 0) 80%
+      color-mix(in srgb, var(--schwarz) 95%, transparent) 0%,
+      color-mix(in srgb, var(--schwarz) 62%, transparent) 42%,
+      transparent 80%
     );
   }
 
@@ -919,7 +927,7 @@ const intervalMs = 7000;
     font-weight: 300;
     font-size: clamp(0.95rem, 1vw, 1.05rem);
     max-width: 42ch;
-    text-shadow: 0 1px 8px rgba(31, 31, 29, 0.35);
+    text-shadow: 0 1px 8px color-mix(in srgb, var(--schwarz) 35%, transparent);
   }
 
   .caption-kicker,
@@ -1108,7 +1116,7 @@ const intervalMs = 7000;
     background: var(--schurwolle);
     color: var(--taubenblau);
     border: 1px solid var(--taubenblau);
-    box-shadow: 0 12px 32px rgba(31, 31, 29, 0.18);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--schwarz) 18%, transparent);
     cursor: pointer;
   }
 
@@ -1246,7 +1254,7 @@ const intervalMs = 7000;
   :where(.deck-nav, .story-dot, .slide-media, .lb-nav, .lb-close):focus-visible {
     outline: 3px solid var(--bluetenhonig);
     outline-offset: 2px;
-    box-shadow: 0 0 0 6px rgba(75, 91, 115, 0.85);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--taubenblau) 85%, transparent);
   }
 
   .slide-media:focus-visible {
