@@ -209,8 +209,14 @@ const intervalMs = 7000;
   }
 
   function initStory(story: HTMLElement) {
-    const deckHandle = initDeck(story);
-    if (!deckHandle) return;
+    const deck = story.querySelector<HTMLElement>('.deck');
+    const statusEl = story.querySelector<HTMLElement>('[data-slide-status]');
+    if (!deck || !statusEl) return;
+
+    const deckHandle = initDeck(story, deck, statusEl);
+    // All deck behaviour (autoplay, controls, tracking) is live; the flag
+    // does not depend on the lightbox being found.
+    story.dataset.js = 'true';
 
     const lb = findLightbox(story);
     if (!lb) return;
@@ -218,9 +224,8 @@ const intervalMs = 7000;
     const openButtons = [...story.querySelectorAll<HTMLButtonElement>('.slide-media')];
     const slideData = readLightboxSlides(deckHandle.slides);
 
-    story.dataset.js = 'true';
-    // The expand controls are disabled in markup so no-JS users never get a
-    // dead button; unlock them only once the script is up.
+    // The open controls are disabled in markup so no-JS users never get a
+    // dead button; unlock them only once the lightbox is up.
     for (const btn of openButtons) btn.disabled = false;
 
     initLightbox(lb, deckHandle, openButtons, slideData);
@@ -293,13 +298,7 @@ const intervalMs = 7000;
     });
   }
 
-  function initDeck(story: HTMLElement): DeckHandle | null {
-    // Non-null asserted so the type survives into the closures below, where
-    // control-flow narrowing would not; the runtime check stays.
-    const deck = story.querySelector<HTMLElement>('.deck')!;
-    const statusEl = story.querySelector<HTMLElement>('[data-slide-status]')!;
-    if (!deck || !statusEl) return null;
-
+  function initDeck(story: HTMLElement, deck: HTMLElement, statusEl: HTMLElement): DeckHandle {
     const slides = [...deck.querySelectorAll<HTMLElement>('.slide')];
     const dots = [...story.querySelectorAll<HTMLButtonElement>('.story-dot')];
     const prevBtn = story.querySelector<HTMLButtonElement>('.deck-prev');
@@ -599,7 +598,7 @@ const intervalMs = 7000;
       if (gap > 0) html.style.paddingRight = `${gap}px`;
     }
 
-    function clearVtNames() {
+    function clearTransitionNames() {
       transitionNamed.forEach((el) => {
         el.style.viewTransitionName = '';
       });
@@ -626,7 +625,7 @@ const intervalMs = 7000;
           to.style.viewTransitionName = 'story-zoom';
           commit();
         })
-        .finished.finally(clearVtNames);
+        .finished.finally(clearTransitionNames);
     }
 
     function restoreAfterClose() {
