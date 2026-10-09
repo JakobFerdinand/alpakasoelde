@@ -1,6 +1,6 @@
 # Slideshow „Immersive Storytelling" Implementation Plan
 
-Implements `docs/concepts/design-concept-2-immersive-storytelling.md` as a concrete build spec
+Implements the immersive storytelling concept as a concrete build spec
 for `src/website/src/components/Slideshow.astro` and its two consumers. Branch:
 `feat/slideshow-concept-2` (based on `main`, i.e. the original setInterval-crossfade slideshow).
 The competing branch `feat/slideshow-concept-1` is explicitly out of scope.
