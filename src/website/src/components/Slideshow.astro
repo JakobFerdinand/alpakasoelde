@@ -15,18 +15,15 @@ interface Props {
   slides: StorySlide[];
   label: string;
   eyebrow?: string;
-  season?: 'sommer' | 'winter';
-  lightbox?: boolean;
 }
 
-const { slides, label, eyebrow, season = 'sommer', lightbox = true } = Astro.props;
+const { slides, label, eyebrow } = Astro.props;
 
 const intervalMs = 7000;
 ---
 
 <section
   class="story"
-  data-season={season}
   data-js="false"
   style={`--interval-ms:${intervalMs}ms`}
   role="region"
@@ -70,54 +67,37 @@ const intervalMs = 7000;
           aria-label={`Bild ${i + 1} von ${slides.length}`}
         >
           <figure class="slide-card">
-            {lightbox ? (
-              <button class="slide-media" type="button" disabled aria-haspopup="dialog">
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  width={slide.src.width}
-                  height={slide.src.height}
-                  sizes="(min-width: 768px) min(72%, 47.5rem), calc(100vw - 4rem)"
-                  widths={[640, 960, 1280]}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={i === 0 ? 'high' : undefined}
-                  decoding="async"
-                  style={slide.focal ? `object-position:${slide.focal}` : undefined}
-                />
-                <span class="media-zoom" aria-hidden="true">
-                  <svg
-                    viewBox="0 0 24 24"
-                    width="20"
-                    height="20"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <circle cx="11" cy="11" r="7"></circle>
-                    <path d="m21 21-4.3-4.3"></path>
-                    <path d="M11 8v6M8 11h6"></path>
-                  </svg>
-                </span>
-                <span class="sr-only">{' – Bild groß anzeigen'}</span>
-              </button>
-            ) : (
-              <div class="slide-media">
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  width={slide.src.width}
-                  height={slide.src.height}
-                  sizes="(min-width: 768px) min(72%, 47.5rem), calc(100vw - 4rem)"
-                  widths={[640, 960, 1280]}
-                  loading={i === 0 ? 'eager' : 'lazy'}
-                  fetchpriority={i === 0 ? 'high' : undefined}
-                  decoding="async"
-                  style={slide.focal ? `object-position:${slide.focal}` : undefined}
-                />
-              </div>
-            )}
+            <button class="slide-media" type="button" disabled aria-haspopup="dialog">
+              <Image
+                src={slide.src}
+                alt={slide.alt}
+                width={slide.src.width}
+                height={slide.src.height}
+                sizes="(min-width: 768px) min(72%, 47.5rem), calc(100vw - 4rem)"
+                widths={[640, 960, 1280]}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                fetchpriority={i === 0 ? 'high' : undefined}
+                decoding="async"
+                style={slide.focal ? `object-position:${slide.focal}` : undefined}
+              />
+              <span class="media-zoom" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="11" cy="11" r="7"></circle>
+                  <path d="m21 21-4.3-4.3"></path>
+                  <path d="M11 8v6M8 11h6"></path>
+                </svg>
+              </span>
+              <span class="sr-only">{' – Bild groß anzeigen'}</span>
+            </button>
             {(slide.kicker || slide.title || slide.text) && (
               <figcaption class="slide-caption">
                 {slide.kicker && <p class="caption-kicker">{slide.kicker}</p>}
@@ -163,67 +143,65 @@ const intervalMs = 7000;
   <p class="sr-only" role="status" data-slide-status></p>
 </section>
 
-{lightbox && (
-  <dialog class="lightbox" aria-label="Bildansicht" data-lightbox>
-    <figure class="lb-figure">
-      <div class="lb-media">
-        <img class="lb-img" src="" alt="" />
-      </div>
-      <figcaption class="lb-caption">
-        <p class="caption-kicker" data-lb-kicker></p>
-        <p class="caption-title" data-lb-title></p>
-        <p class="caption-text" data-lb-text></p>
-      </figcaption>
-    </figure>
-    <p class="sr-only" role="status" data-lb-status></p>
-    <p class="lb-count" aria-hidden="true" data-lb-count></p>
-    <button class="lb-nav lb-prev" type="button" aria-label="Vorheriges Bild">
-      <svg
-        viewBox="0 0 24 24"
-        width="22"
-        height="22"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="m15 18-6-6 6-6"></path>
-      </svg>
-    </button>
-    <button class="lb-nav lb-next" type="button" aria-label="Nächstes Bild">
-      <svg
-        viewBox="0 0 24 24"
-        width="22"
-        height="22"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="m9 18 6-6-6-6"></path>
-      </svg>
-    </button>
-    <button class="lb-close" type="button" aria-label="Schließen">
-      <svg
-        viewBox="0 0 24 24"
-        width="20"
-        height="20"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="M18 6 6 18M6 6l12 12"></path>
-      </svg>
-    </button>
-  </dialog>
-)}
+<dialog class="lightbox" aria-label="Bildansicht" data-lightbox>
+  <figure class="lb-figure">
+    <div class="lb-media">
+      <img class="lb-img" src="" alt="" />
+    </div>
+    <figcaption class="lb-caption">
+      <p class="caption-kicker" data-lb-kicker></p>
+      <p class="caption-title" data-lb-title></p>
+      <p class="caption-text" data-lb-text></p>
+    </figcaption>
+  </figure>
+  <p class="sr-only" role="status" data-lb-status></p>
+  <p class="lb-count" aria-hidden="true" data-lb-count></p>
+  <button class="lb-nav lb-prev" type="button" aria-label="Vorheriges Bild">
+    <svg
+      viewBox="0 0 24 24"
+      width="22"
+      height="22"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m15 18-6-6 6-6"></path>
+    </svg>
+  </button>
+  <button class="lb-nav lb-next" type="button" aria-label="Nächstes Bild">
+    <svg
+      viewBox="0 0 24 24"
+      width="22"
+      height="22"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="m9 18 6-6-6-6"></path>
+    </svg>
+  </button>
+  <button class="lb-close" type="button" aria-label="Schließen">
+    <svg
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M18 6 6 18M6 6l12 12"></path>
+    </svg>
+  </button>
+</dialog>
 
 <script>
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
@@ -946,12 +924,6 @@ const intervalMs = 7000;
     pointer-events: none;
     background:
       radial-gradient(120% 90% at 50% 40%, rgba(225, 177, 74, 0.06), transparent 62%),
-      radial-gradient(140% 115% at 50% 50%, transparent 58%, rgba(31, 31, 29, 0.18) 100%);
-  }
-
-  [data-season='winter'] .slide-media::before {
-    background:
-      radial-gradient(120% 90% at 50% 40%, rgba(141, 165, 211, 0.09), transparent 62%),
       radial-gradient(140% 115% at 50% 50%, transparent 58%, rgba(31, 31, 29, 0.18) 100%);
   }
 
