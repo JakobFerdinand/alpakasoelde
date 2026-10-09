@@ -473,12 +473,6 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    deckBox.addEventListener('pointerup', () => {
-      if (deckTouches === 0) setDragging(false);
-    });
-    deckBox.addEventListener('pointercancel', () => {
-      if (deckTouches === 0) setDragging(false);
-    });
     deckBox.addEventListener('scrollend', () => setDragging(false));
     deckBox.addEventListener('wheel', breakProgrammaticScroll, { passive: true });
 
@@ -731,8 +725,10 @@ const intervalMs = 7000;
       }
       closeLightbox();
     });
-    dlg?.addEventListener('pointerdown', (e) => {
-      if ((e as PointerEvent).pointerType === 'mouse') lbGestureMoved = false;
+    // Reset here even for touch/pen: pointerdown fires before touchstart,
+    // which sets the flag again for multi-touch gestures.
+    dlg?.addEventListener('pointerdown', () => {
+      lbGestureMoved = false;
     });
     dlg?.addEventListener('keydown', (e: KeyboardEvent) => {
       if (e.key === 'ArrowLeft') {
@@ -1216,22 +1212,6 @@ const intervalMs = 7000;
     }
   }
 
-  .slide-expand {
-    position: absolute;
-    right: 0.75rem;
-    bottom: max(0.75rem, env(safe-area-inset-bottom));
-    z-index: 3;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: rgba(251, 247, 237, 0.92);
-    color: var(--taubenblau);
-    border: 1px solid var(--taubenblau);
-    cursor: pointer;
-  }
-
   .lightbox {
     border: 0;
     padding: 0;
@@ -1401,10 +1381,6 @@ const intervalMs = 7000;
       opacity: 1;
       translate: none;
       scroll-behavior: auto !important;
-    }
-
-    .story:not([data-js]) .deck {
-      scroll-behavior: auto;
     }
   }
 </style>
