@@ -320,7 +320,6 @@ const intervalMs = 7000;
       autoState = 'stopped';
       window.clearTimeout(timer);
       story.dataset.autoplay = 'stopped';
-      story.dataset.frozen = '';
     }
 
     function advance() {
@@ -437,21 +436,6 @@ const intervalMs = 7000;
       },
       { threshold: 0.4 },
     ).observe(story);
-
-    if (CSS.supports('animation-timeline', 'view()') && !REDUCED.matches) {
-      story.dataset.cssReveal = '';
-    } else {
-      new IntersectionObserver(
-        (entries, obs) => {
-          for (const entry of entries) {
-            if (!entry.isIntersecting) continue;
-            story.classList.add('in-view');
-            obs.disconnect();
-          }
-        },
-        { threshold: 0.25 },
-      ).observe(story);
-    }
 
     function lockScroll(lock: boolean) {
       const html = document.documentElement;
@@ -966,11 +950,8 @@ const intervalMs = 7000;
     }
 
     .story[data-autoplay='paused'] .slide-media img,
+    .story[data-autoplay='stopped'] .slide-media img,
     .story[data-dragging] .slide-media img {
-      animation-play-state: paused;
-    }
-
-    .story[data-frozen] .slide-media img {
       animation-play-state: paused;
     }
   }
@@ -1012,30 +993,14 @@ const intervalMs = 7000;
     display: none;
   }
 
-  .story[data-js='true']:not(.in-view) {
-    opacity: 0;
-    translate: 0 24px;
-  }
-
-  .story.in-view {
-    opacity: 1;
-    translate: 0 0;
-    transition:
-      opacity 600ms ease-out,
-      translate 600ms ease-out;
-  }
-
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
-      .story[data-css-reveal] {
+      /* The whole viewport-entry reveal: pure scroll-driven animation, no JS.
+         Browsers without scroll-driven animations show the section plain. */
+      .story {
         animation: story-reveal both ease-out;
         animation-timeline: view();
         animation-range: entry 10% cover 30%;
-      }
-
-      .story[data-css-reveal]:not(.in-view) {
-        opacity: 1;
-        translate: none;
       }
     }
   }
