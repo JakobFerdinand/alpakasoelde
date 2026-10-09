@@ -122,7 +122,9 @@
   }
 
   function formatPercent(value: number): string {
-    return new Intl.NumberFormat('de-AT', { style: 'percent', maximumFractionDigits: 1 }).format(value);
+    return new Intl.NumberFormat('de-AT', { style: 'percent', maximumFractionDigits: 1 }).format(
+      value,
+    );
   }
 
   function formatPeriodLabel(period: string): string {
@@ -169,7 +171,10 @@
     );
   }
 
-  function handleTransform(source: ChartState<any, any, any> | undefined, details: TransformDetails) {
+  function handleTransform(
+    source: ChartState<any, any, any> | undefined,
+    details: TransformDetails,
+  ) {
     zoomed = details.scale > 1 || details.translate.x !== 0;
     if (!source) return;
     for (const ctx of [pathCtx, deviceCtx, originCtx, audienceCtx]) {
@@ -234,7 +239,9 @@
               class:is-disabled={option.value === 'hour' && hourDisabled}
               aria-pressed={granularity === option.value}
               disabled={option.value === 'hour' && hourDisabled}
-              title={option.value === 'hour' && hourDisabled ? 'Stundengenauigkeit nur für 4 Wochen verfügbar' : undefined}
+              title={option.value === 'hour' && hourDisabled
+                ? 'Stundengenauigkeit nur für 4 Wochen verfügbar'
+                : undefined}
               onclick={() => {
                 granularity = option.value;
                 load();
@@ -282,7 +289,9 @@
             class="period-button"
             class:is-active={customRange}
             aria-pressed={customRange}
-            onclick={() => { customRange = !customRange; }}
+            onclick={() => {
+              customRange = !customRange;
+            }}
           >
             Benutzerdefiniert
           </button>
@@ -292,20 +301,11 @@
           <div class="custom-date-range">
             <label class="date-label">
               Von
-              <input
-                type="date"
-                bind:value={fromDate}
-                max={toDate || todayIso}
-              />
+              <input type="date" bind:value={fromDate} max={toDate || todayIso} />
             </label>
             <label class="date-label">
               Bis
-              <input
-                type="date"
-                bind:value={toDate}
-                min={fromDate}
-                max={todayIso}
-              />
+              <input type="date" bind:value={toDate} min={fromDate} max={todayIso} />
             </label>
             <button
               type="button"
@@ -376,12 +376,14 @@
       {:else}
         {#if pathRows.length}
           <section class="chart-section" aria-labelledby="path-chart-title">
-            <h3 id="path-chart-title" class="section-title">Seitenaufrufe nach {granularityLabel} und Seite</h3>
+            <h3 id="path-chart-title" class="section-title">
+              Seitenaufrufe nach {granularityLabel} und Seite
+            </h3>
             <PageViewSeriesChart
               rows={pathRows}
               {chartType}
               formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
+              {formatAxisLabel}
               bind:context={pathCtx}
               ontransform={(details) => handleTransform(pathCtx, details)}
             />
@@ -408,12 +410,14 @@
 
         {#if audienceRows.length}
           <section class="chart-section" aria-labelledby="audience-chart-title">
-            <h3 id="audience-chart-title" class="section-title">Besucher und Sitzungen nach {granularityLabel}</h3>
+            <h3 id="audience-chart-title" class="section-title">
+              Besucher und Sitzungen nach {granularityLabel}
+            </h3>
             <PageViewSeriesChart
               rows={audienceRows}
               {chartType}
               formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
+              {formatAxisLabel}
               bind:context={audienceCtx}
               ontransform={(details) => handleTransform(audienceCtx, details)}
             />
@@ -459,12 +463,14 @@
 
         {#if deviceRows.length}
           <section class="chart-section" aria-labelledby="device-chart-title">
-            <h3 id="device-chart-title" class="section-title">Gerätekategorien nach {granularityLabel}</h3>
+            <h3 id="device-chart-title" class="section-title">
+              Gerätekategorien nach {granularityLabel}
+            </h3>
             <PageViewSeriesChart
               rows={deviceRows}
               {chartType}
               formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
+              {formatAxisLabel}
               bind:context={deviceCtx}
               ontransform={(details) => handleTransform(deviceCtx, details)}
             />
@@ -508,12 +514,14 @@
 
         {#if originRows.length}
           <section class="chart-section" aria-labelledby="origin-chart-title">
-            <h3 id="origin-chart-title" class="section-title">Herkunftsdomains nach {granularityLabel}</h3>
+            <h3 id="origin-chart-title" class="section-title">
+              Herkunftsdomains nach {granularityLabel}
+            </h3>
             <PageViewSeriesChart
               rows={originRows}
               {chartType}
               formatTooltipLabel={formatPeriodLabel}
-              formatAxisLabel={formatAxisLabel}
+              {formatAxisLabel}
               bind:context={originCtx}
               ontransform={(details) => handleTransform(originCtx, details)}
             />
@@ -654,7 +662,7 @@
     color: var(--taubenblau);
   }
 
-  .date-label input[type="date"] {
+  .date-label input[type='date'] {
     border: 1px solid rgba(0, 32, 73, 0.15);
     border-radius: 0.375rem;
     padding: 0.4rem 0.6rem;
@@ -664,7 +672,7 @@
     background: var(--schurwolle);
   }
 
-  .date-label input[type="date"]:focus-visible {
+  .date-label input[type='date']:focus-visible {
     outline: 2px solid var(--taubenblau);
     outline-offset: -1px;
   }

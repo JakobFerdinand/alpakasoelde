@@ -1,8 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { CircleEllipsis, Scissors, ScissorsLineDashed, Stethoscope, Syringe, Wheat, Worm } from '@lucide/svelte';
-  import { formatCurrency, formatDate } from '../utils/formatters';
-  import { EVENT_TYPE_ICON_KEYS, normalizeEvents, type EventListItem } from './event-list';
+  import {
+    CircleEllipsis,
+    Scissors,
+    ScissorsLineDashed,
+    Stethoscope,
+    Syringe,
+    Wheat,
+    Worm,
+  } from '@lucide/svelte';
+  import { formatCurrency, formatDate } from '../../utils/formatters';
+  import { EVENT_TYPE_ICON_KEYS, normalizeEvents, type EventListItem } from '../../utils/events';
 
   let {
     id,
@@ -85,7 +93,7 @@
   });
 </script>
 
-<div id={id} class={`events-content${isLoading ? ' loading' : ''}`}>
+<div {id} class={`events-content${isLoading ? ' loading' : ''}`}>
   {#if isLoading}
     <p class="loading-text">{loadingText}</p>
   {:else if hasError}
@@ -148,7 +156,11 @@
         {@const Icon = eventIcon(item.eventType)}
         <article class="event-card">
           <div class="event-card-head">
-            <span class="event-icon-wrapper" title={item.eventType || 'Ereignis'} aria-label={item.eventType || 'Ereignis'}>
+            <span
+              class="event-icon-wrapper"
+              title={item.eventType || 'Ereignis'}
+              aria-label={item.eventType || 'Ereignis'}
+            >
               <Icon class="event-icon" aria-hidden="true" />
             </span>
             <div class="event-card-meta">

@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import AlpakaDetail from '../../components/alpakas/AlpakaDetail.svelte';
+---
+
+<DashboardLayout title="Alpaka Detail">
+  <AlpakaDetail client:only="svelte" />
+</DashboardLayout>

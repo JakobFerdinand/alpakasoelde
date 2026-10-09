@@ -1,0 +1,8 @@
+---
+import DashboardLayout from '../../layouts/DashboardLayout.astro';
+import PageViewStats from '../../components/pageviews/PageViewStats.svelte';
+---
+
+<DashboardLayout title="Seitenaufrufe">
+  <PageViewStats client:only="svelte" />
+</DashboardLayout>

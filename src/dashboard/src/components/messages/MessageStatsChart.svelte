@@ -78,11 +78,6 @@
 <section class="dashboard-messages section">
   <div class="container">
     <div class="message-stats-card card">
-      <div class="stats-header">
-        <h2>Nachrichten</h2>
-        <a class="all-link" href="/messages">Alle anzeigen</a>
-      </div>
-
       <div class="period-toggle" role="group" aria-label="Zeitraum wählen">
         {#each periods as period}
           <button
@@ -105,39 +100,42 @@
       {/if}
 
       <div class="kpi-row">
-        <a class="kpi-tile" href="/messages">
+        <span class="kpi-tile">
           <Inbox class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(total)}</span>
           <span class="kpi-label">Gesamt</span>
-        </a>
-        <a class="kpi-tile kpi-tile-spam" href="/messages">
+        </span>
+        <span class="kpi-tile kpi-tile-spam">
           <ShieldAlert class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(spam)}</span>
           {#if spamPct !== null}
             <span class="kpi-percent">{spamPct} %</span>
           {/if}
           <span class="kpi-label">Spam</span>
-        </a>
-        <a class="kpi-tile kpi-tile-legit" href="/messages">
+        </span>
+        <span class="kpi-tile kpi-tile-legit">
           <MailCheck class="kpi-icon" aria-hidden="true" />
           <span class="kpi-value">{formatCount(legit)}</span>
           {#if legitPct !== null}
             <span class="kpi-percent">{legitPct} %</span>
           {/if}
           <span class="kpi-label">Legit</span>
-        </a>
+        </span>
       </div>
 
       {#if stats && stats.OldCount > 0}
-        <a class="old-chip" href="/messages">
+        <span class="old-chip">
           {formatCount(stats.OldCount)} Nachricht{stats.OldCount === 1 ? '' : 'en'} älter als 6 Monate
-        </a>
+        </span>
       {/if}
 
       {#if hasData}
         <div class="chart-legend" aria-hidden="true">
-          <span class="legend-item"><span class="legend-swatch legend-swatch-legit"></span>Legit</span>
-          <span class="legend-item"><span class="legend-swatch legend-swatch-spam"></span>Spam</span>
+          <span class="legend-item"
+            ><span class="legend-swatch legend-swatch-legit"></span>Legit</span
+          >
+          <span class="legend-item"><span class="legend-swatch legend-swatch-spam"></span>Spam</span
+          >
         </div>
       {/if}
 
@@ -233,24 +231,10 @@
     gap: 1.25rem;
   }
 
-  .stats-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-  }
-
-  .stats-header h2 {
-    margin: 0;
-    font-size: 1.875rem;
-  }
-
-  .all-link,
   .old-chip {
     color: var(--taubenblau);
   }
 
-  .all-link:hover,
   .old-chip:hover {
     text-decoration: none;
   }
@@ -446,11 +430,6 @@
   @media (max-width: 600px) {
     .kpi-row {
       grid-template-columns: 1fr;
-    }
-
-    .stats-header {
-      flex-direction: column;
-      align-items: flex-start;
     }
   }
 </style>

@@ -1,14 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Card from './Card.svelte';
-  import FormField from './FormField.svelte';
+  import Card from '../ui/Card.svelte';
+  import FormField from '../ui/FormField.svelte';
   import GutscheinListe from './GutscheinListe.svelte';
   import {
     normalizeGutschein,
     suggestNextGutscheinnummer,
     type Gutschein,
     type GutscheinRaw,
-  } from '../utils/gutschein';
+  } from '../../utils/gutschein';
 
   let gutscheine = $state<Gutschein[] | null>(null);
   let listFehler = $state('');
@@ -121,7 +121,10 @@
       await gutscheineLaden();
     } catch (fehler) {
       console.error(fehler);
-      statusAnzeigen(fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht gespeichert werden.', true);
+      statusAnzeigen(
+        fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht gespeichert werden.',
+        true,
+      );
     } finally {
       sendenDisabled = false;
       sendenText = 'Gutschein speichern';
@@ -181,7 +184,8 @@
       await gutscheineLaden();
     } catch (fehler) {
       console.error(fehler);
-      einloesenStatus = fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht eingelöst werden.';
+      einloesenStatus =
+        fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht eingelöst werden.';
     } finally {
       einloesend = false;
     }
@@ -205,16 +209,41 @@
             id="gutscheinnummer"
             hint="Standardmäßig wird die nächste Nummer vorgeschlagen. Bei Bedarf überschreiben."
           >
-            <input id="gutscheinnummer" name="gutscheinnummer" type="text" inputmode="numeric" placeholder="z. B. 202501" bind:value={gutscheinnummer} />
+            <input
+              id="gutscheinnummer"
+              name="gutscheinnummer"
+              type="text"
+              inputmode="numeric"
+              placeholder="z. B. 202501"
+              bind:value={gutscheinnummer}
+            />
           </FormField>
           <FormField label="Kaufdatum" id="kaufdatum" required>
             <input id="kaufdatum" name="kaufdatum" type="date" required bind:value={kaufdatum} />
           </FormField>
           <FormField label="Betrag (EUR)" id="betrag" required>
-            <input id="betrag" name="betrag" type="number" step="0.01" min="0.01" required bind:value={betrag} />
+            <input
+              id="betrag"
+              name="betrag"
+              type="number"
+              step="0.01"
+              min="0.01"
+              required
+              bind:value={betrag}
+            />
           </FormField>
-          <FormField label="Verkauft an (optional)" id="verkauftAn" hint="Optional: Name oder Kontakt des Käufers.">
-            <input id="verkauftAn" name="verkauftAn" type="text" inputmode="text" bind:value={verkauftAn} />
+          <FormField
+            label="Verkauft an (optional)"
+            id="verkauftAn"
+            hint="Optional: Name oder Kontakt des Käufers."
+          >
+            <input
+              id="verkauftAn"
+              name="verkauftAn"
+              type="text"
+              inputmode="text"
+              bind:value={verkauftAn}
+            />
           </FormField>
           <FormField
             label="Eingelöst am (optional)"
@@ -223,7 +252,9 @@
           >
             <input id="eingeloestAm" name="eingeloestAm" type="date" bind:value={eingeloestAm} />
           </FormField>
-          <button id="senden-button" type="submit" class="primary-button" disabled={sendenDisabled}>{sendenText}</button>
+          <button id="senden-button" type="submit" class="primary-button" disabled={sendenDisabled}
+            >{sendenText}</button
+          >
           {#if status}
             <p id="gutschein-status" class="status-message" class:error={statusIsError}>{status}</p>
           {/if}

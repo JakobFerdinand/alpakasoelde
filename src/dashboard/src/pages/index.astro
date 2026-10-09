@@ -1,12 +1,8 @@
 ---
 import DashboardLayout from '../layouts/DashboardLayout.astro';
-import MessageStats from '../components/MessageStats.astro';
-import Alpakas from '../components/Alpakas.astro';
-import Events from '../components/Events.astro';
+import OverviewDashboard from '../components/overview/OverviewDashboard.svelte';
 ---
 
 <DashboardLayout title="Dashboard">
-  <Alpakas />
-  <Events />
-  <MessageStats />
+  <OverviewDashboard client:only="svelte" />
 </DashboardLayout>

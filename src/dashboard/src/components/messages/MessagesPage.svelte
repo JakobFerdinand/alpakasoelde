@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import { ArrowDown, ArrowUp, ArrowUpDown, MailX, ShieldAlert, Trash2 } from '@lucide/svelte';
   import MessageCell from './MessageCell.svelte';
-  import { formatTimestamp } from '../utils/formatters';
+  import { formatTimestamp } from '../../utils/formatters';
 
   type Message = {
     Id: string;
@@ -130,7 +130,7 @@
     <h2>Eingegangene Nachrichten</h2>
     <div class="toolbar">
       <div class="filter-group" role="group" aria-label="Nachrichten filtern">
-        {#each (['all', 'legit', 'spam'] as FilterKey[]) as key (key)}
+        {#each ['all', 'legit', 'spam'] as FilterKey[] as key (key)}
           <button
             type="button"
             class="filter-button"
@@ -250,12 +250,22 @@
               <tr class:is-spam={message.IsSpam} class:is-old={isOldMessage(message)}>
                 <td class="marker-cell">
                   {#if message.IsSpam}
-                    <span class="marker marker-spam" role="img" title="Als Spam eingestuft" aria-label="Als Spam eingestuft">
+                    <span
+                      class="marker marker-spam"
+                      role="img"
+                      title="Als Spam eingestuft"
+                      aria-label="Als Spam eingestuft"
+                    >
                       <ShieldAlert class="marker-svg" aria-hidden="true" />
                     </span>
                   {/if}
                   {#if isOldMessage(message)}
-                    <span class="marker marker-old" role="img" title="Älter als 6 Monate" aria-label="Älter als 6 Monate">
+                    <span
+                      class="marker marker-old"
+                      role="img"
+                      title="Älter als 6 Monate"
+                      aria-label="Älter als 6 Monate"
+                    >
                       <MailX class="marker-svg" aria-hidden="true" />
                     </span>
                   {/if}
@@ -268,7 +278,12 @@
                 <td>{message.Phone || '–'}</td>
                 <td class="nowrap">{formatTimestamp(message.Timestamp)}</td>
                 <td class="action-cell">
-                  <button type="button" class="icon-button" aria-label="Nachricht löschen" onclick={() => deleteMessage(message.Id)}>
+                  <button
+                    type="button"
+                    class="icon-button"
+                    aria-label="Nachricht löschen"
+                    onclick={() => deleteMessage(message.Id)}
+                  >
                     <Trash2 class="delete-icon" aria-hidden="true" />
                   </button>
                 </td>

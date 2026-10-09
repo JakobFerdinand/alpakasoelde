@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ArrowDown, ArrowUp, ChevronDown, RotateCcw, Send, Sparkles } from '@lucide/svelte';
 
-  import { toNumber } from '../utils/formatters';
+  import { toNumber } from '../../utils/formatters';
 
   type ToolTrace = {
     tool: string;
