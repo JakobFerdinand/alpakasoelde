@@ -34,7 +34,7 @@ export const services = [
     title: 'Wollverarbeitung',
     offerName: 'Wollverarbeitungs-Workshop',
     blurb:
-      'Lerne, was mit der Wolle nach dem Scheren passiert und probiere dich im Kadieren und Spinnen am Spinnrad.',
+      'Lerne, was mit der Wolle nach dem Scheren passiert und probiere dich im Kardieren und Spinnen am Spinnrad.',
   },
   {
     path: '/produkte',
