@@ -284,7 +284,6 @@ const intervalMs = 7000;
     // suppresses the click browsers can fire after such gestures so pinch-zoom
     // and swipe navigation never close the lightbox.
     let lbGestureMoved = false;
-    let lastFocus: HTMLElement | null = null;
     let vtNames: HTMLElement[] = [];
     let lbIndex = 0;
 
@@ -550,8 +549,19 @@ const intervalMs = 7000;
 
     function restoreAfterClose() {
       lockScroll(false);
-      lastFocus?.focus();
-      lastFocus = null;
+      // The deck must reflect the image last shown in the lightbox: jump
+      // there without animation and hand focus to its open control.
+      breakProgrammaticScroll();
+      const btn = mediaBtns[lbIndex] ?? null;
+      if (slides[lbIndex]) {
+        const mids = midpoints();
+        deckBox.scrollTo({
+          left: mids[lbIndex] - deckBox.clientWidth / 2,
+          behavior: 'auto',
+        });
+        setActive(lbIndex);
+      }
+      if (btn) btn.focus();
     }
 
     function setLbPart(el: HTMLElement | null | undefined, source: Element | null | undefined) {
@@ -635,7 +645,6 @@ const intervalMs = 7000;
       preload((i + 1) % slides.length);
       preload((i - 1 + slides.length) % slides.length);
 
-      lastFocus = mediaBtns[i] ?? null;
       lockScroll(true);
 
       if (!dlgNative) {
@@ -737,7 +746,11 @@ const intervalMs = 7000;
     dlg?.addEventListener(
       'touchstart',
       (e: TouchEvent) => {
-        if (e.touches.length !== 1) {
+        if (e.touches.length > 1) {
+          // Multi-touch (pinch-zoom): forget the stale swipe start so lifting
+          // one finger cannot flip to another image.
+          touchX = null;
+          touchY = null;
           lbGestureMoved = true;
           return;
         }
@@ -765,6 +778,8 @@ const intervalMs = 7000;
     );
     dlg?.addEventListener('touchcancel', () => {
       lbGestureMoved = true;
+      touchX = null;
+      touchY = null;
     });
     dlg?.addEventListener('close', () => {
       document.removeEventListener('keydown', fallbackKey);
