@@ -1,24 +1,17 @@
+---
+import { services } from '../data/farm';
+---
 <section id="leistungen" class="services section">
   <h2>Unsere Leistungen</h2>
   <div class="services-grid container">
-    <a href="/alpaka-wanderungen" class="service-item">
-      <h3>Alpaka-Wanderungen</h3>
-      <p>
-        Gemütliche Touren durch die Natur mit unseren freundlichen
-        Alpakas inklusive Hofbesuch.
-      </p>
-    </a>
-    <a href="/wollverarbeitung" class="service-item">
-      <h3>Wollverarbeitung</h3>
-      <p>
-        Lerne, was mit der Wolle nach dem Scheren passiert und probiere
-        dich im Kadieren und Spinnen am Spinnrad.
-      </p>
-    </a>
-    <a href="/produkte" class="service-item">
-      <h3>Produkte</h3>
-      <p>Wolle, Accessoires und mehr – direkt von unseren Alpakas.</p>
-    </a>
+    {services.map((service) => (
+      <a href={service.path} class="service-item">
+        <h3>{service.title}</h3>
+        <p>
+          {service.blurb}
+        </p>
+      </a>
+    ))}
   </div>
 </section>
 

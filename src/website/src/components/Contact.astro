@@ -1,3 +1,6 @@
+---
+import { farm } from '../data/farm';
+---
 <section id="kontakt" class="contact section">
   <h2>Kontakt</h2>
   <div class="contact-content container">
@@ -40,7 +43,7 @@
       <div class="map-frame">
         <iframe
           title="Standortkarte"
-          src="https://www.openstreetmap.org/export/embed.html?bbox=12.98515319824219%2C48.18669012834026%2C13.351135253906252%2C48.38453015818211&amp;layer=mapnik&amp;marker=48.28570595443409%2C13.167816996574402"
+          src={`https://www.openstreetmap.org/export/embed.html?bbox=12.98515319824219%2C48.18669012834026%2C13.351135253906252%2C48.38453015818211&layer=mapnik&marker=${farm.geo.latitude}%2C${farm.geo.longitude}`}
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
         ></iframe>
@@ -58,8 +61,8 @@
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/>
         </svg>
         <div class="address-lines">
-          <p>Frauenstein 12</p>
-          <p>4962 Mining</p>
+          <p>{farm.address.street}</p>
+          <p>{farm.address.postalCode} {farm.address.locality}</p>
         </div>
       </div>
 

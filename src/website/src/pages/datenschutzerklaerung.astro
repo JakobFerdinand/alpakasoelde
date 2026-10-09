@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { farm } from '../data/farm';
 ---
 
 <Layout
@@ -13,10 +14,10 @@ import Layout from '../layouts/Layout.astro';
 
       <h3 id="verantwortliche-stelle">1. Verantwortliche Stelle</h3>
       <p><strong>Jakob Wegenschimmel & Marlene Diermair</strong><br />
-      Frauenstein 12<br />
-      4962 Mining<br />
-      Österreich<br />
-      E-Mail: <a href="mailto:kontakt@alpakasoelde.at" class="link">kontakt@alpakasoelde.at</a></p>
+      {farm.address.street}<br />
+      {farm.address.postalCode} {farm.address.locality}<br />
+      {farm.address.countryName}<br />
+      E-Mail: <a href={`mailto:${farm.email}`} class="link">{farm.email}</a></p>
 
       <hr />
 
@@ -95,7 +96,7 @@ import Layout from '../layouts/Layout.astro';
         <li><strong>Einschränkung der Verarbeitung</strong> (Art. 18 DSGVO)</li>
         <li><strong>Widerspruch gegen Verarbeitung</strong> (Art. 21 DSGVO)</li>
       </ul>
-      <p>Richten Sie Ihre Anfrage bitte an <a href="mailto:kontakt@alpakasoelde.at" class="link">kontakt@alpakasoelde.at</a>. Wir behalten uns vor, einen Identitätsnachweis zu verlangen.</p>
+      <p>Richten Sie Ihre Anfrage bitte an <a href={`mailto:${farm.email}`} class="link">{farm.email}</a>. Wir behalten uns vor, einen Identitätsnachweis zu verlangen.</p>
 
       <hr />
 
