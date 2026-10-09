@@ -280,6 +280,7 @@ const intervalMs = 7000;
     let programmaticScrollTimer: number | undefined;
     let touchX: number | null = null;
     let touchY: number | null = null;
+    let deckTouches = 0;
     let lastFocus: HTMLElement | null = null;
     let vtNames: HTMLElement[] = [];
     let lbIndex = 0;
@@ -432,18 +433,27 @@ const intervalMs = 7000;
     });
 
     deckBox.addEventListener('pointerdown', breakProgrammaticScroll);
+    // Ken Burns is paused while the visitor drags/touch-scrolls the deck (§7);
+    // the attribute lives on the story root (`.story[data-dragging]` selector).
+    function setDragging(on: boolean) {
+      if (on) story.dataset.dragging = '';
+      else delete story.dataset.dragging;
+    }
     deckBox.addEventListener(
       'touchstart',
       (e) => {
         breakProgrammaticScroll();
+        deckTouches = e.touches.length;
+        setDragging(true);
         touchX = e.touches[0]?.clientX ?? null;
       },
       { passive: true },
     );
-    deckBox.addEventListener('wheel', breakProgrammaticScroll, { passive: true });
     deckBox.addEventListener(
       'touchend',
       (e) => {
+        deckTouches = e.touches.length;
+        if (deckTouches === 0) setDragging(false);
         if (touchX === null) return;
         const dx = Math.abs(e.changedTouches[0].clientX - touchX);
         touchX = null;
@@ -451,6 +461,24 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
+    deckBox.addEventListener(
+      'touchcancel',
+      (e) => {
+        deckTouches = e.touches.length;
+        if (deckTouches === 0) setDragging(false);
+        else setDragging(true);
+        touchX = null;
+      },
+      { passive: true },
+    );
+    deckBox.addEventListener('pointerup', () => {
+      if (deckTouches === 0) setDragging(false);
+    });
+    deckBox.addEventListener('pointercancel', () => {
+      if (deckTouches === 0) setDragging(false);
+    });
+    deckBox.addEventListener('scrollend', () => setDragging(false));
+    deckBox.addEventListener('wheel', breakProgrammaticScroll, { passive: true });
 
     story.addEventListener('mouseenter', () => {
       if (!FINE_POINTER.matches) return;
