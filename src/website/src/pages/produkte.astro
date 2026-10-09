@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ServiceHero from '../components/ServiceHero.astro';
-import Slideshow from '../components/Slideshow.astro';
+import Slideshow, { type StorySlide } from '../components/Slideshow.astro';
 
 import heroImage from '../images/impressions/impression_7.jpg';
 
@@ -12,11 +12,11 @@ import Karten from '../images/produkte/Karten.jpg';
 import Polster from '../images/produkte/Polster.jpg';
 import Wollpellets from '../images/produkte/Wollpellets.jpg';
 
-const slides = [
+const slideData = [
   {
     src: Strickgabel,
     alt: 'Strickgabel aus Holz mit einer angestrickten Kordel aus bunter Zauberwolle',
-    kicker: '01 · Hofladen',
+    label: 'Hofladen',
     title: 'Strickgabel',
     text: 'Mit diesem urigen Werkzeug aus dem Hofladen strickst du aus unserer Zauberwolle gemütliche Halstücher – ganz ohne Nadeln.',
     focal: 'center 40%',
@@ -24,39 +24,44 @@ const slides = [
   {
     src: Zauberwolle,
     alt: 'Strang Zauberwolle: schwarzes Alpakagarn mit pink, grün und blau verzwirnten Fäden',
-    kicker: '02 · Hofladen',
+    label: 'Hofladen',
     title: 'Zauberwolle',
     text: 'Ein Knäuel, tausend Ideen: handgesponnene Alpakawolle in natürlichen Naturtönen, bereit für dein nächstes Herzensprojekt.',
   },
   {
     src: WolleAmadeus,
     alt: 'Handgesponnener Strang naturbrauner Alpakawolle von Amadeus',
-    kicker: '03 · Hofladen',
+    label: 'Hofladen',
     title: 'Wolle Amadeus',
     text: 'Von Amadeus und seiner Herde bis zum fertigen Knäuel bleibt die Faser bei uns am Hof – gekämmt, gewaschen und handgesponnen.',
   },
   {
     src: Karten,
     alt: 'Drei dunkelgrüne Grußkarten mit dem goldenen Alpaka-Signet der Alpakasölde',
-    kicker: '04 · Hofladen',
+    label: 'Hofladen',
     title: 'Karten',
     text: 'Für jeden Anlass liegt etwas Handgemachtes bereit – vom Geburtstagsgruß bis zum kleinen Danke mit einem Foto unserer Alpakas.',
   },
   {
     src: Polster,
     alt: 'Zwei Leinenpölster mit Alpakafüllung, bestempelt mit den Namen Ludwig und Amadeus',
-    kicker: '05 · Zuhause',
+    label: 'Zuhause',
     title: 'Pölster',
     text: 'Herrlich weiche Pölster mit Alpakafüllung – sie wärmen im Winter und lassen an warmen Tagen die Faser atmen.',
   },
   {
     src: Wollpellets,
     alt: 'Papiersackerl mit 250 g Alpaka-Wollpellets als Naturdünger, mit roter Schleife',
-    kicker: '06 · Für den Garten',
+    label: 'Für den Garten',
     title: 'Wollpellets',
     text: 'Von der Schur zurück auf die Weide: naturreine Wollpellets, die deinen Beeten langsam und sanft Nahrung geben.',
   },
 ];
+
+const slides: StorySlide[] = slideData.map((slide, i) => {
+  const { label, ...rest } = slide;
+  return { ...rest, kicker: `${String(i + 1).padStart(2, '0')} · ${label}` };
+});
 ---
 
 <Layout
