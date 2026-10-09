@@ -1,6 +1,7 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
+import SlideshowChevron from './SlideshowChevron.astro';
 
 export interface StorySlide {
   src: ImageMetadata;
@@ -38,19 +39,7 @@ const intervalMs = 7000;
 
   <div class="deck-wrap">
     <button class="deck-nav deck-prev" type="button" aria-label="Vorheriges Bild">
-      <svg
-        viewBox="0 0 24 24"
-        width="22"
-        height="22"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="m15 18-6-6 6-6"></path>
-      </svg>
+      <SlideshowChevron direction="prev" />
     </button>
 
     <ul
@@ -111,19 +100,7 @@ const intervalMs = 7000;
     </ul>
 
     <button class="deck-nav deck-next" type="button" aria-label="Nächstes Bild">
-      <svg
-        viewBox="0 0 24 24"
-        width="22"
-        height="22"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        aria-hidden="true"
-      >
-        <path d="m9 18 6-6-6-6"></path>
-      </svg>
+      <SlideshowChevron direction="next" />
     </button>
   </div>
 
@@ -157,34 +134,10 @@ const intervalMs = 7000;
   <p class="sr-only" role="status" data-lb-status></p>
   <p class="lb-count" aria-hidden="true" data-lb-count></p>
   <button class="lb-nav lb-prev" type="button" aria-label="Vorheriges Bild">
-    <svg
-      viewBox="0 0 24 24"
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m15 18-6-6 6-6"></path>
-    </svg>
+    <SlideshowChevron direction="prev" />
   </button>
   <button class="lb-nav lb-next" type="button" aria-label="Nächstes Bild">
-    <svg
-      viewBox="0 0 24 24"
-      width="22"
-      height="22"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      aria-hidden="true"
-    >
-      <path d="m9 18 6-6-6-6"></path>
-    </svg>
+    <SlideshowChevron direction="next" />
   </button>
   <button class="lb-close" type="button" aria-label="Schließen">
     <svg
@@ -891,11 +844,8 @@ const intervalMs = 7000;
     object-position: center 45%;
   }
 
-  .media-zoom {
-    position: absolute;
-    right: 0.75rem;
-    bottom: max(0.75rem, env(safe-area-inset-bottom));
-    z-index: 3;
+  .media-zoom,
+  .lb-close {
     width: 44px;
     height: 44px;
     border-radius: 50%;
@@ -904,6 +854,13 @@ const intervalMs = 7000;
     background: rgba(251, 247, 237, 0.92);
     color: var(--taubenblau);
     border: 1px solid var(--taubenblau);
+  }
+
+  .media-zoom {
+    position: absolute;
+    right: 0.75rem;
+    bottom: max(0.75rem, env(safe-area-inset-bottom));
+    z-index: 3;
     pointer-events: none;
     opacity: 0;
     transition: opacity 160ms ease-out;
@@ -1149,7 +1106,8 @@ const intervalMs = 7000;
     }
   }
 
-  .deck-nav {
+  .deck-nav,
+  .lb-nav {
     position: absolute;
     top: 50%;
     translate: 0 -50%;
@@ -1174,7 +1132,8 @@ const intervalMs = 7000;
     right: max(1rem, calc((100% - var(--slide-w)) / 2 - 3.5rem));
   }
 
-  .deck-nav:hover {
+  .deck-nav:hover,
+  .lb-nav:hover {
     color: var(--bluetenhonig);
   }
 
@@ -1254,33 +1213,12 @@ const intervalMs = 7000;
     opacity: 0.75;
   }
 
-  .lb-nav {
-    position: absolute;
-    top: 50%;
-    translate: 0 -50%;
-    z-index: 4;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: var(--schurwolle);
-    color: var(--taubenblau);
-    border: 1px solid var(--taubenblau);
-    box-shadow: 0 12px 32px rgba(31, 31, 29, 0.18);
-    cursor: pointer;
-  }
-
   .lb-prev {
     left: max(1rem, env(safe-area-inset-left));
   }
 
   .lb-next {
     right: max(1rem, env(safe-area-inset-right));
-  }
-
-  .lb-nav:hover {
-    color: var(--bluetenhonig);
   }
 
   @media (hover: none), (pointer: coarse) {
@@ -1293,14 +1231,6 @@ const intervalMs = 7000;
     position: absolute;
     top: max(0.75rem, env(safe-area-inset-top));
     right: 0.75rem;
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: rgba(251, 247, 237, 0.92);
-    color: var(--taubenblau);
-    border: 1px solid var(--taubenblau);
     cursor: pointer;
   }
 
