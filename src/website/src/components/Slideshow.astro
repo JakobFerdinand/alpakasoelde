@@ -273,7 +273,11 @@ const intervalMs = 7000;
     let autoState: 'idle' | 'running' | 'paused' | 'stopped' = 'idle';
     let timer: number | undefined;
     let onscreen = false;
+    let hovered = false;
+    let focused = false;
     let rafPending = false;
+    let programmaticScroll = false;
+    let programmaticScrollTimer: number | undefined;
     let touchX: number | null = null;
     let touchY: number | null = null;
     let lastFocus: HTMLElement | null = null;
@@ -307,6 +311,12 @@ const intervalMs = 7000;
     deckBox.addEventListener(
       'scroll',
       () => {
+        if (programmaticScroll) {
+          // In-flight goTo: no active-slide changes until the scroll settles.
+          window.clearTimeout(programmaticScrollTimer);
+          programmaticScrollTimer = window.setTimeout(endProgrammaticScroll, 200);
+          return;
+        }
         if (rafPending) return;
         rafPending = true;
         requestAnimationFrame(() => {
@@ -316,10 +326,29 @@ const intervalMs = 7000;
       },
       { passive: true },
     );
-    deckBox.addEventListener('scrollend', syncActive);
+    deckBox.addEventListener('scrollend', endProgrammaticScroll);
+
+    function endProgrammaticScroll() {
+      if (!programmaticScroll) {
+        syncActive();
+        return;
+      }
+      programmaticScroll = false;
+      window.clearTimeout(programmaticScrollTimer);
+      syncActive();
+    }
+
+    function breakProgrammaticScroll() {
+      if (!programmaticScroll) return;
+      programmaticScroll = false;
+      window.clearTimeout(programmaticScrollTimer);
+    }
 
     function goTo(i: number) {
       const mids = midpoints();
+      programmaticScroll = true;
+      window.clearTimeout(programmaticScrollTimer);
+      programmaticScrollTimer = window.setTimeout(endProgrammaticScroll, 700);
       deckBox.scrollTo({
         left: mids[i] - deckBox.clientWidth / 2,
         behavior: REDUCED.matches ? 'auto' : 'smooth',
@@ -328,7 +357,14 @@ const intervalMs = 7000;
     }
 
     function eligible() {
-      return onscreen && !document.hidden && !REDUCED.matches && autoState !== 'stopped';
+      return (
+        onscreen &&
+        !document.hidden &&
+        !REDUCED.matches &&
+        !hovered &&
+        !focused &&
+        autoState !== 'stopped'
+      );
     }
 
     function update() {
@@ -355,6 +391,12 @@ const intervalMs = 7000;
 
     function advance() {
       goTo((active + 1) % slides.length);
+      arm();
+    }
+
+    function arm() {
+      window.clearTimeout(timer);
+      if (eligible()) timer = window.setTimeout(advance, intervalMs);
     }
 
     function announce(i: number) {
@@ -389,13 +431,16 @@ const intervalMs = 7000;
       step(e.key === 'ArrowLeft' ? -1 : 1);
     });
 
+    deckBox.addEventListener('pointerdown', breakProgrammaticScroll);
     deckBox.addEventListener(
       'touchstart',
       (e) => {
+        breakProgrammaticScroll();
         touchX = e.touches[0]?.clientX ?? null;
       },
       { passive: true },
     );
+    deckBox.addEventListener('wheel', breakProgrammaticScroll, { passive: true });
     deckBox.addEventListener(
       'touchend',
       (e) => {
@@ -407,10 +452,24 @@ const intervalMs = 7000;
       { passive: true },
     );
 
-    if (FINE_POINTER.matches) story.addEventListener('mouseenter', pause);
-    story.addEventListener('mouseleave', update);
-    story.addEventListener('focusin', pause);
-    story.addEventListener('focusout', update);
+    story.addEventListener('mouseenter', () => {
+      if (!FINE_POINTER.matches) return;
+      hovered = true;
+      update();
+    });
+    story.addEventListener('mouseleave', () => {
+      hovered = false;
+      update();
+    });
+    story.addEventListener('focusin', () => {
+      focused = true;
+      update();
+    });
+    story.addEventListener('focusout', (e: FocusEvent) => {
+      if (e.relatedTarget instanceof Node && story.contains(e.relatedTarget)) return;
+      focused = false;
+      update();
+    });
     story.addEventListener('pointerdown', pause);
     story.addEventListener('pointerup', update);
     story.addEventListener('pointercancel', update);
@@ -460,7 +519,6 @@ const intervalMs = 7000;
 
     function restoreAfterClose() {
       lockScroll(false);
-      clearVtNames();
       lastFocus?.focus();
       lastFocus = null;
     }
@@ -469,15 +527,19 @@ const intervalMs = 7000;
       if (el) el.textContent = source?.textContent?.trim() ?? '';
     }
 
-    function largestSrc(img: HTMLImageElement) {
+    function lightboxSrc(img: HTMLImageElement) {
       const srcset = img.getAttribute('srcset') ?? '';
-      const largest = srcset
+      const candidates = srcset
         .split(',')
         .map((part) => part.trim().split(/\s+/))
         .filter((parts) => parts.length > 1 && /^\d+w$/.test(parts[1]))
-        .sort((a, b) => Number.parseInt(a[1], 10) - Number.parseInt(b[1], 10))
-        .at(-1);
-      return largest ? largest[0] : img.currentSrc || img.src;
+        .map((parts) => ({ url: parts[0], width: Number.parseInt(parts[1], 10) }))
+        .sort((a, b) => a.width - b.width);
+      if (candidates.length === 0) return img.currentSrc || img.src;
+      // Mirror the browser's w-descriptor selection for sizes="100vw" so
+      // preload() fetches exactly what the lightbox will load.
+      const target = window.innerWidth * (window.devicePixelRatio || 1);
+      return (candidates.find((c) => c.width >= target) ?? candidates[candidates.length - 1]).url;
     }
 
     function setLbContent(i: number) {
@@ -486,9 +548,9 @@ const intervalMs = 7000;
       if (!img || !lbImg) return;
 
       const srcset = img.getAttribute('srcset') ?? '';
-      lbImg.sizes = img.getAttribute('sizes') ?? '';
+      lbImg.sizes = '100vw';
       if (srcset) lbImg.srcset = srcset;
-      lbImg.src = largestSrc(img);
+      lbImg.src = lightboxSrc(img);
       lbImg.alt = img.alt;
 
       const caption = slide.querySelector<HTMLElement>('.slide-caption');
@@ -507,7 +569,7 @@ const intervalMs = 7000;
     function preload(i: number) {
       const img = slides[i]?.querySelector<HTMLImageElement>('.slide-media img');
       if (!img) return;
-      new Image().src = largestSrc(img);
+      new Image().src = lightboxSrc(img);
     }
 
     function fallbackKey(e: KeyboardEvent) {
@@ -559,10 +621,17 @@ const intervalMs = 7000;
         startViewTransition?(callback: () => void): { finished: Promise<void> };
       };
       if (doc.startViewTransition && fig && lbFig && !REDUCED.matches) {
+        // Old state: only the slide card carries the name; the lightbox figure
+        // takes it over in the new state (duplicate names abort the transition).
         fig.style.viewTransitionName = 'story-zoom';
-        lbFig.style.viewTransitionName = 'story-zoom';
         vtNames = [fig, lbFig];
-        doc.startViewTransition(() => box.showModal()).finished.finally(clearVtNames);
+        doc
+          .startViewTransition(() => {
+            fig.style.viewTransitionName = '';
+            lbFig.style.viewTransitionName = 'story-zoom';
+            box.showModal();
+          })
+          .finished.finally(clearVtNames);
       } else {
         box.showModal();
       }
@@ -578,10 +647,29 @@ const intervalMs = 7000;
     function closeLightbox() {
       if (!dlg) return;
       document.removeEventListener('keydown', fallbackKey);
-      if (dlgNative) (dlg as HTMLDialogElement).close();
-      else {
+      if (!dlgNative) {
         dlg.classList.remove('is-open');
         restoreAfterClose();
+        return;
+      }
+      const box = dlg as HTMLDialogElement;
+      const fig = slides[lbIndex]?.querySelector<HTMLElement>('.slide-card');
+      const doc = document as Document & {
+        startViewTransition?(callback: () => void): { finished: Promise<void> };
+      };
+      if (doc.startViewTransition && fig && lbFig && !REDUCED.matches) {
+        // Reverse of open: old state = lightbox figure, new state = slide card.
+        lbFig.style.viewTransitionName = 'story-zoom';
+        vtNames = [fig, lbFig];
+        doc
+          .startViewTransition(() => {
+            lbFig.style.viewTransitionName = '';
+            fig.style.viewTransitionName = 'story-zoom';
+            box.close();
+          })
+          .finished.finally(clearVtNames);
+      } else {
+        box.close();
       }
     }
 
