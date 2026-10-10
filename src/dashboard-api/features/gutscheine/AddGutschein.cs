@@ -2,6 +2,7 @@ using System.Net;
 using System.Text.Json;
 using System.Linq;
 using dashboard_api.shared.entities;
+using DashboardApi.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -34,26 +35,12 @@ public sealed class AddGutschein
         catch (JsonException ex)
         {
             _logger.LogWarning(ex, "Invalid JSON payload for add-gutschein.");
-            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-            await badRequest.WriteAsJsonAsync(new
-            {
-                title = "Bad Request",
-                status = (int)HttpStatusCode.BadRequest,
-                detail = "Ungültiger Anfrageinhalt."
-            }).ConfigureAwait(false);
-            return badRequest;
+            return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", "Ungültiger Anfrageinhalt.").ConfigureAwait(false);
         }
 
         if (payload is null)
         {
-            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-            await badRequest.WriteAsJsonAsync(new
-            {
-                title = "Bad Request",
-                status = (int)HttpStatusCode.BadRequest,
-                detail = "Ein Gutschein muss angegeben werden."
-            }).ConfigureAwait(false);
-            return badRequest;
+            return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", "Ein Gutschein muss angegeben werden.").ConfigureAwait(false);
         }
 
         AddCommand command = new(
@@ -66,14 +53,7 @@ public sealed class AddGutschein
         var (result, error) = await _handler.HandleAsync(command, req.FunctionContext.CancellationToken);
         if (error is not null)
         {
-            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-            await badRequest.WriteAsJsonAsync(new
-            {
-                title = "Bad Request",
-                status = (int)HttpStatusCode.BadRequest,
-                detail = error
-            }).ConfigureAwait(false);
-            return badRequest;
+            return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", error).ConfigureAwait(false);
         }
 
         var created = req.CreateResponse(HttpStatusCode.Created);

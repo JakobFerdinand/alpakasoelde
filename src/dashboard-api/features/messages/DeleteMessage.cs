@@ -1,6 +1,7 @@
 using System.Net;
 using Azure;
 using Azure.Data.Tables;
+using DashboardApi.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -26,14 +27,7 @@ public sealed class DeleteMessage
         bool deleted = await _handler.HandleAsync(new Command(rowKey), req.FunctionContext.CancellationToken);
         if (!deleted)
         {
-            var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
-            await notFoundResponse.WriteAsJsonAsync(new
-            {
-                title = "Not Found",
-                status = (int)HttpStatusCode.NotFound,
-                detail = $"Message with id '{rowKey}' was not found."
-            }).ConfigureAwait(false);
-            return notFoundResponse;
+            return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.NotFound, "Not Found", $"Message with id '{rowKey}' was not found.").ConfigureAwait(false);
         }
 
         return req.CreateResponse(HttpStatusCode.NoContent);

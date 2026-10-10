@@ -5,6 +5,7 @@ using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using dashboard_api.shared.entities;
+using DashboardApi.Shared;
 using HttpMultipartParser;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -59,14 +60,7 @@ public sealed class UpdateAlpaka
 
 		if (!response.IsValid)
 		{
-			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-			await badRequest.WriteAsJsonAsync(new
-			{
-				title = "Bad Request",
-				status = (int)HttpStatusCode.BadRequest,
-				detail = string.Join(" ", response.ValidationErrors!)
-			}).ConfigureAwait(false);
-			return badRequest;
+			return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", string.Join(" ", response.ValidationErrors!)).ConfigureAwait(false);
 		}
 
 		var result = response.Result!;

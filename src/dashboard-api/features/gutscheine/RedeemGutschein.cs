@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using dashboard_api.shared.entities;
+using DashboardApi.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -35,14 +36,7 @@ public sealed class RedeemGutschein
         catch (Exception ex) when (ex is JsonException or FormatException)
         {
             _logger.LogWarning(ex, "Invalid JSON payload for redeem-gutschein.");
-            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-            await badRequest.WriteAsJsonAsync(new
-            {
-                title = "Bad Request",
-                status = (int)HttpStatusCode.BadRequest,
-                detail = "Ungültiger Anfrageinhalt."
-            }).ConfigureAwait(false);
-            return badRequest;
+            return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", "Ungültiger Anfrageinhalt.").ConfigureAwait(false);
         }
 
         RedeemCommand command = new(gutscheinnummer, payload?.EingeloestAm ?? string.Empty);
@@ -50,14 +44,7 @@ public sealed class RedeemGutschein
 
         if (error is not null)
         {
-            var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-            await badRequest.WriteAsJsonAsync(new
-            {
-                title = "Bad Request",
-                status = (int)HttpStatusCode.BadRequest,
-                detail = error
-            }).ConfigureAwait(false);
-            return badRequest;
+            return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", error).ConfigureAwait(false);
         }
 
         var ok = req.CreateResponse(HttpStatusCode.OK);
