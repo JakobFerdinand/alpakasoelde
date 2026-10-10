@@ -2,7 +2,7 @@
 import ImpressionBreak from '../components/ImpressionBreak.astro';
 import Layout from '../layouts/Layout.astro';
 import ServiceHero from '../components/ServiceHero.astro';
-import Slideshow from '../components/Slideshow.astro';
+import Slideshow, { type StorySlide } from '../components/Slideshow.astro';
 
 import Wanderung1 from '../images/wanderungen/wanderung1.jpg';
 import Wanderung2 from '../images/wanderungen/wanderung2.jpg';
@@ -13,36 +13,40 @@ import heroImage from '../images/impressions/impression_64.jpg';
 
 import impression_72 from '../images/impressions/impression_72.jpg';
 
-const slides = [
+const slideData = [
   {
     src: Wanderung1,
-    alt: 'Alpakas und ihre Begleiter beim Start der Wanderung am Hof',
-    kicker: 'Moment 01',
+    alt: 'Zwei weiße Alpakas mit Halter auf der Wiese im Abendlicht',
     title: 'Start am Hof',
     text: 'Nach dem Kennenlernen sucht sich jedes Alpaka seinen Menschen für die nächsten zwei Stunden – meistens entscheidet die Fresslaune.',
+    focal: 'center 60%',
   },
   {
     src: Wanderung2,
-    alt: 'Alpakas wandern mit ihren Menschen über einen Feldweg in den Inn-Auen',
-    kicker: 'Moment 02',
+    alt: 'Alpaka an der roten Leine auf einem Feldweg neben einem grünen Getreidefeld',
     title: 'Die Runde beginnt',
     text: 'Durch die Inn-Auen geht es gemütlich voran – immer im Tempo des gemächlichsten Vierbeins.',
+    focal: 'center 70%',
   },
   {
     src: Wanderung3,
-    alt: 'Die Wandergruppe hält mit Blick über das Europareservat Unterer Inn',
-    kicker: 'Moment 03',
+    alt: 'Zwei Wanderer führen ein schwarzes und ein braunes Alpaka über eine winterliche Wiese',
     title: 'Pause mit Aussicht',
     text: 'Mitten in den Inn-Auen bleibt die Runde stehen: Zeit für Streicheleinheiten, Fotos und das weite Grün des Europareservats.',
   },
   {
     src: Wanderung4,
-    alt: 'Alpakas auf dem Heimweg zur Alpakasölde',
-    kicker: 'Moment 04',
+    alt: 'Drei Alpakas werden auf einem Güterweg durch die Felder geführt',
     title: 'Zurück am Hof',
     text: 'Nach zwei Stunden kehren alle gemeinsam heim – müde Beine, volle Herzen und garantiert ein Foto zu viel.',
+    focal: 'center 32%',
   },
 ];
+
+const slides: StorySlide[] = slideData.map((slide, i) => ({
+  ...slide,
+  kicker: `Moment ${String(i + 1).padStart(2, '0')}`,
+}));
 ---
 
 <Layout
@@ -95,12 +99,7 @@ const slides = [
     </div>
   </section>
 
-  <Slideshow
-    slides={slides}
-    label="Momentaufnahmen von der Wanderung"
-    eyebrow="Unterwegs am Inn"
-    lightbox
-  />
+  <Slideshow slides={slides} label="Momentaufnahmen von der Wanderung" eyebrow="Unterwegs am Inn" />
 
   <section class="info-box section">
     <div class="container">
@@ -117,6 +116,7 @@ const slides = [
         </a>
         mit regionaler Küche und gemütlichem Gastgarten.
       </p>
+      <!-- prettier-ignore -->
       <p>
         Ganz in der Nähe liegt das
         <a
@@ -124,10 +124,8 @@ const slides = [
           class="link"
           target="_blank"
           rel="noopener noreferrer"
-        >
-          Naturium Ering
-        </a>
-        . Dort erhältst du spannende Einblicke in die Vogelwelt des Europareservats Unterer Inn und
+          >Naturium Ering</a
+        >. Dort erhältst du spannende Einblicke in die Vogelwelt des Europareservats Unterer Inn und
         kannst von Aussichtstürmen seltene Arten beobachten.
       </p>
     </div>

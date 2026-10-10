@@ -1,6 +1,6 @@
 # Slideshow „Immersive Storytelling" Implementation Plan
 
-Implements `docs/concepts/design-concept-2-immersive-storytelling.md` as a concrete build spec
+Implements the immersive storytelling concept as a concrete build spec
 for `src/website/src/components/Slideshow.astro` and its two consumers. Branch:
 `feat/slideshow-concept-2` (based on `main`, i.e. the original setInterval-crossfade slideshow).
 The competing branch `feat/slideshow-concept-1` is explicitly out of scope.
@@ -66,26 +66,26 @@ export interface StorySlide {
 export interface Props {
   slides: StorySlide[];
   label: string;                    // German aria-label of the carousel region
-  variant?: "product" | "hike";     // aspect ratios + autoplay interval (product 7 s, hike 9 s)
-  eyebrow?: string;                 // editorial header line 1 (gold caps)
-  subline?: string;                 // editorial header line 2 (taubenblau)
-  season?: "sommer" | "winter";     // theme hook, default "sommer"
-  lightbox?: boolean;               // default true
+  eyebrow?: string;                 // editorial header line (taubenblau caps
+                                    //   flanked by gold rules)
 }
+
+const { slides, label, eyebrow } = Astro.props;
+
+const intervalMs = 7000;            // one interval for every slideshow
 ```
 
 Rules:
 - No `any`; both pages must compile under `astro check`.
 - All caption fields except `alt` are optional; a slide with only `src`+`alt` renders image-only
   (no scrim block, no empty caption box).
-- `variant` maps internally: `{ product: { intervalMs: 7000 }, hike: { intervalMs: 9000 } }`;
-  the interval is emitted as `style="--interval-ms: 7000ms"` on the root so CSS (Ken Burns duration,
-  dot-progress sweep) and JS (autoplay timer) read one source of truth.
+- One frame ratio (4/5 mobile, 3/2 from 768 px) and one 7 s autoplay interval for every slideshow
+  — there is no `variant` prop. Portrait photos are handled with the per-slide `focal` value.
+- Kicker numbering is derived from the slide index in the pages (`${String(i + 1).padStart(2, "0")}
+  · ${topic}` / `Moment ${String(i + 1).padStart(2, "0")}`), not hard-coded per slide (§8).
+- Colours come from the `global.css` palette tokens via `color-mix`, not raw rgba literals (§4).
 - The component reads `slide.src.width` / `slide.src.height` itself and forwards them as explicit
   `width`/`height` props on `<Image>` (single source of truth — pages never duplicate dimensions).
-- `season` is shipped as a data-attribute hook only (`data-season="winter"` swaps the warm gold wash
-  for a `--himmelblau` wash at the same opacity — pure CSS variable swap); deeper seasonal theming
-  stays fast-follow per concept §4.5 tier 2.
 
 ## 3. Markup spec
 
@@ -96,23 +96,23 @@ without `:global()` leaks (concept §7.2).
 ```html
 <section
   class="story"
-  data-variant={variant}              <!-- "product" | "hike" -->
-  data-season={season}                <!-- default "sommer" -->
   data-js="false"                     <!-- script flips to "true"; gates all chrome -->
+  data-interval={intervalMs}
   style={`--interval-ms:${intervalMs}ms`}
   role="region"
   aria-roledescription="Karussell"
   aria-label={label}
 >
-  <!-- Editorial header (rendered only if eyebrow or subline set) -->
-  <header class="story-header">
-    <p class="story-eyebrow">{eyebrow}</p>
-    <p class="story-subline">{subline}</p>
-  </header>
+  <!-- Editorial header, rendered only if eyebrow set (no subline exists) -->
+  {eyebrow && (
+    <header class="story-header">
+      <p class="story-eyebrow">{eyebrow}</p>
+    </header>
+  )}
 
   <div class="deck-wrap">
     <button class="deck-nav deck-prev" type="button" aria-label="Vorheriges Bild">
-      <!-- inline chevron SVG -->
+      <SlideshowChevron direction="prev" />  <!-- shared component, no inline dup -->
     </button>
 
     <ul class="deck" tabindex="0"
@@ -122,7 +122,9 @@ without `:global()` leaks (concept §7.2).
             role="group" aria-roledescription="Folie"
             aria-label={`Bild ${i + 1} von ${slides.length}`}>
           <figure class="slide-card">
-            <div class="slide-media">
+            <!-- The whole image IS the lightbox open control: disabled in markup
+                 so no-JS users never get a dead button; the script unlocks it. -->
+            <button class="slide-media" type="button" disabled aria-haspopup="dialog">
               <Image
                 src={slide.src}
                 alt={slide.alt}
@@ -135,7 +137,11 @@ without `:global()` leaks (concept §7.2).
                 decoding="async"
                 style={slide.focal ? `object-position:${slide.focal}` : undefined}
               />
-            </div>
+              <span class="media-zoom" aria-hidden="true">
+                <!-- inline magnifier SVG, pointer-events: none display overlay -->
+              </span>
+              <span class="sr-only">{" – Bild groß anzeigen"}</span>
+            </button>
             {(slide.kicker || slide.title || slide.text) && (
               <figcaption class="slide-caption">
                 {slide.kicker && <p class="caption-kicker">{slide.kicker}</p>}
@@ -143,20 +149,13 @@ without `:global()` leaks (concept §7.2).
                 {slide.text  && <p class="caption-text" >{slide.text}</p>}
               </figcaption>
             )}
-            {lightbox && (
-              <button class="slide-expand" type="button"
-                      aria-label={`Bild ${i + 1} groß anzeigen`}
-                      aria-haspopup="dialog" data-slide-index={i}>
-                <!-- inline magnifier SVG -->
-              </button>
-            )}
           </figure>
         </li>
       ))}
     </ul>
 
     <button class="deck-nav deck-next" type="button" aria-label="Nächstes Bild">
-      <!-- inline chevron SVG -->
+      <SlideshowChevron direction="next" />
     </button>
   </div>
 
@@ -174,32 +173,49 @@ without `:global()` leaks (concept §7.2).
   <p class="sr-only" role="status" data-slide-status></p>
 </section>
 
-{lightbox && (
-  <dialog class="lightbox" aria-label="Bildansicht" data-lightbox>
-    <figure class="lb-figure">
-      <div class="lb-media"><img class="lb-img" src="" alt="" /></div>
-      <figcaption class="lb-caption">
-        <p class="caption-kicker" data-lb-kicker></p>
-        <p class="caption-title"  data-lb-title></p>
-        <p class="caption-text"   data-lb-text></p>
-      </figcaption>
-    </figure>
-    <button class="lb-close" type="button" aria-label="Schließen">×</button>
-  </dialog>
-)}
+<!-- Always rendered; there is no lightbox prop to switch it off -->
+<dialog class="lightbox" aria-label="Bildansicht" data-lightbox>
+  <figure class="lb-figure">
+    <div class="lb-media"><img class="lb-img" src="" alt="" /></div>
+    <figcaption class="lb-caption">
+      <p class="caption-kicker" data-lb-kicker></p>
+      <p class="caption-title"  data-lb-title></p>
+      <p class="caption-text"   data-lb-text></p>
+    </figcaption>
+  </figure>
+  <p class="sr-only" role="status" data-lb-status></p>
+  <p class="lb-count" aria-hidden="true" data-lb-count></p>
+  <button class="lb-nav lb-prev" type="button" aria-label="Vorheriges Bild">
+    <SlideshowChevron direction="prev" />
+  </button>
+  <button class="lb-nav lb-next" type="button" aria-label="Nächstes Bild">
+    <SlideshowChevron direction="next" />
+  </button>
+  <button class="lb-close" type="button" aria-label="Schließen">
+    <!-- inline × SVG -->
+  </button>
+</dialog>
 ```
 
 Markup contracts:
 - **No hardcoded ids** (the old `id="slideshow"` disappears; two pages must never collide).
-- `.deck-nav` buttons are rendered into the DOM but visually hidden until `[data-js="true"]`
-  (see §4.10) — no-JS users never see dead controls.
-- `<dialog>` is rendered only when `lightbox !== false`. If `window.HTMLDialogElement` is missing
-  (iOS < 15.4), the script repurposes it as a fixed overlay `<div role="dialog" aria-modal="true">`
-  with manual Esc/focus-trap handling (§6).
-- Lightbox `<img>` starts empty (`src="" alt=""`); the script fills `src` (1280px rendition),
-  `sizes`, `srcset` hint and `alt` at open time.
+- `.deck-nav` buttons and `.story-dots` are rendered into the DOM but hidden until
+  `[data-js="true"]` (see §4.9) — no-JS users never see dead controls.
+- The lightbox open control is the whole `.slide-media` image button, disabled in markup and
+  unlocked by the script; it is named by the image alt plus the sr-only `– Bild groß anzeigen`
+  suffix. There is no separate `.slide-expand` button. The caption is `pointer-events: none` so
+  clicks over the scrim fall through to the image button underneath.
+- `<dialog>` is always rendered. If `window.HTMLDialogElement` is missing (iOS < 15.4), the script
+  repurposes it as a fixed overlay `<div role="dialog" aria-modal="true">` with manual
+  Esc/focus-trap handling (§6).
+- Lightbox `<img>` starts empty (`src="" alt=""`); at open/step time the script fills `srcset`,
+  `sizes="100vw"` and `alt` — `src` is resolved by mirroring the browser's w-descriptor selection
+  over the slide's own `srcset` candidates (as if `sizes="100vw"`), so neighbour preloading
+  fetches exactly what the lightbox will load.
+- Chevrons come from a shared `SlideshowChevron.astro` component, not duplicated inline SVG.
 - German labels locked: `Vorheriges Bild`, `Nächstes Bild`, `Direktnavigation`,
-  `Bild X groß anzeigen`, `Bild X von Y`, `Folie`, `Karussell`, `Schließen`, `Bildansicht`.
+  `– Bild groß anzeigen` (sr-only suffix), `Bild X von Y`, `Folie`, `Karussell`, `Schließen`,
+  `Bildansicht`.
 
 ## 4. CSS spec (with snippets)
 
@@ -262,16 +278,16 @@ both cues — see Deviations.)
   overflow: hidden;
   border-radius: 1rem;
   background-color: var(--schurwolle);           /* pre-paint placeholder tone */
-  box-shadow: 0 12px 32px rgba(31, 31, 29, 0.14);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--schwarz) 14%, transparent);
   /* THE cls guarantee: frame ratio fixed independent of intrinsic ratio */
-  aspect-ratio: var(--frame-ratio);
+  aspect-ratio: 4 / 5;
 }
-[data-variant="product"] { --frame-ratio: 4 / 5; }
-[data-variant="hike"]    { --frame-ratio: 3 / 4; }
 @media (min-width: 768px) {
-  [data-variant="product"] { --frame-ratio: 3 / 2; }
-  [data-variant="hike"]    { --frame-ratio: 16 / 9; }
-  .slide-card { border-radius: 1.25rem; box-shadow: 0 24px 64px rgba(31, 31, 29, 0.18); }
+  .slide-card {
+    aspect-ratio: 3 / 2;
+    border-radius: 1.25rem;
+    box-shadow: 0 24px 64px color-mix(in srgb, var(--schwarz) 18%, transparent);
+  }
 }
 .slide-media img {
   width: 100%; height: 100%;
@@ -281,8 +297,9 @@ both cues — see Deviations.)
 ```
 
 Mixed source orientations (portrait Strickgabel/Wolle_Amadeus/wanderung4 vs landscape rest) are
-cropped by the fixed frame; `focal` protects subjects. Every crop needs visual sign-off before ship
-(§11).
+cropped by the fixed frame; there is no per-page variant — every slideshow shares the one ratio
+(4/5 mobile, 3/2 from 768 px), and `focal` protects subjects. Every crop needs visual sign-off
+before ship (§11).
 
 ### 4.3 Caption scrim (AA-safe by construction)
 
@@ -293,13 +310,16 @@ real text — see Deviations and the contrast table below.
 .slide-caption {
   position: absolute; inset-inline: 0; bottom: 0;
   z-index: 2;
+  /* The caption covers the lower part of the photo; clicks there must fall
+     through to the image button underneath. */
+  pointer-events: none;
   padding: 3.5rem 1.25rem max(1.25rem, env(safe-area-inset-bottom));
   color: var(--schurwolle);
   background: linear-gradient(
     to top,
-    rgba(31, 31, 29, 0.95) 0%,   /* text zone — worst-case composite passes 4.5:1 */
-    rgba(31, 31, 29, 0.62) 42%,  /* no text above this line */
-    rgba(31, 31, 29, 0)    80%
+    color-mix(in srgb, var(--schwarz) 95%, transparent) 0%,   /* text zone — worst case passes 4.5:1 */
+    color-mix(in srgb, var(--schwarz) 62%, transparent) 42%,  /* no text above this line */
+    transparent 80%
   );
 }
 .caption-kicker {
@@ -331,19 +351,14 @@ real text — see Deviations and the contrast table below.
 ### 4.4 Warm tint + film grain overlays (tier 1 delighters)
 
 Stacking order inside `.slide-card`: `img` (z 0) → tint/grain pseudo-element (z 1) →
-`.slide-caption` (z 2) → `.slide-expand` (z 3).
+`.slide-caption` (z 2) → `.media-zoom` badge (z 3).
 
 ```css
 .slide-media::before {   /* vignette like ImpressionBreak::before + gold soft-light wash */
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 40%, rgba(225, 177, 74, 0.06), transparent 62%),
-    radial-gradient(140% 115% at 50% 50%, transparent 58%, rgba(31, 31, 29, 0.18) 100%);
-}
-[data-season="winter"] .slide-media::before {
-  background:
-    radial-gradient(120% 90% at 50% 40%, rgba(141, 165, 211, 0.09), transparent 62%),
-    radial-gradient(140% 115% at 50% 50%, transparent 58%, rgba(31, 31, 29, 0.18) 100%);
+    radial-gradient(120% 90% at 50% 40%, color-mix(in srgb, var(--bluetenhonig) 6%, transparent), transparent 62%),
+    radial-gradient(140% 115% at 50% 50%, transparent 58%, color-mix(in srgb, var(--schwarz) 18%, transparent) 100%);
 }
 .slide-media::after {    /* static film grain tile, ~5 % */
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
@@ -355,10 +370,12 @@ Stacking order inside `.slide-card`: `img` (z 0) → tint/grain pseudo-element (
 }
 ```
 
+(There is no `data-season` hook; the wash is always the warm gold one.)
+
 ### 4.5 Ken Burns — active slide only
 
-Duration derives from the interval (1.5×) so a breath never visibly completes/loops even on the 9 s
-hike variant (deviation from the fixed 11 s — see Deviations).
+Duration derives from the interval (1.5×, 10.5 s with the single 7 s interval) so a breath never
+visibly completes/loops.
 
 ```css
 @keyframes kenburns     { from { transform: scale(1.02); } to { transform: scale(1.09) translate(-1.2%, 1%); } }
@@ -370,8 +387,8 @@ hike variant (deviation from the fixed 11 s — see Deviations).
   }
   .slide:nth-child(even)[data-state="active"] .slide-media img { animation-name: kenburns-alt; }
   .story[data-autoplay="paused"]  .slide-media img,
+  .story[data-autoplay="stopped"] .slide-media img,
   .story[data-dragging] .slide-media img { animation-play-state: paused; }
-  .story[data-frozen] .slide-media img { animation-play-state: paused; }
 }
 ```
 
@@ -403,32 +420,20 @@ hand-written delays; the nth-child-free map above is fine for ≤ 8 slides and s
 
 ### 4.7 Viewport entry reveal (once)
 
-Default: IntersectionObserver adds `.in-view` once (threshold 0.25) → 600 ms fade/rise.
-Upgrade: where `animation-timeline: view()` exists, the script skips the observer and pure CSS drives
-it (identical visual result).
+The reveal is pure CSS, no JS and no observer: where scroll-driven animations are supported
+(`animation-timeline: view()` and no-preference motion) the story fades/rises in while it enters
+the viewport; browsers without scroll-driven animations show the section plain — **no entrance
+animation at all** (no IntersectionObserver, no `.in-view` class, no `data-css-reveal` attribute;
+the earlier IO-based reveal with a CSS upgrade was cut during review — see Deviations).
 
 ```css
-@media (prefers-reduced-motion: reduce) {
-  .story { opacity: 1; transform: none; }               /* kill-switch baseline */
-}
-.story:not(.in-view) { opacity: 0; translate: 0 24px; }
-.story.in-view {
-  opacity: 1; translate: 0 0;
-  transition: opacity 600ms ease-out, translate 600ms ease-out;
-}
-@media (prefers-reduced-motion: reduce) {
-  .story.in-view { transition-duration: 150ms; }         /* ≤ 200 ms simple fade */
-}
-
-/* Pure-CSS upgrade replaces the IO reveal where supported */
 @supports (animation-timeline: view()) {
   @media (prefers-reduced-motion: no-preference) {
-    .story[data-css-reveal] {
+    .story {
       animation: story-reveal both ease-out;
       animation-timeline: view();
       animation-range: entry 10% cover 30%;
     }
-    .story[data-css-reveal]:not(.in-view) { opacity: 1; translate: none; }
   }
 }
 @keyframes story-reveal {
@@ -437,14 +442,8 @@ it (identical visual result).
 }
 ```
 
-Script contract: `CSS.supports("animation-timeline", "view()")` && motion OK → set
-`data-css-reveal` and skip creating the reveal observer (visibility gating observer always runs).
-
-Tier-3 parallax (fast-follow, snippet for reference only — do not ship in this PR unless trivial):
-
-```css
-@supports (animation-timeline: scroll(nearest inline)) { … translateY ±12px against drift … }
-```
+The reduced-motion kill-switch (§4.10) additionally pins `.story { opacity: 1; translate: none; }`.
+No tier-3 parallax was shipped.
 
 ### 4.8 Autoplay progress affordance (dots)
 
@@ -453,85 +452,116 @@ otherwise (graceful degradation without registered properties).
 
 ```css
 @property --dot-progress { syntax: "<number>"; inherits: false; initial-value: 0; }
+.story-dots { display: flex; justify-content: center; gap: 0.375rem; margin-top: 1.25rem; }
 .story-dot {
   width: 24px; height: 24px;            /* ≥ 24 px hit area */
   display: grid; place-items: center;
   background: none; border: 0; padding: 0; cursor: pointer;
 }
-.story-dot::before {                     /* visual 8 px disc inside hit area */
-  content: ""; width: 8px; height: 8px; border-radius: 50%;
+.dot-fill {                             /* child span, not ::before */
+  width: 8px; height: 8px; border-radius: 50%;
   border: 2px solid var(--taubenblau);   /* inactive: ring, 6.5:1 on cream */
 }
-.story-dot[aria-current="true"]::before {
+.story-dot[aria-current="true"] .dot-fill {
   background: conic-gradient(var(--bluetenhonig) calc(var(--dot-progress) * 360deg), transparent 0);
   border-color: var(--taubenblau);       /* ring guarantees the 3:1 boundary */
 }
 @media (prefers-reduced-motion: no-preference) {
-  .story[data-autoplay="running"] .story-dot[aria-current="true"]::before {
+  .story[data-autoplay="running"] .story-dot[aria-current="true"] .dot-fill {
     animation: dot-fill var(--interval-ms) linear forwards;
   }
 }
 @keyframes dot-fill { from { --dot-progress: 0; } to { --dot-progress: 1; } }
 ```
 
-### 4.9 Controls, expand button, lightbox
+### 4.9 Controls, open control, lightbox
+
+The chevron navigation buttons are shared between deck and lightbox (`.deck-nav`/`.lb-nav` get one
+rule block, hover and shadow come from palette tokens via `color-mix`):
 
 ```css
-.deck-nav {
+.deck-nav, .lb-nav {
   position: absolute; top: 50%; translate: 0 -50%; z-index: 4;
   width: 48px; height: 48px; border-radius: 50%;
+  display: grid; place-items: center;
   background: var(--schurwolle); color: var(--taubenblau);
   border: 1px solid var(--taubenblau);
-  box-shadow: 0 12px 32px rgba(31, 31, 29, 0.18);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--schwarz) 18%, transparent);
+  cursor: pointer;
 }
 .deck-prev { left: max(1rem, calc((100% - var(--slide-w)) / 2 - 3.5rem)); }
 .deck-next { right: max(1rem, calc((100% - var(--slide-w)) / 2 - 3.5rem)); }
-.deck-nav:hover { color: var(--bluetenhonig); }
+.deck-nav:hover, .lb-nav:hover { color: var(--bluetenhonig); }
 @media (max-width: 767.98px) { .deck-nav { display: none; } }  /* swipe + dots on phones */
 
 .story:not([data-js="true"]) :is(.deck-nav, .story-dots) { display: none; }  /* additive chrome */
+.story:not([data-js="true"]) .media-zoom { display: none; }
 
-.slide-expand {
-  position: absolute; right: 0.75rem; bottom: max(0.75rem, env(safe-area-inset-bottom));
-  z-index: 3;
+/* The whole slide image is the (progressively enabled) open control. */
+.slide-media {
+  position: absolute; inset: 0; display: block;
+  padding: 0; border: 0; background: none; font: inherit;
+}
+.story[data-js="true"] .slide-media { cursor: zoom-in; }
+.slide-media:disabled { cursor: default; }   /* without JS it reads/looks like a plain image */
+
+/* display-only zoom badge inside the button; the button keeps its alt + sr-only name */
+.media-zoom, .lb-close {
   width: 44px; height: 44px; border-radius: 50%;
   display: grid; place-items: center;
-  background: rgba(251, 247, 237, 0.92); color: var(--taubenblau);
-  border: 1px solid var(--taubenblau);
+  background: color-mix(in srgb, var(--schurwolle) 92%, transparent);
+  color: var(--taubenblau); border: 1px solid var(--taubenblau);
+}
+@media (hover: hover) and (pointer: fine) {
+  .slide-media:hover .media-zoom, .slide-media:focus-visible .media-zoom { opacity: 1; }
 }
 
+/* fullscreen, fully opaque; there is no ::backdrop — the dialog itself is the surface
+   the visitor taps to close */
 .lightbox {
-  border: 0; padding: 0; max-width: min(92vw, 1200px); max-height: 92dvh;
+  border: 0; padding: 0;
+  width: 100vw; height: 100vh; height: 100dvh;
+  max-width: none; max-height: none;
   background: var(--schwarz); color: var(--schurwolle);
-  border-radius: 1.25rem; overflow: hidden;
+  overflow: hidden;
 }
-.lightbox::backdrop {
-  background: rgba(31, 31, 29, 0.72);
-  backdrop-filter: blur(6px);
+.lightbox:not([open]) { display: none; }
+.lightbox.is-open {                          /* iOS < 15.4 div-overlay fallback */
+  display: block; position: fixed; inset: 0; z-index: 999; overflow: hidden;
 }
-.lb-figure { margin: 0; touch-action: pinch-zoom; }   /* native pinch-zoom inside dialog */
-.lb-media img { display: block; width: 100%; height: auto; max-height: 74dvh; object-fit: contain; }
-.lb-caption { padding: 1rem 1.25rem max(1rem, env(safe-area-inset-bottom));
-              background: var(--schwarz); }
-.lb-close {
-  position: absolute; top: max(0.75rem, env(safe-area-inset-top)); right: 0.75rem;
-  width: 44px; height: 44px; border-radius: 50%;
-  background: rgba(251, 247, 237, 0.92); color: var(--taubenblau);
-}
+.lb-figure { margin: 0; height: 100%; display: flex; flex-direction: column; touch-action: pinch-zoom; }
+.lb-media { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center;
+            padding: max(3.5rem, env(safe-area-inset-top) + 1rem) 1rem 0.5rem; }
+.lb-media img { width: auto; height: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+.lb-caption { padding: 0.75rem 1.25rem max(1rem, env(safe-area-inset-bottom)); }
+.lb-caption.is-empty { display: none; }      /* slides without caption hide the box entirely */
+.lb-count { position: absolute; top: max(1rem, env(safe-area-inset-top)); left: 1rem;
+            font-size: 0.8rem; letter-spacing: 0.14em; font-variant-numeric: tabular-nums; }
+.lb-prev { left: max(1rem, env(safe-area-inset-left)); }
+.lb-next { right: max(1rem, env(safe-area-inset-right)); }
+@media (hover: none), (pointer: coarse) { .lb-nav { display: none; } }  /* swipe on touch */
+.lb-close { position: absolute; top: max(0.75rem, env(safe-area-inset-top)); right: 0.75rem; }
+
 @supports (transition-behavior: allow-discrete) {
   .lightbox[open] { opacity: 1; transition: opacity 200ms ease-out, overlay 200ms ease-out allow-discrete; }
   @starting-style { .lightbox[open] { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .lightbox[open] { transition: none; } }
 }
 ```
+
+Lightbox close paths: `.lb-close` click, tap on the empty area around the image (anything that is
+not the photo, the caption or a control button; drags/pinches must not close — the script
+discriminates gesture vs tap), native Esc (dialog), Esc (fallback trap), system back-swipe.
 
 Focus-visible ring (all interactive elements):
 
 ```css
-:where(.deck-nav, .story-dot, .slide-expand, .lb-close):focus-visible {
+:where(.deck-nav, .story-dot, .slide-media, .lb-nav, .lb-close):focus-visible {
   outline: 3px solid var(--bluetenhonig);
   outline-offset: 2px;
-  box-shadow: 0 0 0 6px rgba(75, 91, 115, 0.85);   /* compliant compound indicator */
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--taubenblau) 85%, transparent);  /* compound indicator */
 }
+.slide-media:focus-visible { outline-offset: -3px; }   /* outline inside the image */
 .deck:focus-visible { outline: 3px solid var(--bluetenhonig); outline-offset: 2px; }
 ```
 
@@ -544,100 +574,103 @@ Focus-visible ring (all interactive elements):
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  .story { scroll-behavior: auto !important; }
-  .story:not([data-js]) .deck { scroll-behavior: auto; }
+  .story { opacity: 1; translate: none; scroll-behavior: auto !important; }
 }
 ```
 
 JS additionally never arms autoplay when `matchMedia('(prefers-reduced-motion: reduce)').matches`
 and uses `behavior: 'auto'` scrolls under reduce (CSS alone cannot stop scripted smooth-scroll).
 
-## 5. Script spec (inline `<script>`, budget ≈ 130 lines / ≤ 3 KB min+gzip)
+## 5. Script spec (inline `<script>`, ~670 lines source)
 
 Astro bundles the co-located script once per page; the module iterates instances:
 
 ```js
-// ── 0 · setup (≈ 8 lines)
-const REDUCED = matchMedia("(prefers-reduced-motion: reduce)");
-for (const story of document.querySelectorAll(".story")) init(story);
+for (const story of document.querySelectorAll(".story")) initStory(story);
 
-function init(story) {
-  // refs: deck, slides[], dots[], prev/next, expands[], status el, lightbox parts
-  // ── 1 · unlock chrome (≈ 2 lines)
-  story.dataset.js = "true";
-  // ── 2 · observers (≈ 15 lines)
-  //   visibilityObserver threshold [0.4]: tracks story.dataset.autoplay eligibility
-  //   revealObserver threshold 0.25, one-shot → story.classList.add("in-view"), unobserve
-  //   skip revealObserver entirely when CSS.supports("animation-timeline","view()")
-  //     → instead story.dataset.cssReveal = ""  (pure-CSS reveal takes over)
-  // ── 3 · active-slide tracking (≈ 20 lines)
-  //   const midpoints = slides.map(s => s.offsetLeft + s.offsetWidth / 2)
-  //   debounced scroll handler (rAF-throttled): nearest midpoint to
-  //   deck.scrollLeft + deck.clientWidth/2 → setActive(i)
-  //   setActive: swap data-state active/idle, dots' aria-current, reset animations
-  //     (remove/re-add nothing — data-state change restarts bound keyframes)
-  //   'scrollend' listener re-syncs exact index after momentum settles
-  // ── 4 · autoplay engine (≈ 35 lines)
-  //   state machine on story[data-autoplay]: "idle" | "running" | "paused" | "stopped"(terminal)
-  //   eligible() = visible≥40% && !document.hidden && !REDUCED.matches && state!=="stopped"
-  //   arm(): clearTimeout; if(!eligible()) return; timer=setTimeout(advance, intervalMs)
-  //   advance(): next=(active+1)%n; goTo(next); arm()
-  //   goTo(i): deck.scrollTo({ left: midpoints[i]-clientWidth/2,
-  //                            behavior: REDUCED.matches ? "auto":"smooth" })
-  //   pause(): data-autoplay="paused" + clearTimeout
-  //   listeners: mouseenter/mouseleave (pointer:fine only), focusin/focusout,
-  //     pointerdown, document visibilitychange, visibilityObserver callback
-  //   STOP (permanent): first intentional interaction →
-  //     horizontal drag past 30% of a card width (touchstart/touchend ΔX check),
-  //     any click on nav/dot/expand, ArrowLeft/Right on the deck
-  //     → state="stopped", data-autoplay="stopped", data-frozen="" (KB freezes mid-breath)
-  // ── 5 · controls (≈ 20 lines)
-  //   prev/next click → step(±1) + announce(); dot click → goTo(i) + announce()
-  //   deck keydown ArrowLeft/ArrowRight → step(±1), preventDefault
-  //   announce(): ONLY when state==="stopped":
-  //     status.textContent = `Bild ${i+1} von ${n}`  (role=status region)
-  //     (autoplay advances NEVER announce — SR users are never yanked)
-  // ── 6 · lightbox (≈ 30 lines)
-  //   open(i): fill lb img {srcset/sizes from slide.src, src=1280 rendition, alt},
-  //     copy kicker/title/text nodes; lastFocus = expands[i]
-  //     lock scroll: html.style.overflow="hidden" (+ scrollbar-gutter compensation)
-  //     if (!window.HTMLDialogElement) fallback: dialog.setAttribute("role","dialog"),
-  //       aria-modal="true", add .is-open (fixed overlay), wire Esc + simple focus trap,
-  //       remember previously focused element
-  //     else: morph support? →
-  //       if (document.startViewTransition) assign view-transition-name to the clicked
-  //         figure JUST-IN-TIME, wrap showModal() in startViewTransition, clear name in
-  //         transition.finished.finally() (duplicate names abort silently otherwise)
-  //       else dlg.showModal()
-  //   close(): dlg.close()/hide fallback → restore focus to lastFocus, unlock scroll,
-  //     clear VT names
-  //   close paths: native Esc (dialog), .lb-close click, click on dialog element itself
-  //     but outside .lb-figure (backdrop tap), system back-swipe (native)
-}
+function wrap(index, length) { return (index + length) % length; }   // shared wrap-around
+
+initStory(story)
+  // 1. finds .deck and [data-slide-status]; early-return if either is missing
+  // 2. initDeck(story, deck, statusEl) → DeckHandle — all deck behaviour is live,
+  //    so story.dataset.js = "true" right after it returns, independent of the lightbox
+  // 3. only then findLightbox(story); if it succeeds: unlock the (disabled) .slide-media
+  //    open buttons and initLightbox(...)
+
+initDeck(story, deck, statusEl): DeckHandle          // deck only (no lightbox types)
+  // refs: slides[], dots[], prev/next buttons, interval from story[data-interval]
+  // active-slide tracking: rAF-throttled scroll handler over slide midpoints,
+  //   programmatic-scroll bookkeeping (goTo suppresses re-sync until scrollend/timeout)
+  // autoplay engine: autoState "idle"|"running"|"paused"|"stopped" on story[data-autoplay];
+  //   eligible() = visible ≥ 40% && !document.hidden && !REDUCED.matches && !hovered && !focused
+  //   pause on pointerdown, refresh on pointerup, mouse enter/leave (fine pointers only),
+  //   focusin/focusout, document visibilitychange, IntersectionObserver threshold 0.4
+  //   STOP (terminal): first intentional interaction — swipe past ~30 % of a card,
+  //   nav/dot click, ArrowLeft/Right on the deck
+  // controls: prev/next/dot click → step/goTo + announce() ONLY when state === "stopped"
+  //   (writes "Bild X von Y" into the role=status region)
+  // drag pause: touchstart/touchend/touchcancel set story[data-dragging] (KB freezes),
+  //   swipe-stop check on touchend
+  // returns { slides, stopAutoplay, showSlide(index) }  ← what the lightbox needs
+
+findLightbox(story): LightboxElements | null         // every dialog part at once; a single
+                                                     // missing part means no lightbox at all
+
+readLightboxSlides(slides): LightboxSlide[]          // alt + trimmed kicker/title/text read
+                                                     // once at init, never re-queried per step
+
+initLightbox(lb, deckHandle, openButtons, slideData)
+  // open(i): stopAutoplay, fill lb image (srcset/sizes="100vw"/alt; src resolved by mirroring
+  //   the browser's w-descriptor selection), copy caption texts, counter + status, preload
+  //   both neighbours, lock scroll (overflow hidden + scrollbar-gap compensation),
+  //   showModal wrapped in startViewTransition when the API exists and motion is allowed
+  //   (view-transition name moved between slide card and lb figure; names cleared in
+  //   finished.finally via clearTransitionNames)
+  // no <dialog> support: fixed overlay fallback with role/aria-modal, .is-open, manual
+  //   Esc + focus trap
+  // navigation: lbPrev/lbNext click, dialog ArrowLeft/ArrowRight, swipe (touch Δ > 48 px,
+  //   suppressed for multi-touch/pinch), counter "X / Y"
+  // close: .lb-close, tap on the empty area around the image (click outside button/img/
+  //   caption, ignoring post-gesture ghost clicks), native Esc, fallback trap; on close the
+  //   deck showSlide(lbIndex) (no animation) + openButtons[lbIndex].focus(), unlock scroll
+
+// The module is organized as initStory / initDeck / findLightbox / readLightboxSlides /
+// initLightbox, typed by the LightboxSlide/LightboxElements/DeckHandle interfaces so the
+// bundled module stays TypeScript-checked. No `!` non-null assertions; everything is resolved
+// in initStory or passed in as a non-null parameter (deck wiring always runs when the deck
+// exists, the lightbox wiring only when findLightbox succeeds).
 ```
 
-Budget accounting: ≈130 lines source ≈ 2.8 KB minified ≈ 1.4 KB gzip — inside the ≤ 3 KB target.
+Why the budget grew from the planned ≈130 lines: the lightbox grew from an open-one-image modal
+into a full gallery — srcset-based source resolution plus neighbour preloading, click/arrow-key/
+swipe navigation, counters and status regions, gesture-vs-tap discrimination, viewport-locked
+scroll compensation, view-transition open/close morphs and a manual `<dialog>` fallback with focus
+trap — and every fallback path (no scroll-driven reveal, no `<dialog>`, reduced motion) keeps the
+module plain and feature-detected instead of branching into separate bundles.
 No dependencies, no third-party bytes.
 
 ## 6. Accessibility checklist
 
 - [ ] Root `role="region"` + `aria-roledescription="Karussell"` + German `aria-label` prop.
 - [ ] Each slide `role="group"`, `aria-roledescription="Folie"`, `aria-label="Bild X von Y"`.
-- [ ] Real `<button>`s for prev/next/dots/expand (never pseudo-element or div-clickables) with the
-      locked German labels; dots expose `aria-current="true"` on the active one.
+- [ ] Real `<button>`s for prev/next/dots and the lightbox open control (never pseudo-element or
+      div-clickables); the open control is the whole slide image, named by its alt plus the
+      sr-only `– Bild groß anzeigen` suffix, disabled without JS; dots expose
+      `aria-current="true"` on the active one.
 - [ ] Focus order: prev → deck (`tabindex="0"`, arrow-key scrollable region) → next → dots →
-      expand buttons → (dialog when open). Verified by keyboard-only run-through.
+      slide image (open) buttons → (dialog when open). Verified by keyboard-only run-through.
 - [ ] Dialog semantics: native `<dialog>` gives `role="dialog"`, modal focus containment and Esc;
       the iOS<15.4 fallback explicitly sets `role="dialog"` + `aria-modal="true"`, traps Tab within
-      the dialog and handles Escape manually. Focus returns to the invoking expand button on close
-      in all paths.
+      the dialog and handles Escape manually. Focus returns to the slide image open button of the
+      slide last shown (the deck also jumps there) on close in all paths.
 - [ ] **aria-live policy:** autoplay advances announce NOTHING (no DOM focus moves, status region
       stays silent while `data-autoplay ≠ "stopped"`). After the visitor permanently stops autoplay,
       button-driven navigation writes `„Bild X von Y"` into the `role="status"` region.
 - [ ] Visible captions carry the emotional copy; `alt` stays purely factual/descriptive (may differ).
 - [ ] Contrast table §4.3 all-green (text ≥ 4.5:1 incl. gold kicker thanks to α 0.95 scrim;
       UI boundaries ≥ 3:1 via rings/disc borders; compound focus indicator).
-- [ ] Touch targets: expand 44×44, dots 24×24 hit area, nav 48×48.
+- [ ] Touch targets: open control = whole slide image (zoom badge 44×44 display-only),
+      dots 24×24 hit area, nav 48×48.
 - [ ] Reduced motion: no Ken Burns, no autoplay ever, instant captions, ≤ 200 ms fade, `auto`
       scrolling — everything remains operable (§4.10 + JS gate).
 - [ ] Reduced transparency: grain dropped where supported.
@@ -653,147 +686,108 @@ No dependencies, no third-party bytes.
   concept §6 so the deck is instant on arrival; hero H1 text remains the practical LCP candidate).
   Slides 2+ `loading="lazy" decoding="async"`. Astro emits AVIF/WebP `srcset` automatically;
   `sizes="(min-width: 768px) min(72%, 47.5rem), calc(100vw - 4rem)"` prevents over-fetching.
-- **JS budget:** ≤ 3 KB transfer total (target ~1.4 KB gzip), zero dependencies, zero third-party.
+- **JS budget:** zero dependencies, zero third-party. The planned ≤ 3 KB transfer target no longer
+  holds — the script is ≈670 source lines (§5, real budget accounting there).
   CSS additions scoped to the component (~6–8 KB raw, gzipped less).
 - Fonts unchanged (site-global Bricolage Grotesque 300/400 already loaded).
 - Gates: Lighthouse mobile ≥ 95 perf / ≥ 100 a11y on both pages; CLS 0; compare LCP before/after.
 - Animation hygiene: compositor-only properties (`transform`, `opacity`) in all keyframes;
   Ken Burns only ever on the active slide and paused while dragging/paused/offscreen.
 
-## 8. Page integration diffs
+## 8. Page integration (shipped state)
+
+Both pages build a `slideData` array, derive the kicker numbers from the slide index, assign
+`StorySlide[]` and pass only `slides`, `label` and `eyebrow` — no `variant`, no `subline`, no
+`season`, no `lightbox` prop exists.
 
 ### 8.1 `src/website/src/pages/produkte.astro`
 
-```diff
- import Karten from "../images/produkte/Karten.jpg";
- import Polster from "../images/produkte/Polster.jpg";
- import Wollpellets from "../images/produkte/Wollpellets.jpg";
- 
--const images = [Strickgabel, Zauberwolle, WolleAmadeus, Karten, Polster, Wollpellets];
-+const slides = [
-+  {
-+    src: Strickgabel,
-+    alt: "Holzerne Strickgabel mit begonnener Wollearbeit auf einem Holztisch",
-+    kicker: "01 · Hofladen", title: "Strickgabel",
-+    text: "Mit diesem urigen Werkzeug aus dem Hofladen strickst du aus unserer Zauberwolle gemütliche Halstücher – ganz ohne Nadeln.",
-+    focal: "center 50%",
-+  },
-+  {
-+    src: Zauberwolle,
-+    alt: "Knäuel handgesponnener Alpakawolle in natürlichen Naturtönen",
-+    kicker: "02 · Hofladen", title: "Zauberwolle",
-+    text: "Ein Knäuel, tausend Ideen: handgesponnene Alpakawolle in natürlichen Naturtönen, bereit für dein nächstes Herzensprojekt.",
-+  },
-+  {
-+    src: WolleAmadeus,
-+    alt: "Handgesponnenes Wollknäuel der Alpakawolle Amadeus",
-+    kicker: "03 · Hofladen", title: "Wolle Amadeus",
-+    text: "Von Amadeus und seiner Herde bis zum fertigen Knäuel bleibt die Faser bei uns am Hof – gekämmt, gewaschen und handgesponnen.",
-+  },
-+  {
-+    src: Karten,
-+    alt: "Stapel handgefertigter Karten mit Alpakamotiven",
-+    kicker: "04 · Hofladen", title: "Karten",
-+    text: "Für jeden Anlass liegt etwas Handgemachtes bereit – vom Geburtstagsgruß bis zum kleinen Danke mit einem Foto unserer Alpakas.",
-+  },
-+  {
-+    src: Polster,
-+    alt: "Dekoratives Kissen gefüllt mit weicher Alpakawolle",
-+    kicker: "05 · Zuhause", title: "Pölster",
-+    text: "Herrlich weiche Pölster mit Alpakafüllung – sie wärmen im Winter und lassen an warmen Tagen die Faser atmen.",
-+  },
-+  {
-+    src: Wollpellets,
-+    alt: "Naturreine Wollpellets als Dünger in einer Schale",
-+    kicker: "06 · Für den Garten", title: "Wollpellets",
-+    text: "Von der Schur zurück auf die Weide: naturreine Wollpellets, die deinen Beeten langsam und sanft Nahrung geben.",
-+  },
-+];
- ...
- <section class="section">
--  <Slideshow images={images} />
-+  <Slideshow
-+    slides={slides}
-+    label="Fotos aus unserem Hofladen"
-+    variant="product"
-+    eyebrow="Aus unserem Hofladen"
-+    subline="Handgesponnen, gefüllt und verpackt bei uns am Hof."
-+    lightbox
-+  />
- </section>
+```ts
+const slideData = [
+  {
+    src: Strickgabel,
+    alt: "Strickgabel aus Holz mit einer angestrickten Kordel aus bunter Zauberwolle",
+    label: "Hofladen",     // topic for the kicker; the label is merged out below
+    title: "Strickgabel",
+    text: "Mit diesem urigen Werkzeug aus dem Hofladen strickst du aus unserer Zauberwolle gemütliche Halstücher – ganz ohne Nadeln.",
+    focal: "center 40%",
+  },
+  { src: Zauberwolle,  alt: "Strang Zauberwolle: schwarzes Alpakagarn mit pink, grün und blau verzwirnten Fäden", label: "Hofladen", title: "Zauberwolle", text: "Ein Knäuel, tausend Ideen: handgesponnene Alpakawolle in natürlichen Naturtönen, bereit für dein nächstes Herzensprojekt." },
+  { src: WolleAmadeus, alt: "Handgesponnener Strang naturbrauner Alpakawolle von Amadeus", label: "Hofladen", title: "Wolle Amadeus", text: "Von Amadeus und seiner Herde bis zum fertigen Knäuel bleibt die Faser bei uns am Hof – gekämmt, gewaschen und handgesponnen." },
+  { src: Karten,       alt: "Drei dunkelgrüne Grußkarten mit dem goldenen Alpaka-Signet der Alpakasölde", label: "Hofladen", title: "Karten", text: "Für jeden Anlass liegt etwas Handgemachtes bereit – vom Geburtstagsgruß bis zum kleinen Danke mit einem Foto unserer Alpakas." },
+  { src: Polster,      alt: "Zwei Leinenpölster mit Alpakafüllung, bestempelt mit den Namen Ludwig und Amadeus", label: "Zuhause", title: "Pölster", text: "Herrlich weiche Pölster mit Alpakafüllung – sie wärmen im Winter und lassen an warmen Tagen die Faser atmen." },
+  { src: Wollpellets,  alt: "Papiersackerl mit 250 g Alpaka-Wollpellets als Naturdünger, mit roter Schleife", label: "Für den Garten", title: "Wollpellets", text: "Von der Schur zurück auf die Weide: naturreine Wollpellets, die deinen Beeten langsam und sanft Nahrung geben." },
+];
+
+const slides: StorySlide[] = slideData.map((slide, i) => {
+  const { label, ...rest } = slide;
+  return { ...rest, kicker: `${String(i + 1).padStart(2, "0")} · ${label}` };
+});
+```
+
+```html
+<Slideshow slides={slides} label="Fotos aus unserem Hofladen" eyebrow="Aus unserem Hofladen" />
 ```
 
 (`focal` set only where the subject needs protection; defaults apply elsewhere — visual QA §11.)
 
 ### 8.2 `src/website/src/pages/alpaka-wanderungen.astro`
 
-```diff
--import impression_72 from "../images/impressions/impression_72.jpg";
--
--const images = [Wanderung1, Wanderung2, Wanderung3, Wanderung4];
-+import impression_72 from "../images/impressions/impression_72.jpg";
-+
-+const slides = [
-+  {
-+    src: Wanderung1,
-+    alt: "Alpakas und ihre Begleiter beim Start der Wanderung am Hof",
-+    kicker: "Moment 01", title: "Start am Hof",
-+    text: "Nach dem Kennenlernen sucht sich jedes Alpaka seinen Menschen für die nächsten zwei Stunden – meistens entscheidet die Fresslaune.",
-+  },
-+  {
-+    src: Wanderung2,
-+    alt: "Alpakas wandern mit ihren Menschen über einen Feldweg in den Inn-Auen",
-+    kicker: "Moment 02", title: "Die Runde beginnt",
-+    text: "Durch die Inn-Auen geht es gemütlich voran – immer im Tempo des gemächlichsten Vierbeins.",
-+  },
-+  {
-+    src: Wanderung3,
-+    alt: "Die Wandergruppe hält mit Blick über das Europareservat Unterer Inn",
-+    kicker: "Moment 03", title: "Pause mit Aussicht",
-+    text: "Mitten in den Inn-Auen bleibt die Runde stehen: Zeit für Streicheleinheiten, Fotos und das weite Grün des Europareservats.",
-+  },
-+  {
-+    src: Wanderung4,
-+    alt: "Alpakas auf dem Heimweg zur Alpakasölde",
-+    kicker: "Moment 04", title: "Zurück am Hof",
-+    text: "Nach zwei Stunden kehren alle gemeinsam heim – müde Beine, volle Herzen und garantiert ein Foto zu viel.",
-+  },
-+];
- ...
--  <Slideshow images={images} />
-+  <Slideshow
-+    slides={slides}
-+    label="Momentaufnahmen von der Wanderung"
-+    variant="hike"
-+    eyebrow="Unterwegs am Inn"
-+    subline="Zwei gemütliche Stunden – Momentaufnahmen von der Strecke."
-+    lightbox
-+  />
+```ts
+const slideData = [
+  {
+    src: Wanderung1,
+    alt: "Zwei weiße Alpakas mit Halter auf der Wiese im Abendlicht",
+    title: "Start am Hof",
+    text: "Nach dem Kennenlernen sucht sich jedes Alpaka seinen Menschen für die nächsten zwei Stunden – meistens entscheidet die Fresslaune.",
+    focal: "center 60%",
+  },
+  { src: Wanderung2, alt: "Alpaka an der roten Leine auf einem Feldweg neben einem grünen Getreidefeld", title: "Die Runde beginnt", text: "Durch die Inn-Auen geht es gemütlich voran – immer im Tempo des gemächlichsten Vierbeins.", focal: "center 70%" },
+  { src: Wanderung3, alt: "Zwei Wanderer führen ein schwarzes und ein braunes Alpaka über eine winterliche Wiese", title: "Pause mit Aussicht", text: "Mitten in den Inn-Auen bleibt die Runde stehen: Zeit für Streicheleinheiten, Fotos und das weite Grün des Europareservats." },
+  { src: Wanderung4, alt: "Drei Alpakas werden auf einem Güterweg durch die Felder geführt", title: "Zurück am Hof", text: "Nach zwei Stunden kehren alle gemeinsam heim – müde Beine, volle Herzen und garantiert ein Foto zu viel.", focal: "center 32%" },
+];
+
+const slides: StorySlide[] = slideData.map((slide, i) => ({
+  ...slide,
+  kicker: `Moment ${String(i + 1).padStart(2, "0")}`,
+}));
+```
+
+```html
+<Slideshow slides={slides} label="Momentaufnahmen von der Wanderung" eyebrow="Unterwegs am Inn" />
 ```
 
 Placement unchanged on both pages (produkte: cream gallery band after the `auwasser` intro;
-wanderungen: between „Details" and „Ausflugstipps"). `season` omitted everywhere (default
-`sommer`). Eager/lazy handled inside the component (slide index 0 eager+high, rest lazy).
+wanderungen: between „Details" and „Ausflugstipps"). Kicker numbering is derived from the slide
+index in the pages, not hard-coded in the component. Eager/lazy handling stays inside the
+component (slide index 0 eager+high, rest lazy).
 
 ## 9. Verification
 
-Commands (must pass before PR):
+Gate commands:
 
 ```bash
-cd src/website && pnpm run check && pnpm run build
+cd src/website && pnpm run check && pnpm test && pnpm run test:e2e
 ```
 
-Manual test matrix:
+End-to-end coverage lives in `src/website/e2e/slideshow.spec.ts` — Playwright on Chromium covering
+the deck (controls, dots, autoplay, snap/scroll behaviour) and the lightbox (open, gallery
+navigation, close and focus/deck restoration) plus the no-JS baseline; the spec starts its own dev
+server. The branches' time cost is why we ask for it before every slideshow change; anything added
+to the deck or lightbox needs a matching spec here.
+
+Manual test matrix (device/browser specific cases beyond the e2e coverage):
 
 | Case | Expected |
 |---|---|
 | iOS Safari 18/26 swipe | native momentum, rubber-band at both ends, mandatory snap-center, neighbour peeks |
-| iOS Safari lightbox pinch-zoom | zoom works inside dialog (`touch-action: pinch-zoom`, scaling not disabled by viewport meta); close via backdrop tap, ×, Esc-equivalent/back-swipe |
+| iOS Safari lightbox pinch-zoom | zoom works inside dialog (`touch-action: pinch-zoom`, scaling not disabled by viewport meta); gestured close must NOT fire (swipe/pinch vs tap discrimination); close via tap on the empty area, ×, Esc-equivalent/back-swipe |
 | Desktop trackpad / shift-wheel | horizontal scroll works; **vertical wheel scrolls the page, never the deck** |
-| Keyboard-only | prev → deck (arrow keys move slides) → next → dots → expand; visible gold focus rings; Enter opens lightbox; Esc closes and restores focus |
-| Reduced motion (OS toggle) | no autoplay ever, no Ken Burns, captions instant, reveal ≤ 200 ms fade or none, advances jump without smooth-scroll |
-| No-JS (block scripts) | first slide + caption visible, others reachable by native scroll/swipe/keyboard scroller; NO arrows/dots/lightbox rendered visible; no dead controls |
-| Autoplay choreography | products 7 s, hikes 9 s; pauses instantly on hover/focus/pointerdown/tab-hide/<40 % visibility; permanently stops after first swipe past ~30 % of a card or any control press; dot sweep matches interval |
+| Keyboard-only | prev → deck (arrow keys move slides) → next → dots → slide image (open); visible gold focus rings; Enter opens lightbox; Esc closes and restores focus to the open button |
+| Lightbox gallery | prev/next buttons and arrow keys step ±1 with wrap-around; swipe on touch devices; counter shows „X / Y"; on close the deck jumps to and focuses the slide last shown |
+| Reduced motion (OS toggle) | no autoplay ever, no Ken Burns, captions instant, no entrance animation (scroll-driven reveal not applied), advances jump without smooth-scroll |
+| No-JS (block scripts) | first slide + caption visible, others reachable by native scroll/swipe/keyboard scroller; NO arrows/dots/lightbox rendered visible; no dead controls (open buttons stay disabled) |
+| Autoplay choreography | one 7 s interval for every slideshow; pauses instantly on hover/focus/pointerdown/tab-hide/<40 % visibility; permanently stops after first swipe past ~30 % of a card or any control press; dot sweep matches interval |
 | Crops (visual sign-off) | all 10 slides checked on iPhone SE, iPhone 15 Pro Max, Pixel 8, iPad, 1440 px — especially portrait Strickgabel, Wolle_Amadeus, wanderung4 (9:16) |
 | Screen reader spot-check | VoiceOver: region announced as Karussell, slides as „Bild X von Y", no announcements during autoplay, status announces only after interaction-stop |
 | Lighthouse mobile | ≥ 95 perf, ≥ 100 a11y, CLS 0, both pages |
@@ -814,7 +808,7 @@ Files changed:
 
 | File | Change | LOC est. |
 |---|---|---|
-| `src/website/src/components/Slideshow.astro` | full rewrite (frontmatter ~40, markup ~80, styles ~180, script ~130) | ~430 (replaces 73) |
+| `src/website/src/components/Slideshow.astro` | full rewrite (frontmatter ~20, markup ~120, styles ~570, script ~670) | ~1380 (replaces 73) |
 | `src/website/src/pages/produkte.astro` | slides array + new props | +34 / −2 |
 | `src/website/src/pages/alpaka-wanderungen.astro` | slides array + new props | +27 / −2 |
 
@@ -834,8 +828,8 @@ No other files touched (no `global.css` changes; all styles scoped).
 ## 12. Risks & mitigations
 
 1. **Crop damage on mixed-orientation product shots** → `focal` prop + per-slide visual sign-off
-   (matrix above). Highest-risk: Strickgabel (5:7 portrait in 3:2 desktop frame), Wolle_Amadeus,
-   wanderung4 (9:16 in 16:9 frame).
+   (matrix above). Highest-risk: Strickgabel (5:7 portrait in the 4/5→3/2 frames), Wolle_Amadeus,
+   wanderung4 (9:16 in the same frames).
 2. **Ken Burns jank on low-end devices during swipe** → active-slide-only, paused while
    `data-dragging`, transform-only, throttled-CPU testing in phase D.
 3. **Astro style-scoping vs runtime state** → data-attribute selector contract (`data-state`,
@@ -858,8 +852,9 @@ No other files touched (no `global.css` changes; all styles scoped).
    the scrim and banned gold running text, yet styled the kicker gold. Raising the bottom-zone alpha
    makes the gold kicker a compliant 4.7:1 AA text colour and lifts body copy to 8.7:1; visual cost
    is a slightly deeper bottom band.
-2. **Ken Burns duration parametrized** (`calc(var(--interval-ms) * 1.5)` → 10.5 s / 13.5 s) instead
-   of the fixed 11 s, so „breath never visibly loops" holds for the 9 s hike interval too.
+2. **Ken Burns duration parametrized** (`calc(var(--interval-ms) * 1.5)` → 10.5 s at the single
+   7 s interval) instead of the fixed 11 s, so „breath never visibly loops" holds with the delivered
+   uniform interval.
 3. **Mobile peek geometry re-derived**: the concept's „86 vw card + ~7 vw peek each side + gap"
    sums beyond 100 vw and is unsatisfiable. Locked solvable numbers preserving both cues:
    full-bleed track, card `calc(100vw − 4rem)` (~81 vw), ~1.25 rem sliver; desktop unchanged from
@@ -871,5 +866,41 @@ No other files touched (no `global.css` changes; all styles scoped).
 5. **Inactive dots as taubenblau rings instead of `rgba(…,.55)` translucent fills**: the concept's
    claimed ≈4:1 doesn't survive alpha compositing (computes to 1.87:1); solid 2 px rings measure
    6.5:1 and match the active dot's ring language.
-6. **Seasonal hook ships as an inert CSS-variable hook only** (`data-season` swaps the gold wash for
-   `--himmelblau`); full winter treatment stays fast-follow per the concept's tiering.
+6. **Seasonal hook dropped entirely**: no `data-season` attribute and no winter wash remain — the
+   wash is always the warm gold one (see also 9 below).
+7. **No `variant` prop** — one frame ratio (4/5 mobile, 3/2 from 768 px) and one 7 s interval for
+   every slideshow („unify slideshow behavior by dropping variant prop"); portrait photos are
+   handled with the per-slide `focal` value.
+8. **No `subline` prop**: the header is the eyebrow only, styled as taubenblau caps flanked by
+   gold rules (not gold caps) („remove slideshow subline heading").
+9. **No `season` and no `lightbox` prop**: both were removed as unused; the lightbox is always
+   rendered and there is no `data-season` hook („remove unused slideshow season and lightbox
+   props").
+10. **No `.slide-expand` button**: the whole slide image is the open control — disabled in markup,
+    unlocked by the script („make slide expand button progressive and keep alt name") — named by
+    the image alt plus a visually hidden „– Bild groß anzeigen"; the caption lets clicks through
+    to it (`pointer-events: none`) („open lightbox when the slide caption is clicked").
+11. **Fullscreen opaque lightbox without `::backdrop`** („make slideshow images open a fullscreen
+    lightbox"); a tap on the empty area around the image closes it („close lightbox on tap into
+    empty area around image"). No `::backdrop` styling remains — the dialog itself is the surface
+    the tap targets.
+12. **Lightbox gallery navigation**: prev/next buttons, arrow-key and swipe navigation, a counter,
+    and on close the deck jumps to and focuses the slide last shown („sync deck and focus on
+    lightbox close, ignore multitouch swipe") — the plan's open/close-only modal didn't cover this.
+13. **Viewport reveal is CSS-only**: scroll-driven animation where `animation-timeline: view()` is
+    supported, otherwise no entrance animation — no observer, no `.in-view`, no `data-css-reveal`
+    („move slideshow reveal and frozen state to css").
+14. **Kicker numbers are derived from the slide index in the pages** (`"01 · Hofladen"`,
+    `"Moment 01"` via `padStart`) („number slideshow kickers automatically").
+15. **Colours come from the palette tokens via `color-mix`** instead of literal `rgba(…)` values
+    („derive slideshow colours from palette tokens").
+16. **The script grew past the planned ≈130-line budget to ≈670 source lines**: lightbox gallery
+    navigation (buttons/arrows/swipe, counter, srcset-based src resolution and neighbour
+    preloading, gesture-vs-tap discrimination) and the fallbacks (manual `<dialog>` focus trap,
+    feature-detected view transitions, reduced-motion and scroll-driven-reveal gates). The module
+    splits into `initStory` (resolve deck + status, early-return on missing parts, then lightbox),
+    `initDeck` (all deck behaviour, returns a `DeckHandle`) and `initLightbox` (gallery, open/
+    close morphs, fallbacks), typed by `LightboxSlide`/`LightboxElements`/`DeckHandle` interfaces.
+17. **End-to-end coverage lives in `src/website/e2e/slideshow.spec.ts`** (Playwright on Chromium,
+    own dev server): deck and lightbox behaviour plus the no-JS baseline are asserted end to end
+    („cover slideshow deck and lightbox end to end").
