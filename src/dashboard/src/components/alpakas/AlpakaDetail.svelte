@@ -3,6 +3,7 @@
   import EventList from './EventList.svelte';
   import { normalizeEvents, type EventListItem } from '../../utils/events';
   import { calculateAge, formatDateForInput, formatDateLong } from '../../utils/formatters';
+  import { apiRequest } from '../../utils/api';
 
   type Alpaka = {
     Id: string;
@@ -13,6 +14,7 @@
   };
 
   const MAX_FILE_SIZE = 15 * 1024 * 1024;
+  const SAVE_FAILED = 'Speichern fehlgeschlagen. Bitte versuche es erneut.';
 
   let currentAlpaka = $state<Alpaka | null>(null);
   let error = $state('');
@@ -62,52 +64,48 @@
     saving = true;
     status = 'Speichere Änderungen...';
 
-    try {
-      const formData = new FormData();
-      formData.append('name', name);
-      formData.append('geburtsdatum', geburtsdatum);
-      if (file) {
-        formData.append('photo', file);
-      }
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('geburtsdatum', geburtsdatum);
+    if (file) {
+      formData.append('photo', file);
+    }
 
-      const response = await fetch(`/api/alpakas/${encodeURIComponent(alpakaId)}`, {
-        method: 'PUT',
-        body: formData,
-      });
+    const outcome = await apiRequest<unknown>(`/api/alpakas/${encodeURIComponent(alpakaId)}`, {
+      method: 'PUT',
+      body: formData,
+      fallback: SAVE_FAILED,
+    });
 
-      if (!response.ok) {
-        throw new Error('Update failed');
-      }
-
-      currentAlpaka = await response.json();
+    if (!outcome.ok) {
+      console.error('Update failed', outcome);
+      status = outcome.kind === 'aborted' ? SAVE_FAILED : outcome.message;
+    } else {
+      currentAlpaka = outcome.data as Alpaka;
       editMode = false;
       status = 'Änderungen gespeichert!';
-    } catch (loadError) {
-      console.error(loadError);
-      status = 'Speichern fehlgeschlagen. Bitte versuche es erneut.';
-    } finally {
-      saving = false;
-      photoFile = null;
     }
+
+    saving = false;
+    photoFile = null;
   }
 
   async function loadAlpaka(id: string) {
-    try {
-      const response = await fetch(`/api/alpakas/${encodeURIComponent(id)}`);
-      if (response.status === 404) {
-        error = 'Alpaka nicht gefunden.';
-        return;
-      }
-      if (!response.ok) {
-        throw new Error(`Failed to load alpaka ${id}`);
-      }
-      const updated = (await response.json()) as Alpaka;
+    const outcome = await apiRequest<unknown>(`/api/alpakas/${encodeURIComponent(id)}`, {
+      fallback: 'Alpaka konnte nicht geladen werden.',
+    });
+
+    if (outcome.ok) {
+      const updated = outcome.data as Alpaka;
       currentAlpaka = updated;
       name = updated.Name ?? '';
       geburtsdatum = formatDateForInput(updated.Geburtsdatum);
-    } catch (loadError) {
-      console.error(loadError);
-      error = 'Alpaka konnte nicht geladen werden.';
+    } else {
+      console.error('Failed to load alpaka', outcome);
+      error =
+        outcome.kind === 'status' && outcome.status === 404
+          ? 'Alpaka nicht gefunden.'
+          : 'Alpaka konnte nicht geladen werden.';
     }
   }
 

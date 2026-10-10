@@ -13,14 +13,8 @@
   import { normalizeEvents, type EventListItem } from '../../utils/events';
   import { normalizeGutscheine, type Gutschein, type GutscheinRaw } from '../../utils/gutschein';
   import { formatCurrency, formatDate, toNumber } from '../../utils/formatters';
-
-  type MessageStats = {
-    Total: number;
-    Spam: number;
-    Legit: number;
-    OldCount: number;
-    Series: { Period: string; Spam: number; Legit: number }[];
-  };
+  import { apiRequest, type ApiResult } from '../../utils/api';
+  import { normalizeMessageStats, type MessageStats } from '../../utils/messages';
 
   type Tile = {
     icon: Component;
@@ -120,38 +114,27 @@
     { label: 'Website', tiles: websiteTiles },
   ]);
 
-  async function fetchJson<T>(url: string): Promise<T | null> {
-    try {
-      const response = await fetch(url);
-      if (!response.ok) return null;
-      return (await response.json()) as T;
-    } catch (error) {
-      console.error(error);
-      return null;
-    }
+  function toData<T>(outcome: ApiResult<T>): T | null {
+    return outcome.ok ? outcome.data : null;
   }
 
   async function load() {
-    const [alpakasResult, eventsResult, gutscheineResult, statsResult] = await Promise.allSettled([
-      fetchJson<unknown[]>('/api/alpakas'),
-      fetchJson<unknown[]>('/api/events'),
-      fetchJson<unknown[]>('/api/gutscheine'),
-      fetchJson<MessageStats>('/api/messages/stats?days=30'),
+    const [alpakasOutcome, eventsOutcome, gutscheineOutcome, statsOutcome] = await Promise.all([
+      apiRequest<unknown[]>('/api/alpakas'),
+      apiRequest<unknown>('/api/events'),
+      apiRequest<unknown>('/api/gutscheine'),
+      apiRequest<unknown>('/api/messages/stats?days=30'),
     ]);
 
-    alpakaCount =
-      alpakasResult.status === 'fulfilled' && Array.isArray(alpakasResult.value)
-        ? alpakasResult.value.length
-        : null;
-    events =
-      eventsResult.status === 'fulfilled' && eventsResult.value !== null
-        ? normalizeEvents(eventsResult.value)
-        : null;
+    const alpakas = toData(alpakasOutcome);
+    alpakaCount = Array.isArray(alpakas) ? alpakas.length : null;
+    const eventsRaw = toData(eventsOutcome);
+    events = eventsRaw !== null ? normalizeEvents(eventsRaw) : null;
+    const gutscheineRaw = toData(gutscheineOutcome);
     gutscheine =
-      gutscheineResult.status === 'fulfilled' && gutscheineResult.value !== null
-        ? normalizeGutscheine(gutscheineResult.value as GutscheinRaw[])
-        : null;
-    stats = statsResult.status === 'fulfilled' ? statsResult.value : null;
+      gutscheineRaw !== null ? normalizeGutscheine(gutscheineRaw as GutscheinRaw[]) : null;
+    const statsRaw = toData(statsOutcome);
+    stats = statsRaw !== null ? normalizeMessageStats(statsRaw) : null;
   }
 
   onMount(load);

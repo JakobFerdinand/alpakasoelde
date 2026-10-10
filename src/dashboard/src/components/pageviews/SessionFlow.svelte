@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { ArrowLeft, TimerOff, X } from '@lucide/svelte';
   import { formatDuration, formatTimestamp } from '../../utils/formatters';
+  import { apiRequest, RequestGate } from '../../utils/api';
 
   type SessionSummary = {
     SessionId: string;
@@ -66,8 +67,8 @@
   const columnCount = 7;
   const gapThresholdMs = 30 * 60 * 1000;
 
-  let activeController: AbortController | null = null;
-  let detailController: AbortController | null = null;
+  const listGate = new RequestGate();
+  const detailGate = new RequestGate();
 
   let selectedSessionId = $state<string | null>(
     new URLSearchParams(window.location.search).get('id'),
@@ -180,52 +181,47 @@
   }
 
   async function loadSessions() {
-    activeController?.abort();
-    const controller = new AbortController();
-    activeController = controller;
+    const signal = listGate.start();
     loading = true;
     error = '';
-    try {
-      const params = new URLSearchParams({ days: period, minPages: String(minPages) });
-      if (visitorFilter) {
-        params.set('visitor', visitorFilter);
-      }
-      const res = await fetch(`/api/pageviews/sessions?${params}`, { signal: controller.signal });
-      if (!res.ok) throw new Error(`Failed to load sessions (${res.status})`);
-      sessions = await res.json();
-    } catch (e) {
-      if (controller.signal.aborted) return;
-      console.error(e);
-      error = 'Sitzungen konnten nicht geladen werden.';
-    } finally {
-      if (!controller.signal.aborted) loading = false;
+    const params = new URLSearchParams({ days: period, minPages: String(minPages) });
+    if (visitorFilter) {
+      params.set('visitor', visitorFilter);
     }
+    const outcome = await apiRequest<unknown>(`/api/pageviews/sessions?${params}`, {
+      signal,
+      fallback: 'Sitzungen konnten nicht geladen werden.',
+    });
+    if (!listGate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      sessions = outcome.data as SessionListResult;
+    } else if (outcome.kind !== 'aborted') {
+      console.error(outcome.message);
+      error = 'Sitzungen konnten nicht geladen werden.';
+    }
+    loading = false;
   }
 
   async function loadDetail(id: string) {
-    detailController?.abort();
-    const controller = new AbortController();
-    detailController = controller;
+    const signal = detailGate.start();
     loadingDetail = true;
     errorDetail = '';
     detail = null;
-    try {
-      const res = await fetch(`/api/pageviews/sessions/${encodeURIComponent(id)}`, {
-        signal: controller.signal,
-      });
-      if (res.status === 404) {
-        errorDetail = 'Sitzung nicht gefunden.';
-        return;
-      }
-      if (!res.ok) throw new Error(`Failed to load session (${res.status})`);
-      detail = await res.json();
-    } catch (e) {
-      if (controller.signal.aborted) return;
-      console.error(e);
-      errorDetail = 'Sitzung konnte nicht geladen werden.';
-    } finally {
-      if (!controller.signal.aborted) loadingDetail = false;
+    const outcome = await apiRequest<unknown>(`/api/pageviews/sessions/${encodeURIComponent(id)}`, {
+      signal,
+      fallback: 'Sitzung konnte nicht geladen werden.',
+    });
+    if (!detailGate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      detail = outcome.data as SessionDetailResult;
+    } else if (outcome.kind !== 'aborted') {
+      console.error(outcome.message);
+      errorDetail =
+        outcome.kind === 'status' && outcome.status === 404
+          ? 'Sitzung nicht gefunden.'
+          : 'Sitzung konnte nicht geladen werden.';
     }
+    loadingDetail = false;
   }
 
   async function openSession(id: string) {
@@ -258,8 +254,8 @@
       loadDetail(selectedSessionId);
     }
     return () => {
-      activeController?.abort();
-      detailController?.abort();
+      listGate.dispose();
+      detailGate.dispose();
     };
   });
 </script>

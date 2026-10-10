@@ -3,12 +3,15 @@
   import Card from '../ui/Card.svelte';
   import FormField from '../ui/FormField.svelte';
   import GutscheinListe from './GutscheinListe.svelte';
+  import { apiRequest, RequestGate } from '../../utils/api';
   import {
-    normalizeGutschein,
+    normalizeGutscheine,
     suggestNextGutscheinnummer,
     type Gutschein,
     type GutscheinRaw,
   } from '../../utils/gutschein';
+
+  const listGate = new RequestGate();
 
   let gutscheine = $state<Gutschein[] | null>(null);
   let listFehler = $state('');
@@ -66,16 +69,18 @@
   };
 
   async function gutscheineLaden() {
+    const signal = listGate.start();
     gutscheine = null;
     listFehler = '';
-    try {
-      const antwort = await fetch('/api/gutscheine');
-      if (!antwort.ok) throw new Error('Fehler beim Laden der Gutscheine');
-      const daten: GutscheinRaw[] = await antwort.json();
-      const liste = Array.isArray(daten) ? daten.map(normalizeGutschein) : [];
-      listeRendern(liste);
-    } catch (fehler) {
-      console.error(fehler);
+    const outcome = await apiRequest<unknown>('/api/gutscheine', {
+      signal,
+      fallback: 'Gutscheine konnten nicht geladen werden.',
+    });
+    if (!listGate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      listeRendern(normalizeGutscheine(outcome.data as GutscheinRaw[]));
+    } else if (outcome.kind !== 'aborted') {
+      console.error(outcome.message);
       listFehler = 'Gutscheine konnten nicht geladen werden.';
     }
   }
@@ -92,43 +97,37 @@
     sendenDisabled = true;
     sendenText = 'Speichern...';
 
-    try {
-      const antwort = await fetch('/api/gutscheine', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          gutscheinnummer: gutscheinnummer?.trim() || undefined,
-          kaufdatum,
-          betrag: Number(betrag),
-          eingeloestAm: eingeloestAm || null,
-          verkauftAn: verkauftAn?.trim() || undefined,
-        }),
-      });
+    const outcome = await apiRequest<{ gutscheinnummer?: string }>('/api/gutscheine', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        gutscheinnummer: gutscheinnummer?.trim() || undefined,
+        kaufdatum,
+        betrag: Number(betrag),
+        eingeloestAm: eingeloestAm || null,
+        verkauftAn: verkauftAn?.trim() || undefined,
+      }),
+      fallback: 'Gutschein konnte nicht gespeichert werden.',
+    });
 
-      if (!antwort.ok) {
-        const fehler = await antwort.json().catch(() => null);
-        throw new Error(fehler?.detail || 'Gutschein konnte nicht gespeichert werden.');
+    if (!outcome.ok) {
+      if (outcome.kind !== 'aborted') {
+        console.error(outcome.message);
+        statusAnzeigen(outcome.message, true);
       }
-
-      const ergebnis = await antwort.json();
+    } else {
       gutscheinnummer = '';
       kaufdatum = '';
       betrag = '';
       eingeloestAm = '';
       verkauftAn = '';
       naechsteNummerVorschlagen([]);
-      statusAnzeigen(`Gutschein ${ergebnis.gutscheinnummer ?? ''} wurde gespeichert.`);
+      statusAnzeigen(`Gutschein ${outcome.data.gutscheinnummer ?? ''} wurde gespeichert.`);
       await gutscheineLaden();
-    } catch (fehler) {
-      console.error(fehler);
-      statusAnzeigen(
-        fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht gespeichert werden.',
-        true,
-      );
-    } finally {
-      sendenDisabled = false;
-      sendenText = 'Gutschein speichern';
     }
+
+    sendenDisabled = false;
+    sendenText = 'Gutschein speichern';
   }
 
   function openRedeem(gutschein: Gutschein) {
@@ -164,34 +163,34 @@
     einloesenStatus = '';
     einloesend = true;
 
-    try {
-      const antwort = await fetch(
-        `/api/gutscheine/${encodeURIComponent(aktuellerEinloeseGutschein.gutscheinnummer)}/einloesen`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ eingeloestAm: einloesenDatum }),
-        },
-      );
+    const outcome = await apiRequest<unknown>(
+      `/api/gutscheine/${encodeURIComponent(aktuellerEinloeseGutschein.gutscheinnummer)}/einloesen`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eingeloestAm: einloesenDatum }),
+        fallback: 'Gutschein konnte nicht eingelöst werden.',
+      },
+    );
 
-      if (!antwort.ok) {
-        const fehler = await antwort.json().catch(() => null);
-        throw new Error(fehler?.detail || 'Gutschein konnte nicht eingelöst werden.');
+    if (!outcome.ok) {
+      if (outcome.kind !== 'aborted') {
+        console.error(outcome.message);
+        einloesenStatus = outcome.message;
       }
-
+    } else {
       statusAnzeigen(`Gutschein ${aktuellerEinloeseGutschein.gutscheinnummer} wurde eingelöst.`);
       closeRedeem();
       await gutscheineLaden();
-    } catch (fehler) {
-      console.error(fehler);
-      einloesenStatus =
-        fehler instanceof Error ? fehler.message : 'Gutschein konnte nicht eingelöst werden.';
-    } finally {
-      einloesend = false;
     }
+
+    einloesend = false;
   }
 
-  onMount(gutscheineLaden);
+  onMount(() => {
+    gutscheineLaden();
+    return () => listGate.dispose();
+  });
 </script>
 
 <section class="gutscheine section">

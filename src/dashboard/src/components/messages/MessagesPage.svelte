@@ -3,16 +3,8 @@
   import { ArrowDown, ArrowUp, ArrowUpDown, MailX, ShieldAlert, Trash2 } from '@lucide/svelte';
   import MessageCell from './MessageCell.svelte';
   import { formatTimestamp } from '../../utils/formatters';
-
-  type Message = {
-    Id: string;
-    Name: string;
-    Email: string;
-    Phone: string;
-    Message: string;
-    Timestamp: string;
-    IsSpam: boolean;
-  };
+  import { apiRequest, RequestGate } from '../../utils/api';
+  import { normalizeMessages, type Message } from '../../utils/messages';
 
   type FilterKey = 'all' | 'legit' | 'spam';
   type SortKey = 'name' | 'message' | 'email' | 'phone' | 'timestamp';
@@ -91,38 +83,45 @@
     return sortDir === 'asc' ? 'ascending' : 'descending';
   }
 
+  const listGate = new RequestGate();
+
   async function deleteMessage(id: string) {
     const confirmed = window.confirm('Möchten Sie diese Nachricht wirklich löschen?');
     if (!confirmed) return;
 
-    try {
-      const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        console.error('Failed to delete message', id, res.status);
-        return;
-      }
-      messages = messages.filter((m) => m.Id !== id);
-    } catch (e) {
-      console.error(e);
+    const outcome = await apiRequest(`/api/messages/${id}`, {
+      method: 'DELETE',
+      fallback: 'Nachricht konnte nicht gelöscht werden.',
+    });
+    if (!outcome.ok) {
+      console.error('Failed to delete message', id, outcome);
+      return;
     }
+    messages = messages.filter((m) => m.Id !== id);
   }
 
   async function loadMessages() {
+    const signal = listGate.start();
     loading = true;
     error = '';
-    try {
-      const res = await fetch('/api/messages');
-      if (!res.ok) throw new Error(`Failed to load messages (${res.status})`);
-      messages = await res.json();
-    } catch (e) {
-      console.error(e);
-      error = 'Nachrichten konnten nicht geladen werden.';
-    } finally {
-      loading = false;
+    const outcome = await apiRequest<unknown>('/api/messages', {
+      signal,
+      fallback: 'Nachrichten konnten nicht geladen werden.',
+    });
+    if (!listGate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      messages = normalizeMessages(outcome.data);
+    } else if (outcome.kind !== 'aborted') {
+      console.error(outcome.message);
+      error = outcome.message;
     }
+    loading = false;
   }
 
-  onMount(loadMessages);
+  onMount(() => {
+    loadMessages();
+    return () => listGate.dispose();
+  });
 </script>
 
 <section class="dashboard-page section">

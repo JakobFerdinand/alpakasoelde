@@ -4,15 +4,13 @@
   import { scaleBand } from 'd3-scale';
   import { sum } from 'd3-array';
   import { Inbox, MailCheck, ShieldAlert } from '@lucide/svelte';
+  import { apiRequest, RequestGate } from '../../utils/api';
+  import {
+    normalizeMessageStats,
+    type MessagePeriodBucket,
+    type MessageStats,
+  } from '../../utils/messages';
 
-  type PeriodBucket = { Period: string; Spam: number; Legit: number };
-  type StatsResult = {
-    Total: number;
-    Spam: number;
-    Legit: number;
-    OldCount: number;
-    Series: PeriodBucket[];
-  };
   type KindRow = { Period: string; kind: 'legit' | 'spam'; value: number };
 
   const periods = [
@@ -26,7 +24,7 @@
   let days = $state(28);
   let loading = $state(true);
   let error = $state('');
-  let stats = $state<StatsResult | null>(null);
+  let stats = $state<MessageStats | null>(null);
 
   const chartData = $derived.by(() =>
     stats ? groupStackData(toLongRows(stats.Series), { xKey: 'Period', stackBy: 'kind' }) : [],
@@ -39,7 +37,7 @@
   const legitPct = $derived(total > 0 ? Math.round((legit / total) * 100) : null);
   const hasData = $derived(Boolean(stats) && stats!.Series.length > 0);
 
-  function toLongRows(series: PeriodBucket[]): KindRow[] {
+  function toLongRows(series: MessagePeriodBucket[]): KindRow[] {
     return series.flatMap((bucket) => [
       { Period: bucket.Period, kind: 'legit' as const, value: bucket.Legit },
       { Period: bucket.Period, kind: 'spam' as const, value: bucket.Spam },
@@ -55,23 +53,29 @@
     return `Woche ab ${day}.${month}.${year}`;
   }
 
+  const gate = new RequestGate();
+
   async function load() {
+    const signal = gate.start();
     loading = true;
     error = '';
-    try {
-      const res = await fetch(`/api/messages/stats?days=${days}`);
-      if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
-      stats = await res.json();
-    } catch (e) {
-      console.error(e);
-      error = 'Nachrichtenstatistik konnte nicht geladen werden.';
-    } finally {
-      loading = false;
+    const outcome = await apiRequest<unknown>(`/api/messages/stats?days=${days}`, {
+      signal,
+      fallback: 'Nachrichtenstatistik konnte nicht geladen werden.',
+    });
+    if (!gate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      stats = normalizeMessageStats(outcome.data);
+    } else if (outcome.kind !== 'aborted') {
+      console.error(outcome.message);
+      error = outcome.message;
     }
+    loading = false;
   }
 
   onMount(() => {
     load();
+    return () => gate.dispose();
   });
 </script>
 

@@ -3,31 +3,16 @@
   import type { ChartState } from 'layerchart';
   import { BarChart3, Eye, Files, Repeat, Users, ZoomOut } from '@lucide/svelte';
   import PageViewSeriesChart from './PageViewSeriesChart.svelte';
+  import { apiRequest, RequestGate } from '../../utils/api';
+  import {
+    normalizePageViewStats,
+    type ChartType,
+    type Granularity,
+    type GroupBy,
+    type StatsResult,
+  } from '../../utils/pageviews';
 
-  type PathCount = { Path: string; Count: number };
-  type DeviceCount = { Category: string; Count: number };
-  type OriginCount = { Domain: string; Count: number };
-  type Bucket = { Period: string; Group: string | null; Count: number };
-  type AudienceBucket = { Period: string; Visitors: number; Sessions: number };
-  type NavigationCount = { Type: string; Count: number };
-  type Granularity = 'week' | 'day' | 'hour';
-  type GroupBy = 'path' | 'device' | 'origin';
-  type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
   type TransformDetails = { scale: number; translate: { x: number; y: number } };
-  type StatsResult = {
-    Total: number;
-    UniquePaths: number;
-    TopPaths: PathCount[];
-    Devices: DeviceCount[];
-    Origins: OriginCount[];
-    Series: Bucket[];
-    Sessions: number;
-    Visitors: number;
-    Navigations: NavigationCount[];
-    AudienceSeries: AudienceBucket[];
-    Granularity: Granularity;
-    GroupBy: GroupBy | 'total';
-  };
 
   const periods = [
     { label: '7 Tage', days: 7 },
@@ -47,7 +32,7 @@
     { label: 'Fläche', value: 'area' },
   ];
 
-  let activeController: AbortController | null = null;
+  const gate = new RequestGate();
 
   let days = $state(7);
   let granularity = $state<Granularity>('day');
@@ -150,7 +135,7 @@
     load();
   }
 
-  async function fetchStats(groupBy: GroupBy, signal: AbortSignal): Promise<StatsResult> {
+  function statsUrl(groupBy: GroupBy): string {
     const params = new URLSearchParams({ granularity, groupBy });
     if (hasCustomDates) {
       params.set('from', fromDate);
@@ -158,9 +143,7 @@
     } else {
       params.set('days', String(days));
     }
-    const res = await fetch(`/api/pageviews/stats?${params}`, { signal });
-    if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
-    return res.json();
+    return `/api/pageviews/stats?${params}`;
   }
 
   function transformApplied(ctx: ChartState<any, any, any>, details: TransformDetails): boolean {
@@ -193,34 +176,41 @@
   }
 
   async function load() {
-    activeController?.abort();
+    const signal = gate.start();
     zoomed = false;
-    const controller = new AbortController();
-    activeController = controller;
     loading = true;
     error = '';
-    try {
-      const [path, device, origin] = await Promise.all([
-        fetchStats('path', controller.signal),
-        fetchStats('device', controller.signal),
-        fetchStats('origin', controller.signal),
-      ]);
-      if (controller.signal.aborted) return;
-      pathStats = path;
-      deviceStats = device;
-      originStats = origin;
-    } catch (e) {
-      if (controller.signal.aborted) return;
-      console.error(e);
-      error = 'Statistik konnte nicht geladen werden.';
-    } finally {
-      if (!controller.signal.aborted) loading = false;
+    const outcomes = await Promise.all([
+      apiRequest<unknown>(statsUrl('path'), {
+        signal,
+        fallback: 'Statistik konnte nicht geladen werden.',
+      }),
+      apiRequest<unknown>(statsUrl('device'), {
+        signal,
+        fallback: 'Statistik konnte nicht geladen werden.',
+      }),
+      apiRequest<unknown>(statsUrl('origin'), {
+        signal,
+        fallback: 'Statistik konnte nicht geladen werden.',
+      }),
+    ]);
+    if (!gate.isCurrent(signal)) return;
+    const [pathOutcome, deviceOutcome, originOutcome] = outcomes;
+    if (pathOutcome.ok && deviceOutcome.ok && originOutcome.ok) {
+      pathStats = normalizePageViewStats(pathOutcome.data);
+      deviceStats = normalizePageViewStats(deviceOutcome.data);
+      originStats = normalizePageViewStats(originOutcome.data);
+    } else {
+      const failed = outcomes.find((o) => 'kind' in o && o.kind !== 'aborted');
+      console.error('Statistik konnte nicht geladen werden.', failed);
+      if (failed && 'message' in failed) error = failed.message;
     }
+    loading = false;
   }
 
   onMount(() => {
     load();
-    return () => activeController?.abort();
+    return () => gate.dispose();
   });
 </script>
 

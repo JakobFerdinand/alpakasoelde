@@ -11,6 +11,9 @@
   } from '@lucide/svelte';
   import { formatCurrency, formatDate } from '../../utils/formatters';
   import { EVENT_TYPE_ICON_KEYS, normalizeEvents, type EventListItem } from '../../utils/events';
+  import { apiRequest, RequestGate } from '../../utils/api';
+
+  const gate = new RequestGate();
 
   let {
     id,
@@ -70,26 +73,27 @@
   }
 
   async function load() {
+    const signal = gate.start();
     loading = true;
     error = '';
-    try {
-      const response = await fetch(fetchUrl ?? '/api/events');
-      if (!response.ok) {
-        throw new Error('Ereignisse konnten nicht geladen werden.');
-      }
-      fetched = normalizeEvents(await response.json());
-    } catch (e) {
-      console.error(e);
+    const outcome = await apiRequest<unknown>(fetchUrl ?? '/api/events', {
+      signal,
+      fallback: 'Ereignisse konnten nicht geladen werden.',
+    });
+    if (!gate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      fetched = normalizeEvents(outcome.data);
+    } else if (outcome.kind !== 'aborted') {
+      console.error(outcome.message);
       error = 'Ereignisse konnten nicht geladen werden.';
-    } finally {
-      loading = false;
     }
+    loading = false;
   }
 
   onMount(() => {
-    if (fetchUrl) {
-      load();
-    }
+    if (!fetchUrl) return;
+    load();
+    return () => gate.dispose();
   });
 </script>
 
