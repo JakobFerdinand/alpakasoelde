@@ -57,7 +57,7 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 ## Storage invariants
 
 - Partition keys: `alpakas` → `AlpakaPartition`, `messages` → `ContactPartition`, `gutscheine` → `GutscheinePartition`, `events` → the AlpakaId, `pageviews` → `Pv|{yyyy-MM-dd}`.
-- A Gutschein's RowKey is its Gutscheinnummer in `{year}{NN}` form, and the next number is guessed client-side in `utils/gutschein.ts`, so concurrent creates can collide.
+- A Gutschein's RowKey is its Gutscheinnummer in `{year}{NN}` form, and the server assigns the number from the Kaufdatum year when the field is left empty, rejecting collisions with 'Die angegebene Gutscheinnummer existiert bereits.'
 - One dashboard event covering several alpakas is N rows sharing a `SharedEventId`; write them together and group by it when reading.
 - The `pageviews` table also holds a `Cleanup`/`last` marker row driving the 36-month purge that piggybacks on writes, so always query it with a `PartitionKey ge 'Pv|…' and le 'Pv|…'` range rather than scanning.
 - Stores call `CreateIfNotExistsAsync` before writing, which is why `pageviews` works despite being absent from the `tables` list in `infrastructure/main.bicepparam`; declare any new table in both places.

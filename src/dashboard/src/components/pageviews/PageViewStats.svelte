@@ -3,31 +3,26 @@
   import type { ChartState } from 'layerchart';
   import { BarChart3, Eye, Files, Repeat, Users, ZoomOut } from '@lucide/svelte';
   import PageViewSeriesChart from './PageViewSeriesChart.svelte';
+  import { apiRequest, RequestGate } from '../../utils/api';
+  import {
+    formatAxisLabel,
+    formatPeriodLabel,
+    granularityForDays,
+    MAX_HOUR_GRANULARITY_DAYS,
+    normalizePageViewStats,
+    normalizeStatsRange,
+    normalizeStatsWindow,
+    statsQueryParams,
+    toAudienceRows,
+    toSeriesRows,
+    type ChartType,
+    type Granularity,
+    type GroupBy,
+    type StatsRange,
+    type StatsResult,
+  } from '../../utils/pageviews';
 
-  type PathCount = { Path: string; Count: number };
-  type DeviceCount = { Category: string; Count: number };
-  type OriginCount = { Domain: string; Count: number };
-  type Bucket = { Period: string; Group: string | null; Count: number };
-  type AudienceBucket = { Period: string; Visitors: number; Sessions: number };
-  type NavigationCount = { Type: string; Count: number };
-  type Granularity = 'week' | 'day' | 'hour';
-  type GroupBy = 'path' | 'device' | 'origin';
-  type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
   type TransformDetails = { scale: number; translate: { x: number; y: number } };
-  type StatsResult = {
-    Total: number;
-    UniquePaths: number;
-    TopPaths: PathCount[];
-    Devices: DeviceCount[];
-    Origins: OriginCount[];
-    Series: Bucket[];
-    Sessions: number;
-    Visitors: number;
-    Navigations: NavigationCount[];
-    AudienceSeries: AudienceBucket[];
-    Granularity: Granularity;
-    GroupBy: GroupBy | 'total';
-  };
 
   const periods = [
     { label: '7 Tage', days: 7 },
@@ -47,7 +42,7 @@
     { label: 'Fläche', value: 'area' },
   ];
 
-  let activeController: AbortController | null = null;
+  const gate = new RequestGate();
 
   let days = $state(7);
   let granularity = $state<Granularity>('day');
@@ -68,19 +63,17 @@
 
   const todayIso = new Date().toISOString().slice(0, 10);
 
-  const computedDays = $derived.by(() => {
-    if (customRange && fromDate && toDate) {
-      const diff = (Date.parse(toDate) - Date.parse(fromDate)) / 86400000 + 1;
-      return Math.min(Math.max(Math.round(diff), 1), 180);
-    }
-    return days;
-  });
-
-  const hasCustomDates = $derived(
-    customRange && fromDate !== '' && toDate !== '' && Date.parse(toDate) >= Date.parse(fromDate),
+  const computedWindow = $derived(
+    normalizeStatsWindow({
+      days,
+      from: customRange && fromDate ? fromDate : null,
+      to: customRange && toDate ? toDate : null,
+    }),
   );
 
-  const hourDisabled = $derived(computedDays > 28);
+  const hasCustomDates = $derived(computedWindow.from !== null && computedWindow.to !== null);
+
+  const hourDisabled = $derived(computedWindow.days > MAX_HOUR_GRANULARITY_DAYS);
 
   const total = $derived(pathStats?.Total ?? 0);
   const sessions = $derived(pathStats?.Sessions ?? 0);
@@ -100,22 +93,10 @@
     granularity === 'hour' ? 'Stunde' : granularity === 'day' ? 'Tag' : 'Woche',
   );
 
-  function toRows(stats: StatsResult | null) {
-    return (stats?.Series ?? []).map((row) => ({
-      Period: row.Period,
-      Group: row.Group ?? 'Gesamt',
-      Count: row.Count,
-    }));
-  }
-  const pathRows = $derived(toRows(pathStats));
-  const deviceRows = $derived(toRows(deviceStats));
-  const originRows = $derived(toRows(originStats));
-  const audienceRows = $derived(
-    (pathStats?.AudienceSeries ?? []).flatMap((entry) => [
-      { Period: entry.Period, Group: 'Besucher', Count: entry.Visitors },
-      { Period: entry.Period, Group: 'Sitzungen', Count: entry.Sessions },
-    ]),
-  );
+  const pathRows = $derived(toSeriesRows(pathStats));
+  const deviceRows = $derived(toSeriesRows(deviceStats));
+  const originRows = $derived(toSeriesRows(originStats));
+  const audienceRows = $derived(toAudienceRows(pathStats));
 
   function formatCount(value: number): string {
     return new Intl.NumberFormat('de-AT').format(value);
@@ -127,40 +108,27 @@
     );
   }
 
-  function formatPeriodLabel(period: string): string {
-    const [datePart, timePart] = period.split('T');
-    const [year, month, day] = datePart.split('-');
-    if (timePart) return `${day}.${month}. ${timePart}`;
-    if (granularity === 'week') return `Woche ab ${day}.${month}.${year}`;
-    return `${day}.${month}.${year}`;
+  function formatLabel(period: string): string {
+    return formatPeriodLabel(period, granularity);
   }
 
-  function formatAxisLabel(period: string): string {
-    const [datePart, timePart] = period.split('T');
-    const [year, month, day] = datePart.split('-');
-    if (timePart) return `${day}.${month}. ${timePart}`;
-    return `${day}.${month}.${year}`;
+  function rangeOf(): StatsRange {
+    return normalizeStatsRange({
+      days,
+      granularity,
+      from: customRange && fromDate ? fromDate : null,
+      to: customRange && toDate ? toDate : null,
+    });
   }
 
   function setPeriod(daysValue: number) {
     days = daysValue;
-    if (granularity === 'hour' && daysValue > 28) {
-      granularity = 'day';
-    }
+    granularity = granularityForDays(granularity, daysValue);
     load();
   }
 
-  async function fetchStats(groupBy: GroupBy, signal: AbortSignal): Promise<StatsResult> {
-    const params = new URLSearchParams({ granularity, groupBy });
-    if (hasCustomDates) {
-      params.set('from', fromDate);
-      params.set('to', toDate);
-    } else {
-      params.set('days', String(days));
-    }
-    const res = await fetch(`/api/pageviews/stats?${params}`, { signal });
-    if (!res.ok) throw new Error(`Failed to load stats (${res.status})`);
-    return res.json();
+  function statsUrl(groupBy: GroupBy): string {
+    return `/api/pageviews/stats?${statsQueryParams(rangeOf(), groupBy)}`;
   }
 
   function transformApplied(ctx: ChartState<any, any, any>, details: TransformDetails): boolean {
@@ -193,34 +161,41 @@
   }
 
   async function load() {
-    activeController?.abort();
+    const signal = gate.start();
     zoomed = false;
-    const controller = new AbortController();
-    activeController = controller;
     loading = true;
     error = '';
-    try {
-      const [path, device, origin] = await Promise.all([
-        fetchStats('path', controller.signal),
-        fetchStats('device', controller.signal),
-        fetchStats('origin', controller.signal),
-      ]);
-      if (controller.signal.aborted) return;
-      pathStats = path;
-      deviceStats = device;
-      originStats = origin;
-    } catch (e) {
-      if (controller.signal.aborted) return;
-      console.error(e);
-      error = 'Statistik konnte nicht geladen werden.';
-    } finally {
-      if (!controller.signal.aborted) loading = false;
+    const outcomes = await Promise.all([
+      apiRequest<unknown>(statsUrl('path'), {
+        signal,
+        fallback: 'Statistik konnte nicht geladen werden.',
+      }),
+      apiRequest<unknown>(statsUrl('device'), {
+        signal,
+        fallback: 'Statistik konnte nicht geladen werden.',
+      }),
+      apiRequest<unknown>(statsUrl('origin'), {
+        signal,
+        fallback: 'Statistik konnte nicht geladen werden.',
+      }),
+    ]);
+    if (!gate.isCurrent(signal)) return;
+    const [pathOutcome, deviceOutcome, originOutcome] = outcomes;
+    if (pathOutcome.ok && deviceOutcome.ok && originOutcome.ok) {
+      pathStats = normalizePageViewStats(pathOutcome.data);
+      deviceStats = normalizePageViewStats(deviceOutcome.data);
+      originStats = normalizePageViewStats(originOutcome.data);
+    } else {
+      const failed = outcomes.find((o) => 'kind' in o && o.kind !== 'aborted');
+      console.error('Statistik konnte nicht geladen werden.', failed);
+      if (failed && 'message' in failed) error = failed.message;
     }
+    loading = false;
   }
 
   onMount(() => {
     load();
-    return () => activeController?.abort();
+    return () => gate.dispose();
   });
 </script>
 
@@ -382,7 +357,7 @@
             <PageViewSeriesChart
               rows={pathRows}
               {chartType}
-              formatTooltipLabel={formatPeriodLabel}
+              formatTooltipLabel={formatLabel}
               {formatAxisLabel}
               bind:context={pathCtx}
               ontransform={(details) => handleTransform(pathCtx, details)}
@@ -398,7 +373,7 @@
               <tbody>
                 {#each pathRows as row}
                   <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                    <th scope="row">{formatLabel(row.Period)}</th>
                     <td>{row.Group}</td>
                     <td>{formatCount(row.Count)}</td>
                   </tr>
@@ -416,7 +391,7 @@
             <PageViewSeriesChart
               rows={audienceRows}
               {chartType}
-              formatTooltipLabel={formatPeriodLabel}
+              formatTooltipLabel={formatLabel}
               {formatAxisLabel}
               bind:context={audienceCtx}
               ontransform={(details) => handleTransform(audienceCtx, details)}
@@ -432,7 +407,7 @@
               <tbody>
                 {#each audienceRows as row}
                   <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                    <th scope="row">{formatLabel(row.Period)}</th>
                     <td>{row.Group}</td>
                     <td>{formatCount(row.Count)}</td>
                   </tr>
@@ -469,7 +444,7 @@
             <PageViewSeriesChart
               rows={deviceRows}
               {chartType}
-              formatTooltipLabel={formatPeriodLabel}
+              formatTooltipLabel={formatLabel}
               {formatAxisLabel}
               bind:context={deviceCtx}
               ontransform={(details) => handleTransform(deviceCtx, details)}
@@ -485,7 +460,7 @@
               <tbody>
                 {#each deviceRows as row}
                   <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                    <th scope="row">{formatLabel(row.Period)}</th>
                     <td>{row.Group}</td>
                     <td>{formatCount(row.Count)}</td>
                   </tr>
@@ -520,7 +495,7 @@
             <PageViewSeriesChart
               rows={originRows}
               {chartType}
-              formatTooltipLabel={formatPeriodLabel}
+              formatTooltipLabel={formatLabel}
               {formatAxisLabel}
               bind:context={originCtx}
               ontransform={(details) => handleTransform(originCtx, details)}
@@ -536,7 +511,7 @@
               <tbody>
                 {#each originRows as row}
                   <tr>
-                    <th scope="row">{formatPeriodLabel(row.Period)}</th>
+                    <th scope="row">{formatLabel(row.Period)}</th>
                     <td>{row.Group}</td>
                     <td>{formatCount(row.Count)}</td>
                   </tr>

@@ -1,9 +1,5 @@
-import { describe, expect, test, vi } from 'vitest';
-import {
-  normalizeGutscheine,
-  suggestNextGutscheinnummer,
-  type GutscheinRaw,
-} from '../src/utils/gutschein';
+import { describe, expect, test } from 'vitest';
+import { normalizeGutscheine, type GutscheinRaw } from '../src/utils/gutschein';
 
 describe('normalizeGutscheine', () => {
   test('accepts both API casings and fills the gaps with empty values', () => {
@@ -47,24 +43,5 @@ describe('normalizeGutscheine', () => {
   test('returns an empty list when the fetch yielded no array', () => {
     expect(normalizeGutscheine(undefined)).toEqual([]);
     expect(normalizeGutscheine(null)).toEqual([]);
-  });
-});
-
-describe('suggestNextGutscheinnummer', () => {
-  test('continues the current year and ignores older numbers', () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2025-06-15T10:00:00Z'));
-    try {
-      const gutscheine = normalizeGutscheine([
-        { gutscheinnummer: '202417' },
-        { gutscheinnummer: '202503' },
-        { gutscheinnummer: '202511' },
-      ]);
-
-      expect(suggestNextGutscheinnummer(gutscheine)).toBe('202512');
-      expect(suggestNextGutscheinnummer([])).toBe('202501');
-    } finally {
-      vi.useRealTimers();
-    }
   });
 });

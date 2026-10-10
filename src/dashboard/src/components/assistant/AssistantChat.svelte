@@ -2,66 +2,14 @@
   import { ArrowDown, ArrowUp, ChevronDown, RotateCcw, Send, Sparkles } from '@lucide/svelte';
 
   import { toNumber } from '../../utils/formatters';
-
-  type ToolTrace = {
-    tool: string;
-    arguments: string;
-  };
-
-  type ToolTraceRaw = {
-    tool?: string;
-    Tool?: string;
-    arguments?: string;
-    Arguments?: string;
-  };
-
-  type Usage = {
-    inputTokens: number;
-    outputTokens: number;
-    reasoningTokens: number;
-    cachedInputTokens: number;
-    cost: number;
-    currency: string;
-    inputPricePerMillion: number;
-    outputPricePerMillion: number;
-  };
-
-  type UsageRaw = {
-    inputTokens?: number | string | null;
-    InputTokens?: number | string | null;
-    outputTokens?: number | string | null;
-    OutputTokens?: number | string | null;
-    reasoningTokens?: number | string | null;
-    ReasoningTokens?: number | string | null;
-    cachedInputTokens?: number | string | null;
-    CachedInputTokens?: number | string | null;
-    cost?: number | string | null;
-    Cost?: number | string | null;
-    currency?: string | null;
-    Currency?: string | null;
-    inputPricePerMillion?: number | string | null;
-    InputPricePerMillion?: number | string | null;
-    outputPricePerMillion?: number | string | null;
-    OutputPricePerMillion?: number | string | null;
-  };
-
-  type AskResultRaw = {
-    reply?: string;
-    Reply?: string;
-    session?: unknown;
-    Session?: unknown;
-    tools?: ToolTraceRaw[];
-    Tools?: ToolTraceRaw[];
-    usage?: UsageRaw | null;
-    Usage?: UsageRaw | null;
-  };
-
-  type ProblemDetails = {
-    title?: string;
-    status?: number;
-    detail?: string;
-    Detail?: string;
-  };
+  import { apiRequest } from '../../utils/api';
+  import {
+    normalizeToolTraces,
+    normalizeUsage,
+    type AskResultRaw,
+    type ToolTrace,
+    type Usage,
+  } from '../../utils/assistant';
 
   type ChatMessage = {
     id: number;
@@ -120,40 +68,6 @@
       : '',
   );
 
-  /**
-   * Normalizes a tool trace, handling both camelCase and PascalCase field names.
-   */
-  const normalizeToolTrace = (eintrag: ToolTraceRaw | null | undefined): ToolTrace => ({
-    tool: eintrag?.tool ?? eintrag?.Tool ?? '',
-    arguments: eintrag?.arguments ?? eintrag?.Arguments ?? '',
-  });
-
-  const normalizeToolTraces = (eintraege: ToolTraceRaw[] | null | undefined): ToolTrace[] =>
-    Array.isArray(eintraege) ? eintraege.map(normalizeToolTrace) : [];
-
-  /**
-   * Normalizes the per-request usage, handling both camelCase and PascalCase field names.
-   * Older or partial responses carry no usage at all, which stays `null`.
-   */
-  const normalizeUsage = (verbrauch: UsageRaw | null | undefined): Usage | null => {
-    if (!verbrauch) return null;
-
-    return {
-      inputTokens: toNumber(verbrauch.inputTokens ?? verbrauch.InputTokens),
-      outputTokens: toNumber(verbrauch.outputTokens ?? verbrauch.OutputTokens),
-      reasoningTokens: toNumber(verbrauch.reasoningTokens ?? verbrauch.ReasoningTokens),
-      cachedInputTokens: toNumber(verbrauch.cachedInputTokens ?? verbrauch.CachedInputTokens),
-      cost: toNumber(verbrauch.cost ?? verbrauch.Cost),
-      currency: verbrauch.currency ?? verbrauch.Currency ?? 'EUR',
-      inputPricePerMillion: toNumber(
-        verbrauch.inputPricePerMillion ?? verbrauch.InputPricePerMillion,
-      ),
-      outputPricePerMillion: toNumber(
-        verbrauch.outputPricePerMillion ?? verbrauch.OutputPricePerMillion,
-      ),
-    };
-  };
-
   /** Puts the unanswered question back into the textarea and drops its pending bubble. */
   function zuruecksetzenNachFehler(gestellteFrage: string, meldung: string) {
     const letzte = messages[messages.length - 1];
@@ -189,26 +103,25 @@
     ];
     laedt = true;
 
-    try {
-      const antwort = await fetch('/api/assistant', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: bereinigt, session }),
-      });
+    const outcome = await apiRequest<AskResultRaw>('/api/assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: bereinigt, session }),
+      fallback: 'Die Frage konnte nicht beantwortet werden.',
+      networkFallback:
+        'Der Assistent ist gerade nicht erreichbar. Bitte später noch einmal versuchen.',
+    });
 
-      if (!antwort.ok) {
-        const problem: ProblemDetails | null = await antwort.json().catch(() => null);
-        zuruecksetzenNachFehler(
-          bereinigt,
-          problem?.detail || problem?.Detail || 'Die Frage konnte nicht beantwortet werden.',
-        );
-        return;
+    if (!outcome.ok) {
+      console.error('Assistent-Anfrage fehlgeschlagen', outcome);
+      if (outcome.kind !== 'aborted') {
+        zuruecksetzenNachFehler(bereinigt, outcome.message);
       }
-
-      const daten: AskResultRaw = await antwort.json();
+    } else {
+      const daten = outcome.data;
       const antwortText = daten.reply ?? daten.Reply ?? '';
       session = daten.session ?? daten.Session ?? null;
-      const verbrauch = normalizeUsage(daten.usage ?? daten.Usage);
+      const verbrauch = normalizeUsage(daten.usage ?? daten.Usage ?? null);
       if (verbrauch) {
         gesamtEingabeTokens += verbrauch.inputTokens;
         gesamtAusgabeTokens += verbrauch.outputTokens;
@@ -222,19 +135,12 @@
           id: naechsteId++,
           role: 'assistant',
           text: antwortText || 'Darauf habe ich keine Antwort gefunden.',
-          tools: normalizeToolTraces(daten.tools ?? daten.Tools),
+          tools: normalizeToolTraces(daten.tools ?? daten.Tools ?? null),
           verbrauch,
         },
       ];
-    } catch (e) {
-      console.error(e);
-      zuruecksetzenNachFehler(
-        bereinigt,
-        'Der Assistent ist gerade nicht erreichbar. Bitte später noch einmal versuchen.',
-      );
-    } finally {
-      laedt = false;
     }
+    laedt = false;
   }
 
   function onSubmit(event: SubmitEvent) {

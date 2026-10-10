@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text.Json;
 using Azure.Data.Tables;
 using dashboard_api.shared.entities;
+using DashboardApi.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -36,13 +37,7 @@ public sealed class Events
 
 		if (!string.Equals(req.Method, HttpMethod.Post.Method, StringComparison.OrdinalIgnoreCase))
 		{
-			var methodNotAllowed = req.CreateResponse(HttpStatusCode.MethodNotAllowed);
-			await methodNotAllowed.WriteAsJsonAsync(new
-			{
-				title = "Method Not Allowed",
-				status = (int)HttpStatusCode.MethodNotAllowed
-			}).ConfigureAwait(false);
-			return methodNotAllowed;
+			return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.MethodNotAllowed, "Method Not Allowed").ConfigureAwait(false);
 		}
 
 		AddEventRequest? payload;
@@ -56,26 +51,12 @@ public sealed class Events
 		catch (JsonException ex)
 		{
 			_logger.LogWarning(ex, "Invalid JSON payload for add-event.");
-			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-			await badRequest.WriteAsJsonAsync(new
-			{
-				title = "Bad Request",
-				status = (int)HttpStatusCode.BadRequest,
-				detail = "Ungültiger Anfrageinhalt."
-			}).ConfigureAwait(false);
-			return badRequest;
+			return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", "Ungültiger Anfrageinhalt.").ConfigureAwait(false);
 		}
 
 		if (payload is null)
 		{
-			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-			await badRequest.WriteAsJsonAsync(new
-			{
-				title = "Bad Request",
-				status = (int)HttpStatusCode.BadRequest,
-				detail = "Ein Ereignis muss angegeben werden."
-			}).ConfigureAwait(false);
-			return badRequest;
+			return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", "Ein Ereignis muss angegeben werden.").ConfigureAwait(false);
 		}
 
 		AddCommand command = new(
@@ -88,14 +69,7 @@ public sealed class Events
 		var (result, error) = await _addHandler.HandleAsync(command, req.FunctionContext.CancellationToken);
 		if (error is not null)
 		{
-			var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-			await badRequest.WriteAsJsonAsync(new
-			{
-				title = "Bad Request",
-				status = (int)HttpStatusCode.BadRequest,
-				detail = error
-			}).ConfigureAwait(false);
-			return badRequest;
+			return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", error).ConfigureAwait(false);
 		}
 
 		var created = req.CreateResponse(HttpStatusCode.Created);

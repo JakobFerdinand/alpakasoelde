@@ -3,6 +3,7 @@
   import FormField from '../ui/FormField.svelte';
   import Modal from '../ui/Modal.svelte';
   import { calculateAge } from '../../utils/formatters';
+  import { apiRequest, RequestGate } from '../../utils/api';
 
   type Alpaka = {
     Id: string;
@@ -12,6 +13,8 @@
   };
 
   const MAX_FILE_SIZE = 15 * 1024 * 1024;
+
+  const alpakaGate = new RequestGate();
 
   let alpakaModalOpen = $state(false);
   let eventModalOpen = $state(false);
@@ -93,19 +96,20 @@
       comment: eventComment.trim() || null,
     };
 
-    try {
-      eventSubmitting = true;
-      const response = await fetch('/api/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    eventSubmitting = true;
+    const outcome = await apiRequest<unknown>('/api/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      fallback: 'Das Ereignis konnte nicht gespeichert werden.',
+    });
 
-      if (!response.ok) {
-        const errorBody = await response.json().catch(() => ({}));
-        throw new Error(errorBody?.detail || 'Das Ereignis konnte nicht gespeichert werden.');
+    if (!outcome.ok) {
+      if (outcome.kind !== 'aborted') {
+        console.error('Fehler beim Speichern des Ereignisses', outcome);
+        alert(outcome.message);
       }
-
+    } else {
       eventType = '';
       selectedAlpakaIds = [];
       eventDate = '';
@@ -113,30 +117,28 @@
       eventComment = '';
       eventModalOpen = false;
       alert('Ereignis erfolgreich gespeichert.');
-    } catch (error) {
-      console.error('Fehler beim Speichern des Ereignisses', error);
-      alert(
-        error instanceof Error ? error.message : 'Das Ereignis konnte nicht gespeichert werden.',
-      );
-    } finally {
-      eventSubmitting = false;
     }
+
+    eventSubmitting = false;
   }
 
   async function loadAlpakas() {
+    const signal = alpakaGate.start();
     loading = true;
-    try {
-      const res = await fetch('/api/alpakas');
-      if (!res.ok) return;
-      alpacas = await res.json();
-    } catch (error) {
-      console.error('Failed to load alpacas:', error);
-    } finally {
-      loading = false;
+    const outcome = await apiRequest<unknown>('/api/alpakas', { signal });
+    if (!alpakaGate.isCurrent(signal)) return;
+    if (outcome.ok) {
+      alpacas = outcome.data as Alpaka[];
+    } else if (outcome.kind !== 'aborted') {
+      console.error('Failed to load alpacas:', outcome.message);
     }
+    loading = false;
   }
 
-  onMount(loadAlpakas);
+  onMount(() => {
+    loadAlpakas();
+    return () => alpakaGate.dispose();
+  });
 </script>
 
 <section class="dashboard-alpaka section">

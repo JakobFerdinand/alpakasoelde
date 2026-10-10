@@ -10,6 +10,8 @@ namespace DashboardApi.Features.PageViews;
 public sealed class GetPageViewStats
 {
 	private const int TableLookbackDays = 180;
+	private const int DefaultDays = 28;
+	private const int HourGranularityMaxDays = 28;
 
 	private readonly Handler _handler;
 	private readonly ILogger<GetPageViewStats> _logger;
@@ -24,15 +26,34 @@ public sealed class GetPageViewStats
 	public async Task<HttpResponseData> Run(
 		[HttpTrigger(AuthorizationLevel.Function, "get", Route = "pageviews/stats")] HttpRequestData req)
 	{
-		int days = 28;
-		if (int.TryParse(req.Query["days"], out int requestedDays) && requestedDays > 0)
+		Query query = Parse(
+			req.Query["days"],
+			req.Query["from"],
+			req.Query["to"],
+			req.Query["granularity"],
+			req.Query["groupBy"]);
+
+		Result result = await _handler.HandleAsync(query, req.FunctionContext.CancellationToken);
+		var response = req.CreateResponse(HttpStatusCode.OK);
+		await response.WriteAsJsonAsync(result).ConfigureAwait(false);
+		return response;
+	}
+
+	/// <summary>
+	/// The one parse of the stats query string: every malformed input silently
+	/// falls back (exactly as the endpoint always behaved), the day lookback is
+	/// capped at <see cref="TableLookbackDays"/> and hour granularity never
+	/// reaches beyond <see cref="HourGranularityMaxDays"/>.
+	/// </summary>
+	internal static Query Parse(string? daysParam, string? fromParam, string? toParam, string? granularityParam, string? groupByParam)
+	{
+		int days = DefaultDays;
+		if (int.TryParse(daysParam, out int requestedDays) && requestedDays > 0)
 		{
 			days = Math.Min(requestedDays, TableLookbackDays);
 		}
 
 		DateTimeOffset? windowStart = null;
-		string? fromParam = req.Query["from"];
-		string? toParam = req.Query["to"];
 		if (DateOnly.TryParse(fromParam, out DateOnly from) && DateOnly.TryParse(toParam, out DateOnly to) && to >= from)
 		{
 			int computedDays = (to.DayNumber - from.DayNumber) + 1;
@@ -40,21 +61,16 @@ public sealed class GetPageViewStats
 			windowStart = new DateTimeOffset(from.Year, from.Month, from.Day, 0, 0, 0, TimeSpan.Zero);
 		}
 
-		string? granularityParam = req.Query["granularity"];
 		string granularity = granularityParam is "week" or "day" or "hour" ? granularityParam : "week";
 
-		string? groupByParam = req.Query["groupBy"];
 		string groupBy = groupByParam is "total" or "path" or "device" or "origin" ? groupByParam : "path";
 
 		if (granularity == "hour")
 		{
-			days = Math.Min(days, 28);
+			days = Math.Min(days, HourGranularityMaxDays);
 		}
 
-		Result result = await _handler.HandleAsync(new Query(days, granularity, groupBy, windowStart), req.FunctionContext.CancellationToken);
-		var response = req.CreateResponse(HttpStatusCode.OK);
-		await response.WriteAsJsonAsync(result).ConfigureAwait(false);
-		return response;
+		return new Query(days, granularity, groupBy, windowStart);
 	}
 
 	public sealed record Query(int Days, string Granularity, string GroupBy, DateTimeOffset? WindowStart = null);

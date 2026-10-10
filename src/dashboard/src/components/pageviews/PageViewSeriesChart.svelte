@@ -13,10 +13,9 @@
   } from 'layerchart';
   import { scaleBand } from 'd3-scale';
   import { sum } from 'd3-array';
+  import { type ChartType, type SeriesRow } from '../../utils/pageviews';
 
-  type SeriesRow = { Period: string; Group: string; Count: number };
   type StackItem = { Group: string; value: number };
-  type ChartType = 'bars-stacked' | 'bars-grouped' | 'line' | 'area';
 
   interface Props {
     rows: SeriesRow[];

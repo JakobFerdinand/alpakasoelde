@@ -5,6 +5,7 @@ using Microsoft.Agents.AI;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.AI;
+using DashboardApi.Shared;
 using Microsoft.Extensions.Logging;
 
 namespace DashboardApi.Features.Assistant;
@@ -69,14 +70,7 @@ public sealed class Assistant
 
 		if (error is not null)
 		{
-			var badGateway = req.CreateResponse(HttpStatusCode.BadGateway);
-			await badGateway.WriteAsJsonAsync(new
-			{
-				title = "Bad Gateway",
-				status = (int)HttpStatusCode.BadGateway,
-				detail = error
-			}).ConfigureAwait(false);
-			return badGateway;
+			return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadGateway, "Bad Gateway", error).ConfigureAwait(false);
 		}
 
 		var response = req.CreateResponse(HttpStatusCode.OK);
@@ -86,14 +80,7 @@ public sealed class Assistant
 
 	private static async Task<HttpResponseData> BadRequestAsync(HttpRequestData req, string detail)
 	{
-		var badRequest = req.CreateResponse(HttpStatusCode.BadRequest);
-		await badRequest.WriteAsJsonAsync(new
-		{
-			title = "Bad Request",
-			status = (int)HttpStatusCode.BadRequest,
-			detail
-		}).ConfigureAwait(false);
-		return badRequest;
+		return await ProblemDetailsResponses.CreateAsync(req, HttpStatusCode.BadRequest, "Bad Request", detail).ConfigureAwait(false);
 	}
 
 	/// <summary>

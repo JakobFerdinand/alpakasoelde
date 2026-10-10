@@ -72,6 +72,21 @@ public sealed class AddGutscheinHandlerTests
         Assert.Equal(new DateTimeOffset(2025, 7, 1, 0, 0, 0, TimeSpan.Zero), Assert.Single(store.Entities).EingeloestAm);
     }
 
+    [Fact]
+    public async Task A_duplicate_number_is_rejected_and_writes_nothing()
+    {
+        InMemoryGutscheinStore store = new(Purchased("202503"));
+        AddGutschein.Handler handler = CreateHandler(store);
+
+        var (result, error) = await handler.HandleAsync(
+            new AddGutschein.AddCommand("202503", "2025-06-15", 75, null, null),
+            TestContext.Current.CancellationToken);
+
+        Assert.Null(result);
+        Assert.Equal("Die angegebene Gutscheinnummer existiert bereits.", error);
+        Assert.Single(store.Entities);
+    }
+
     [Theory]
     [InlineData("202417", null, "Die Gutscheinnummer muss mit 2025 beginnen und mindestens zwei Ziffern enthalten.")]
     [InlineData(null, "2025-06-01", "Das Einlösedatum darf nicht vor dem Kaufdatum liegen.")]

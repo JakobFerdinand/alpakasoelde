@@ -33,7 +33,7 @@ export const normalizeGutschein = (gutschein: GutscheinRaw | null | undefined): 
       kaufdatum: '',
       betrag: null,
       eingeloestAm: null,
-      verkauftAn: null
+      verkauftAn: null,
     };
   }
 
@@ -42,7 +42,7 @@ export const normalizeGutschein = (gutschein: GutscheinRaw | null | undefined): 
     kaufdatum: gutschein.kaufdatum ?? gutschein.Kaufdatum ?? '',
     betrag: gutschein.betrag ?? gutschein.Betrag ?? null,
     eingeloestAm: gutschein.eingeloestAm ?? gutschein.EingeloestAm ?? null,
-    verkauftAn: gutschein.verkauftAn ?? gutschein.VerkauftAn ?? null
+    verkauftAn: gutschein.verkauftAn ?? gutschein.VerkauftAn ?? null,
   };
 };
 
@@ -52,19 +52,4 @@ export const normalizeGutschein = (gutschein: GutscheinRaw | null | undefined): 
 export const normalizeGutscheine = (gutscheine: GutscheinRaw[] | null | undefined): Gutschein[] => {
   if (!Array.isArray(gutscheine)) return [];
   return gutscheine.map(normalizeGutschein);
-};
-
-/**
- * Suggests the next gutschein number based on existing gutscheine.
- */
-export const suggestNextGutscheinnummer = (gutscheine: Gutschein[]): string => {
-  const jahresPraefix = new Date().getFullYear().toString();
-  const hoechsteEndung = gutscheine
-    .map((g) => g.gutscheinnummer)
-    .filter((nummer) => nummer?.startsWith(jahresPraefix))
-    .map((nummer) => nummer?.slice(jahresPraefix.length) ?? '0')
-    .map((endung) => (Number.isNaN(Number(endung)) ? 0 : Number(endung)))
-    .reduce((max, aktuell) => Math.max(max, aktuell), 0);
-
-  return `${jahresPraefix}${String(hoechsteEndung + 1).padStart(2, '0')}`;
 };
