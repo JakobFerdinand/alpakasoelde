@@ -1,25 +1,67 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import ServiceHero from "../components/ServiceHero.astro";
-import Slideshow from "../components/Slideshow.astro";
+import ServiceHero from '../components/ServiceHero.astro';
+import Slideshow, { type StorySlide } from '../components/Slideshow.astro';
 
-import heroImage from "../images/impressions/impression_7.jpg";
+import heroImage from '../images/impressions/impression_7.jpg';
 
-import Strickgabel from "../images/produkte/Strickgabel.jpeg";
-import Zauberwolle from "../images/produkte/Zauberwolle.jpg";
-import WolleAmadeus from "../images/produkte/Wolle_Amadeus.jpg";
-import Karten from "../images/produkte/Karten.jpg";
-import Polster from "../images/produkte/Polster.jpg";
-import Wollpellets from "../images/produkte/Wollpellets.jpg";
+import Strickgabel from '../images/produkte/Strickgabel.jpeg';
+import Zauberwolle from '../images/produkte/Zauberwolle.jpg';
+import WolleAmadeus from '../images/produkte/Wolle_Amadeus.jpg';
+import Karten from '../images/produkte/Karten.jpg';
+import Polster from '../images/produkte/Polster.jpg';
+import Wollpellets from '../images/produkte/Wollpellets.jpg';
 
-const images = [
-  { src: Strickgabel, alt: 'Strickgabel aus Holz mit einer angestrickten Kordel aus bunter Zauberwolle' },
-  { src: Zauberwolle, alt: 'Strang Zauberwolle: schwarzes Alpakagarn mit pink, grün und blau verzwirnten Fäden' },
-  { src: WolleAmadeus, alt: 'Handgesponnener Strang naturbrauner Alpakawolle von Amadeus' },
-  { src: Karten, alt: 'Drei dunkelgrüne Grußkarten mit dem goldenen Alpaka-Signet der Alpakasölde' },
-  { src: Polster, alt: 'Zwei Leinenpölster mit Alpakafüllung, bestempelt mit den Namen Ludwig und Amadeus' },
-  { src: Wollpellets, alt: 'Papiersackerl mit 250 g Alpaka-Wollpellets als Naturdünger, mit roter Schleife' },
+const slideData = [
+  {
+    src: Strickgabel,
+    alt: 'Hölzerne Strickgabel mit einer angestrickten Kordel aus schwarzem Garn mit bunten Fäden, daneben ein Knäuel',
+    label: 'Hofladen',
+    title: 'Strickgabel',
+    text: 'Eine Holzgabel, ein Faden, mehr braucht es nicht: Mit der Strickgabel entsteht Masche für Masche eine Kordel, ganz ohne Nadeln.',
+    focal: 'center 40%',
+  },
+  {
+    src: Zauberwolle,
+    alt: 'Strang Zauberwolle: schwarzes Alpakagarn, verzwirnt mit pinken, grünen, blauen, orangen und weißen Fäden',
+    label: 'Hofladen',
+    title: 'Zauberwolle',
+    text: 'Schwarze Alpakawolle, verzwirnt mit pinken, grünen, blauen und orangen Fäden: Aus der Nähe sieht jeder Strang ein bisschen anders aus.',
+  },
+  {
+    src: WolleAmadeus,
+    alt: 'Strang dunkelbrauner Alpakawolle neben grünen Tannen- und Thujazweigen',
+    label: 'Hofladen',
+    title: 'Wolle Amadeus',
+    text: 'Ein dunkles Schokobraun, so wie es Amadeus trägt: ungefärbt und von Hand gesponnen.',
+  },
+  {
+    src: Karten,
+    alt: 'Drei dunkelgrüne Klappkarten mit goldenem Quadrat und ausgespartem Alpaka-Motiv',
+    label: 'Hofladen',
+    title: 'Karten',
+    text: 'Für jeden Anlass liegt etwas Handgemachtes bereit – vom Geburtstagsgruß bis zum kleinen Danke. Wer mag, legt gleich einen Gutschein für ein Alpaka-Erlebnis dazu.',
+  },
+  {
+    src: Polster,
+    alt: 'Zwei Leinenpölster mit gestempeltem Alpaka-Logo und den Namen Ludwig und Amadeus, auf einem weißen Schaffell',
+    label: 'Zuhause',
+    title: 'Pölster',
+    text: 'Herrlich weiche Pölster, gefüllt mit der Wolle unserer Tiere – sie wärmen im Winter und lassen an warmen Tagen die Faser atmen.',
+  },
+  {
+    src: Wollpellets,
+    alt: 'Kraftpapiersackerl mit handgeschriebenem "Alpaka-Wollpellets", Alpaka-Stempel, 250 g und dunkelroter Schleife',
+    label: 'Für den Garten',
+    title: 'Wollpellets',
+    text: 'Von der Schur zurück auf die Weide: naturreine Wollpellets, die deinen Beeten langsam und sanft Nahrung geben.',
+  },
 ];
+
+const slides: StorySlide[] = slideData.map((slide, i) => {
+  const { label, ...rest } = slide;
+  return { ...rest, kicker: `${String(i + 1).padStart(2, '0')} · ${label}` };
+});
 ---
 
 <Layout
@@ -39,13 +81,23 @@ const images = [
   <section class="service-page section">
     <div class="container">
       <h2>Aus unserem Hofladen</h2>
-      <p>Tauche ein in die kuschelweiche Welt der Alpakas: In unserem Hofladen findest du handgesponnene Wolle, liebevoll gefertigte Accessoires und viele weitere Kostbarkeiten.</p>
-      <p>Ob herrlich weiche Pölster mit Alpakafüllung, Zauberwolle samt Strickgabel oder naturreine Wollpellets als Dünger – hier entdeckst du, wie vielseitig Alpaka sein kann. Ein Blick in unseren Schaukasten lohnt sich immer.</p>
-      <p>Auf Vorbestellung können wir dir auch gerne eine persönliche Decke aus feinster Alpakafaser anbieten.</p>
+      <p>
+        Tauche ein in die kuschelweiche Welt der Alpakas: In unserem Hofladen findest du
+        handgesponnene Wolle, liebevoll gefertigte Accessoires und viele weitere Kostbarkeiten.
+      </p>
+      <p>
+        Ob herrlich weiche Pölster mit Alpakafüllung, Zauberwolle samt Strickgabel oder naturreine
+        Wollpellets als Dünger – hier entdeckst du, wie vielseitig Alpaka sein kann. Ein Blick in
+        unseren Schaukasten lohnt sich immer.
+      </p>
+      <p>
+        Auf Vorbestellung können wir dir auch gerne eine persönliche Decke aus feinster Alpakafaser
+        anbieten.
+      </p>
     </div>
   </section>
   <section class="section">
-    <Slideshow images={images} />
+    <Slideshow slides={slides} label="Fotos aus unserem Hofladen" eyebrow="Aus unserem Hofladen" />
   </section>
 </Layout>
 
