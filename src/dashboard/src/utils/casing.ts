@@ -12,6 +12,12 @@ const flipFirstLetter = (key: string): string => {
     : first.toUpperCase() + key.slice(1);
 };
 
+/** Reads a string field, defaulting to '' for anything else. */
+export const asString = (raw: unknown): string => (typeof raw === 'string' ? raw : '');
+
+/** Reads a count field, defaulting to 0 for anything else. */
+export const asCount = (raw: unknown): number => (typeof raw === 'number' ? raw : 0);
+
 /**
  * Picks a value under the camelCase or PascalCase spelling of a key.
  * An explicit `null` counts as a value and is never replaced by the other casing.

@@ -9,7 +9,7 @@ export type ToolTrace = {
   arguments: string;
 };
 
-export type ToolTraceRaw = {
+type ToolTraceRaw = {
   tool?: string;
   Tool?: string;
   arguments?: string;

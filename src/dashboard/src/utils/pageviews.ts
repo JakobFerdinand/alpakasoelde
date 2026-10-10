@@ -3,7 +3,7 @@
  * The API answers PascalCase; readers keep their PascalCase result type
  * while the lookup itself accepts both spellings.
  */
-import { pickCase } from './casing';
+import { asCount, asString, pickCase } from './casing';
 
 export type PathCount = { Path: string; Count: number };
 export type DeviceCount = { Category: string; Count: number };
@@ -29,10 +29,6 @@ export type StatsResult = {
   Granularity: Granularity;
   GroupBy: GroupBy | 'total';
 };
-
-const asString = (raw: unknown): string => (typeof raw === 'string' ? raw : '');
-
-const asCount = (raw: unknown): number => (typeof raw === 'number' ? raw : 0);
 
 const pathCounts = (raw: unknown): PathCount[] =>
   Array.isArray(raw)
@@ -109,9 +105,9 @@ export const normalizePageViewStats = (raw: unknown): StatsResult => {
  * hour granularity only up to 28 days, a valid custom range overriding
  * the days window, and unknown granularities falling back to 'week'.
  */
-export const MAX_STATS_DAYS = 180;
+const MAX_STATS_DAYS = 180;
 export const MAX_HOUR_GRANULARITY_DAYS = 28;
-export const DEFAULT_STATS_DAYS = 28;
+const DEFAULT_STATS_DAYS = 28;
 
 const DAY_MS = 86_400_000;
 
@@ -122,13 +118,11 @@ export type StatsWindow = {
   to: string | null;
 };
 
-export type StatsWindowInput = {
-  days: number;
-  from: string | null;
-  to: string | null;
-};
+/** The requested window; the same shape as {@link StatsWindow} before normalisation. */
+type StatsWindowInput = StatsWindow;
 
-export type StatsRangeInput = StatsWindowInput & {
+/** The requested window together with the requested granularity. */
+type StatsRangeInput = StatsWindow & {
   granularity: string;
 };
 

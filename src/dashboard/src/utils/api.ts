@@ -6,20 +6,20 @@
  * superseded request can therefore never surface as an error.
  */
 
-export type ApiStatusOutcome = {
+type ApiStatusOutcome = {
   ok: false;
   kind: 'status';
   status: number;
   message: string;
 };
 
-export type ApiNetworkOutcome = {
+type ApiNetworkOutcome = {
   ok: false;
   kind: 'network';
   message: string;
 };
 
-export type ApiAbortedOutcome = {
+type ApiAbortedOutcome = {
   ok: false;
   kind: 'aborted';
 };
@@ -49,7 +49,7 @@ const DEFAULT_NETWORK_FALLBACK = 'Der Server ist momentan nicht erreichbar.';
  * Reads the human-readable message from a problem-details body, trying `detail`
  * and `Detail`, falling back to `fallback` (or a German default).
  */
-export const problemMessage = (body: unknown, status: number, fallback?: string): string => {
+const problemMessage = (body: unknown, status: number, fallback?: string): string => {
   const details = typeof body === 'object' && body !== null ? (body as ProblemDetails) : null;
   return details?.detail || details?.Detail || fallback || defaultStatusFallback(status);
 };

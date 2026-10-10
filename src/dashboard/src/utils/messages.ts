@@ -2,7 +2,7 @@
  * Casing-tolerant normalizers for the messages API.
  * The API answers PascalCase, older shapes camelCase — both must keep working.
  */
-import { pickCase } from './casing';
+import { asCount, asString, pickCase } from './casing';
 
 export type Message = {
   Id: string;
@@ -23,10 +23,6 @@ export type MessageStats = {
   OldCount: number;
   Series: MessagePeriodBucket[];
 };
-
-const asString = (raw: unknown): string => (typeof raw === 'string' ? raw : '');
-
-const asCount = (raw: unknown): number => (typeof raw === 'number' ? raw : 0);
 
 export const normalizeMessage = (raw: unknown): Message => ({
   Id: asString(pickCase(raw, 'id')),
