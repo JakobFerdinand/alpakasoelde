@@ -43,7 +43,7 @@ test.describe('the slideshow lightbox', () => {
     const lightboxImage = lightbox.getByRole('img');
     await expect(lightboxImage).toHaveAttribute(
       'alt',
-      'Strickgabel aus Holz mit einer angestrickten Kordel aus bunter Zauberwolle',
+      'Hölzerne Strickgabel mit einer angestrickten Kordel aus schwarzem Garn mit bunten Fäden, daneben ein Knäuel',
     );
     await expect(lightbox.getByText('Strickgabel', { exact: true })).toBeVisible();
 
