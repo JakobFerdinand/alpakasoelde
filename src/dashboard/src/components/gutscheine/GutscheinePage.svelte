@@ -5,8 +5,8 @@
   import GutscheinListe from './GutscheinListe.svelte';
   import { apiRequest, RequestGate } from '../../utils/api';
   import {
+    normalizeGutschein,
     normalizeGutscheine,
-    suggestNextGutscheinnummer,
     type Gutschein,
     type GutscheinRaw,
   } from '../../utils/gutschein';
@@ -57,15 +57,8 @@
     statusIsError = false;
   };
 
-  const naechsteNummerVorschlagen = (liste: Gutschein[]) => {
-    if (!gutscheinnummer) {
-      gutscheinnummer = suggestNextGutscheinnummer(liste);
-    }
-  };
-
   const listeRendern = (liste: Gutschein[]) => {
     gutscheine = liste;
-    naechsteNummerVorschlagen(liste);
   };
 
   async function gutscheineLaden() {
@@ -97,7 +90,7 @@
     sendenDisabled = true;
     sendenText = 'Speichern...';
 
-    const outcome = await apiRequest<{ gutscheinnummer?: string }>('/api/gutscheine', {
+    const outcome = await apiRequest<unknown>('/api/gutscheine', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -121,8 +114,9 @@
       betrag = '';
       eingeloestAm = '';
       verkauftAn = '';
-      naechsteNummerVorschlagen([]);
-      statusAnzeigen(`Gutschein ${outcome.data.gutscheinnummer ?? ''} wurde gespeichert.`);
+      statusAnzeigen(
+        `Gutschein ${normalizeGutschein(outcome.data as GutscheinRaw).gutscheinnummer} wurde gespeichert.`,
+      );
       await gutscheineLaden();
     }
 
@@ -204,9 +198,9 @@
       >
         <form id="gutschein-formular" class="gutschein-formular" onsubmit={onGutscheinSubmit}>
           <FormField
-            label="Gutscheinnummer"
+            label="Gutscheinnummer (optional)"
             id="gutscheinnummer"
-            hint="Standardmäßig wird die nächste Nummer vorgeschlagen. Bei Bedarf überschreiben."
+            hint="Wird automatisch vergeben, wenn das Feld leer bleibt."
           >
             <input
               id="gutscheinnummer"
