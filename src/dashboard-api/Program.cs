@@ -74,7 +74,7 @@ var host = new HostBuilder()
                 {
                     Instructions = AssistantPrompt.SystemPrompt,
                     Tools = sp.GetRequiredService<AssistantTools>().All,
-                    // gpt-5-nano is a reasoning model and its reasoning tokens are drawn from this budget.
+                    // gpt-6-luna is a reasoning model and its reasoning tokens are drawn from this budget.
                     // At 800 they consumed the lot on a normal question, leaving finish_reason 'length' and
                     // an empty answer; 2000 leaves room for the reply itself.
                     MaxOutputTokens = 2000,

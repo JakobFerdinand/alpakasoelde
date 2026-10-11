@@ -24,7 +24,6 @@ The Azure estate is managed with Bicep under `infrastructure/` (`main.bicep` is
 resource-group scoped, `main-subscription.bicep` covers the cost budget). Changes
 to `infrastructure/**` deploy automatically via the `infra-deploy.yml` workflow,
 which previews with `what-if` on PRs and applies on `main`. This includes an
-Azure OpenAI `gpt-5-nano` deployment that classifies contact-form submissions
+Azure OpenAI `gpt-6-luna` deployment that classifies contact-form submissions
 (see `AGENTS.md` → *Environment & Configuration*). See
-`docs/plans/001-infrastructure-as-code.md` for the adoption plan and `AGENTS.md` for the exact `az`
-commands.
+`AGENTS.md` for the exact `az` commands.

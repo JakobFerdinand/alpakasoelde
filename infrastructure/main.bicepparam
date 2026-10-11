@@ -42,11 +42,11 @@ param dashboardCustomDomains = [
 
 param openAiName = 'openai-alpakasoelde'
 param openAiLocation = 'germanywestcentral'
-param openAiDeploymentName = 'gpt-5-nano'
-param openAiModelName = 'gpt-5-nano'
-param openAiModelVersion = '2025-08-07'
+param openAiDeploymentName = 'spam-classifier'
+param openAiModelName = 'gpt-6-luna'
+param openAiModelVersion = '2026-09-22'
 param openAiCapacity = 20
-param openAiAssistantDeploymentName = 'assistant-nano'
-param openAiAssistantModelName = 'gpt-5-nano'
-param openAiAssistantModelVersion = '2025-08-07'
+param openAiAssistantDeploymentName = 'dashboard-assistant'
+param openAiAssistantModelName = 'gpt-6-luna'
+param openAiAssistantModelVersion = '2026-09-22'
 param openAiAssistantCapacity = 10
