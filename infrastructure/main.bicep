@@ -61,25 +61,25 @@ param openAiName string
 param openAiLocation string
 
 @description('Name of the model deployment for the spam classifier.')
-param openAiDeploymentName string = 'gpt-5-nano'
+param openAiDeploymentName string = 'spam-classifier'
 
 @description('Model to deploy for the spam classifier.')
-param openAiModelName string = 'gpt-5-nano'
+param openAiModelName string = 'gpt-6-luna'
 
 @description('Model version to deploy for the spam classifier.')
-param openAiModelVersion string = '2025-08-07'
+param openAiModelVersion string = '2026-09-22'
 
 @description('Global Standard capacity (thousands of tokens per minute) of the spam classifier deployment.')
 param openAiCapacity int = 20
 
 @description('Name of the model deployment for the dashboard assistant.')
-param openAiAssistantDeploymentName string = 'assistant-nano'
+param openAiAssistantDeploymentName string = 'dashboard-assistant'
 
 @description('Model to deploy for the dashboard assistant.')
-param openAiAssistantModelName string = 'gpt-5-nano'
+param openAiAssistantModelName string = 'gpt-6-luna'
 
 @description('Model version to deploy for the dashboard assistant.')
-param openAiAssistantModelVersion string = '2025-08-07'
+param openAiAssistantModelVersion string = '2026-09-22'
 
 @description('Global Standard capacity (thousands of tokens per minute) of the dashboard assistant deployment.')
 param openAiAssistantCapacity int = 10
