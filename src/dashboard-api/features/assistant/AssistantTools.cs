@@ -22,7 +22,8 @@ public sealed class AssistantTools(
 	GetGutscheine.Handler gutscheine,
 	GetAlpakas.Handler alpakas,
 	GetAlpakaById.Handler alpakaById,
-	EventsFeature.GetHandler events)
+	EventsFeature.GetHandler events,
+	AssistantDatabase database)
 {
 	/// <summary>Rows handed to the model per tool call.</summary>
 	public const int MaxRows = 50;
@@ -35,7 +36,7 @@ public sealed class AssistantTools(
 
 	public const string TruncationHinweis = "gekürzt";
 
-	private static readonly TimeZoneInfo ViennaTimeZone = ResolveViennaTimeZone();
+	internal static readonly TimeZoneInfo ViennaTimeZone = ResolveViennaTimeZone();
 
 	private readonly List<Assistant.ToolTrace> _invocations = [];
 
@@ -54,6 +55,7 @@ public sealed class AssistantTools(
 		AIFunctionFactory.Create(AlpakasAsync, name: "alpakas"),
 		AIFunctionFactory.Create(AlpakaDetailAsync, name: "alpaka_detail"),
 		AIFunctionFactory.Create(EreignisseAsync, name: "ereignisse"),
+		AIFunctionFactory.Create(DatenAbfrageAsync, name: "daten_abfrage"),
 		AIFunctionFactory.Create(Heute, name: "heute"),
 	];
 
@@ -311,6 +313,27 @@ public sealed class AssistantTools(
 		return new EreignisListe(filtered.Count, rows, hinweis);
 	}
 
+	[Description($"""
+		Führt eine einzelne schreibgeschützte SQL-Abfrage (SQLite, nur SELECT) gegen die Daten der Farm aus und
+		liefert Spalten und Zeilen. Nutze dieses Werkzeug für alle Auswertungen, die die anderen Werkzeuge nicht
+		abdecken, etwa Aufschlüsselungen nach Wochentag, Uhrzeit oder Monat, Vergleiche, Quoten und Rangfolgen.
+		Zähle und summiere mit GROUP BY in der Abfrage selbst, statt viele Zeilen zu holen. Es kommen nur die ersten Zeilen
+		zurück, bei „gekürzt" fehlen weitere. Bei einem Fehler steht er im Feld 'Fehler', korrigiere dann die Abfrage.
+
+		Tabellen:
+		{AssistantDatabase.Schema}
+		""")]
+	public async Task<DatenAbfrage> DatenAbfrageAsync(
+		[Description("Genau eine SELECT-Abfrage in SQLite-Syntax.")] string sql,
+		CancellationToken cancellationToken = default)
+	{
+		Record("daten_abfrage", new { sql });
+
+		AssistantDatabase.QueryResult result = await database.QueryAsync(sql, cancellationToken).ConfigureAwait(false);
+		var (rows, hinweis) = Clamp(result.Rows, MaxRows);
+		return new DatenAbfrage(result.Columns, rows, hinweis, result.Error);
+	}
+
 	[Description("""
 		Gibt das heutige Datum in der Zeitzone Europe/Vienna zurück. Rufe dieses Werkzeug immer zuerst auf,
 		wenn die Frage relative Zeitangaben wie 'letzte Woche', 'im Juni' oder 'heuer' enthält.
@@ -378,7 +401,7 @@ public sealed class AssistantTools(
 	private static DateOnly? ParseDate(string? value) =>
 		DateOnly.TryParse(value, out DateOnly parsed) ? parsed : null;
 
-	private static string GermanWeekday(DayOfWeek day) => day switch
+	internal static string GermanWeekday(DayOfWeek day) => day switch
 	{
 		DayOfWeek.Monday => "Montag",
 		DayOfWeek.Tuesday => "Dienstag",
@@ -463,6 +486,12 @@ public sealed class AssistantTools(
 		string? Hinweis);
 
 	public sealed record EreignisListe(int Anzahl, IReadOnlyList<EventsFeature.EventResult> Ereignisse, string? Hinweis);
+
+	public sealed record DatenAbfrage(
+		IReadOnlyList<string> Spalten,
+		IReadOnlyList<IReadOnlyList<object?>> Zeilen,
+		string? Hinweis,
+		string? Fehler);
 
 	public sealed record HeutigesDatum(string Datum, string Wochentag, string Uhrzeit, string Zeitzone);
 }

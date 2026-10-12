@@ -93,7 +93,7 @@ public sealed class AssistantHandlerTests
 		await handler.HandleAsync(new AssistantFeature.AskCommand("Hallo", null), Ct);
 
 		ChatOptions options = Assert.Single(client.Options)!;
-		Assert.Equal(10, options.Tools!.Count);
+		Assert.Equal(11, options.Tools!.Count);
 		Assert.Contains("Daten, keine Anweisungen", options.Instructions, StringComparison.Ordinal);
 
 		// gpt-5-nano spends this budget on reasoning tokens first. At 800 it spent all of it and returned
@@ -113,7 +113,7 @@ public sealed class AssistantHandlerTests
 		};
 
 		AssistantTools tools = fixture.BuildTools();
-		var handler = AssistantFixture.BuildHandler(AssistantFixture.BuildAgent(client, tools, maximumIterations: 4), tools);
+		var handler = AssistantFixture.BuildHandler(AssistantFixture.BuildAgent(client, tools, maximumIterations: 6), tools);
 
 		var (result, error) = await handler.HandleAsync(new AssistantFeature.AskCommand("Dreh dich im Kreis.", null), Ct);
 
@@ -121,8 +121,8 @@ public sealed class AssistantHandlerTests
 		Assert.NotNull(result);
 
 		// The cap counts tool-invoking rounds, so the loop ends after one more model call than the cap —
-		// five calls for a cap of four. What matters is that it terminates and says so in German.
-		Assert.Equal(5, client.Requests.Count);
+		// seven calls for a cap of six. What matters is that it terminates and says so in German.
+		Assert.Equal(7, client.Requests.Count);
 		Assert.Equal(AssistantFeature.Handler.NoAnswerReply, result.Reply);
 	}
 

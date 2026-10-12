@@ -207,6 +207,16 @@ Content-Type: application/json
 
 ###
 
+# Assistant — no fixed tool covers this, so it writes its own SELECT (daten_abfrage)
+POST {{base}}/api/assistant
+Content-Type: application/json
+
+{
+  "question": "An welchen Wochentagen hatten wir in den letzten 2 Monaten die meisten Seitenaufrufe?"
+}
+
+###
+
 # Assistant — needs no tool at all
 POST {{base}}/api/assistant
 Content-Type: application/json
