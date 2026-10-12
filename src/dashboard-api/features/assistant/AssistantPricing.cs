@@ -8,18 +8,19 @@ namespace DashboardApi.Features.Assistant;
 /// <remarks>
 /// The framework supplies tokens but no prices — cost is a billing concept, not a model one — so the rates
 /// live here as constants. They are an **estimate**, deliberately surfaced to the UI rather than hidden:
-/// the Azure retail price API publishes no `gpt-5-nano` meter for `germanywestcentral` (checked 2026-09-03),
-/// so these are the Global Standard nano-tier list rates it does publish for the region, in EUR per million
-/// tokens. Correct them against an actual invoice; it is a one-line change and the island shows the basis it
-/// used, so a wrong rate is visible rather than silently wrong.
+/// these are OpenAI's published Standard list rates for `gpt-6-luna` in USD per million tokens
+/// (developers.openai.com/api/docs/models/gpt-6-luna, checked 2026-10-12), because the Azure retail price API
+/// publishes no meter for it in `germanywestcentral`. They are not converted to EUR, so correct them against
+/// an actual invoice; it is a one-line change and the island shows the basis it used, so a wrong rate is
+/// visible rather than silently wrong.
 /// </remarks>
 public static class AssistantPricing
 {
-	public const string Currency = "EUR";
+	public const string Currency = "USD";
 
-	public const decimal InputPricePerMillionTokens = 0.1717m;
+	public const decimal InputPricePerMillionTokens = 0.10m;
 
-	public const decimal OutputPricePerMillionTokens = 1.0733m;
+	public const decimal OutputPricePerMillionTokens = 0.50m;
 
 	private const decimal Million = 1_000_000m;
 

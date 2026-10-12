@@ -54,10 +54,10 @@ public sealed class AssistantUsageTests
 
 		// A units slip — per thousand instead of per million — would land three orders of magnitude out,
 		// which the equality above cannot catch because it shares the same constants.
-		Assert.InRange(result.Usage.Cost, 0.0001m, 0.001m);
+		Assert.InRange(result.Usage.Cost, 0.00005m, 0.001m);
 
 		// The rates ride along so the island can show what the estimate is based on.
-		Assert.Equal("EUR", result.Usage.Currency);
+		Assert.Equal("USD", result.Usage.Currency);
 		Assert.Equal(AssistantPricing.InputPricePerMillionTokens, result.Usage.InputPricePerMillion);
 		Assert.Equal(AssistantPricing.OutputPricePerMillionTokens, result.Usage.OutputPricePerMillion);
 	}
@@ -77,7 +77,7 @@ public sealed class AssistantUsageTests
 		Assert.Equal(0, result.Usage.InputTokens);
 		Assert.Equal(0, result.Usage.OutputTokens);
 		Assert.Equal(0m, result.Usage.Cost);
-		Assert.Equal("EUR", result.Usage.Currency);
+		Assert.Equal("USD", result.Usage.Currency);
 	}
 
 	[Fact]
