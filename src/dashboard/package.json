@@ -16,14 +16,14 @@
   "dependencies": {
     "@astrojs/svelte": "^9.0.1",
     "@astrojs/ts-plugin": "^1.10.12",
-    "@lucide/svelte": "^1.49.0",
-    "astro": "^7.3.5",
+    "@lucide/svelte": "^1.54.0",
+    "astro": "^7.3.8",
     "d3-array": "^3.2.4",
     "d3-scale": "^4.0.2",
-    "layerchart": "^2.5.1",
+    "layerchart": "^2.6.0",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.35.5",
-    "svelte": "^5.57.1"
+    "svelte": "^5.57.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
