@@ -74,14 +74,13 @@ var host = new HostBuilder()
                 {
                     Instructions = AssistantPrompt.SystemPrompt,
                     Tools = sp.GetRequiredService<AssistantTools>().All,
-                    // gpt-6-luna is a reasoning model and its reasoning tokens are drawn from this budget.
-                    // At 800 they consumed the lot on a normal question, leaving finish_reason 'length' and
-                    // an empty answer; 2000 leaves room for the reply itself.
+                    // gpt-6-luna is a reasoning model, and its reasoning tokens would be drawn from this budget; at 800 the
+                    // predecessor spent the lot on a normal question and returned finish_reason 'length' and no text.
+                    // 2000 stays as headroom for the reply itself.
                     MaxOutputTokens = 2000,
-                    // Low effort answers this kind of look-it-up-and-say-it question just as correctly as
-                    // the default, with roughly a twelfth of the reasoning tokens and a third of the
-                    // latency — which is what keeps four tool rounds inside the 45 second platform cap.
-                    Reasoning = new ReasoningOptions { Effort = ReasoningEffort.Low },
+                    // Function tools only work with reasoning effort 'none' on the chat completions route this client
+                    // uses; any other effort is rejected with a 400 and every question fails.
+                    Reasoning = new ReasoningOptions { Effort = ReasoningEffort.None },
                 },
             }));
 
