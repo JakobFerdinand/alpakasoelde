@@ -280,7 +280,7 @@ public sealed class GetPageViewStats
 			return trimmed.Length == 0 ? "/" : trimmed;
 		}
 
-		private static bool IsInternalReferrer(string referrerHost)
+		internal static bool IsInternalReferrer(string referrerHost)
 		{
 			string host = referrerHost.Trim();
 			return host.Equals("alpakasoelde.at", StringComparison.OrdinalIgnoreCase)
@@ -288,7 +288,7 @@ public sealed class GetPageViewStats
 					&& host.EndsWith(".westeurope.6.azurestaticapps.net", StringComparison.OrdinalIgnoreCase));
 		}
 
-		private static string GetDeviceCategory(int viewportWidth)
+		internal static string GetDeviceCategory(int viewportWidth)
 		{
 			return viewportWidth switch
 			{

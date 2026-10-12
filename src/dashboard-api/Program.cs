@@ -41,6 +41,7 @@ var host = new HostBuilder()
         services.AddScoped<AddGutschein.Handler>();
         services.AddScoped<RedeemGutschein.Handler>();
         services.AddScoped<Assistant.Handler>();
+        services.AddScoped<AssistantDatabase>();
 
         // Resolved lazily so a host without OpenAI settings still serves every other endpoint.
         services.AddSingleton<IChatClient>(sp =>
@@ -58,7 +59,7 @@ var host = new HostBuilder()
                 .AsBuilder()
                 // The round cap lives on the function-invoking client, so it has to be applied here and the
                 // agent told not to re-wrap (and thereby discard) it.
-                .UseFunctionInvocation(configure: client => client.MaximumIterationsPerRequest = 4)
+                .UseFunctionInvocation(configure: client => client.MaximumIterationsPerRequest = 6)
                 .Build();
         });
 

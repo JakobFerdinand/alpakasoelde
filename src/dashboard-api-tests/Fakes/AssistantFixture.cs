@@ -47,11 +47,12 @@ internal sealed class AssistantFixture
 			new GetGutscheine.Handler(new InMemoryGutscheinStore([.. Gutscheine])),
 			new GetAlpakas.Handler(alpakas, Signer),
 			new GetAlpakaById.Handler(alpakas, Signer, events),
-			new EventsFeature.GetHandler(events, new AlpakaLookup(AlpakaNames)));
+			new EventsFeature.GetHandler(events, new AlpakaLookup(AlpakaNames)),
+			new AssistantDatabase(pageViews, messages, new GetGutscheine.Handler(new InMemoryGutscheinStore([.. Gutscheine])), alpakas, events));
 	}
 
 	/// <summary>Mirrors the registration in <c>Program.cs</c>, including the iteration cap and its guard.</summary>
-	public static AIAgent BuildAgent(IChatClient chatClient, AssistantTools tools, int maximumIterations = 4) =>
+	public static AIAgent BuildAgent(IChatClient chatClient, AssistantTools tools, int maximumIterations = 6) =>
 		new ChatClientAgent(
 			chatClient
 				.AsBuilder()

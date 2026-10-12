@@ -255,6 +255,7 @@ public sealed class AssistantToolsTests
 				"alpakas",
 				"alpaka_detail",
 				"ereignisse",
+				"daten_abfrage",
 				"heute"
 			],
 			names);
