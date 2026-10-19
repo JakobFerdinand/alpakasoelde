@@ -76,6 +76,20 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 
 - Commits and PR titles follow Karma/Conventional form `<type>(<scope>): <subject>` with a lowercase imperative subject and no trailing period, scoped by area (`website`, `dashboard`, `website-api`, `dashboard-api`, `infra`); the PR title becomes the squash-merge message.
 
+## Agent skills
+
+### Issue tracker
+
+Issues and specs live in GitHub Issues on this repo (`JakobFerdinand/alpakasoelde`), managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+The five canonical triage roles map to identically named GitHub labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+
 ## Maintaining this file
 
 - When a change invalidates a line here or teaches you a costly lesson, update AGENTS.md in the same change set.
