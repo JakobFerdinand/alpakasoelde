@@ -40,6 +40,11 @@ public static class AssistantTables
 			.. All.Select(table => table.SchemaLines),
 		]);
 
+	/// <summary>Builds one column of any table: the single constructor the five definitions share; the row
+	/// type is given explicitly because a lambda's parameter type cannot drive the inference.</summary>
+	private static AssistantColumn<TRow> Col<TRow>(string name, string sqlType, string? hinweis, Func<TRow, object?> value) =>
+		new(name, sqlType, hinweis, value);
+
 	/// <summary>Converts a moment into the Vienna-timezone columns shared by three of the tables.</summary>
 	private static (string Zeitpunkt, string Datum, string Monat, string Wochentag, int WochentagNr, int Stunde) Moment(DateTimeOffset value)
 	{
@@ -66,18 +71,18 @@ public static class AssistantTables
 			"seitenaufrufe",
 			"ein Seitenaufruf der Website, nur die letzten 180 Tage",
 			[
-				Col("zeitpunkt", "TEXT", null, row => row.Zeitpunkt),
-				Col("datum", "TEXT", null, row => row.Datum),
-				Col("monat", "TEXT", "'JJJJ-MM'", row => row.Monat),
-				Col("wochentag", "TEXT", "'Montag' bis 'Sonntag'", row => row.Wochentag),
-				Col("wochentag_nr", "INTEGER", "1 = Montag bis 7 = Sonntag", row => row.WochentagNr),
-				Col("stunde", "INTEGER", "0-23", row => row.Stunde),
-				Col("pfad", "TEXT", null, row => row.Pfad),
-				Col("herkunft", "TEXT", "externe Herkunftsseite oder NULL", row => row.Herkunft),
-				Col("geraet", "TEXT", "'Mobil', 'Tablet', 'Laptop', 'Breitbild'", row => row.Geraet),
-				Col("navigationsart", "TEXT", null, row => row.Navigationsart),
-				Col("sitzung_id", "TEXT", null, row => row.SitzungId),
-				Col("besucher_id", "TEXT", null, row => row.BesucherId),
+				Col<Zeile>("zeitpunkt", "TEXT", null, row => row.Zeitpunkt),
+				Col<Zeile>("datum", "TEXT", null, row => row.Datum),
+				Col<Zeile>("monat", "TEXT", "'JJJJ-MM'", row => row.Monat),
+				Col<Zeile>("wochentag", "TEXT", "'Montag' bis 'Sonntag'", row => row.Wochentag),
+				Col<Zeile>("wochentag_nr", "INTEGER", "1 = Montag bis 7 = Sonntag", row => row.WochentagNr),
+				Col<Zeile>("stunde", "INTEGER", "0-23", row => row.Stunde),
+				Col<Zeile>("pfad", "TEXT", null, row => row.Pfad),
+				Col<Zeile>("herkunft", "TEXT", "externe Herkunftsseite oder NULL", row => row.Herkunft),
+				Col<Zeile>("geraet", "TEXT", "'Mobil', 'Tablet', 'Laptop', 'Breitbild'", row => row.Geraet),
+				Col<Zeile>("navigationsart", "TEXT", null, row => row.Navigationsart),
+				Col<Zeile>("sitzung_id", "TEXT", null, row => row.SitzungId),
+				Col<Zeile>("besucher_id", "TEXT", null, row => row.BesucherId),
 			],
 			LoadAsync);
 
@@ -106,9 +111,6 @@ public static class AssistantTables
 		private sealed record Zeile(
 			string Zeitpunkt, string Datum, string Monat, string Wochentag, int WochentagNr, int Stunde,
 			string Pfad, string? Herkunft, string Geraet, string? Navigationsart, string? SitzungId, string? BesucherId);
-
-		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
-			new(name, sqlType, hinweis, value);
 	}
 
 	private static class Nachrichten
@@ -117,13 +119,13 @@ public static class AssistantTables
 			"nachrichten",
 			"eine Kontaktanfrage, ohne Namen, Kontaktdaten und Text",
 			[
-				Col("zeitpunkt", "TEXT", null, row => row.Zeitpunkt),
-				Col("datum", "TEXT", null, row => row.Datum),
-				Col("monat", "TEXT", null, row => row.Monat),
-				Col("wochentag", "TEXT", null, row => row.Wochentag),
-				Col("wochentag_nr", "INTEGER", null, row => row.WochentagNr),
-				Col("stunde", "INTEGER", null, row => row.Stunde),
-				Col("ist_spam", "INTEGER", "1 = Spam, 0 = echt", row => row.IstSpam),
+				Col<Zeile>("zeitpunkt", "TEXT", null, row => row.Zeitpunkt),
+				Col<Zeile>("datum", "TEXT", null, row => row.Datum),
+				Col<Zeile>("monat", "TEXT", null, row => row.Monat),
+				Col<Zeile>("wochentag", "TEXT", null, row => row.Wochentag),
+				Col<Zeile>("wochentag_nr", "INTEGER", null, row => row.WochentagNr),
+				Col<Zeile>("stunde", "INTEGER", null, row => row.Stunde),
+				Col<Zeile>("ist_spam", "INTEGER", "1 = Spam, 0 = echt", row => row.IstSpam),
 			],
 			LoadAsync);
 
@@ -148,9 +150,6 @@ public static class AssistantTables
 
 		private sealed record Zeile(
 			string Zeitpunkt, string Datum, string Monat, string Wochentag, int WochentagNr, int Stunde, int IstSpam);
-
-		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
-			new(name, sqlType, hinweis, value);
 	}
 
 	internal static class Gutscheine
@@ -159,11 +158,11 @@ public static class AssistantTables
 			"gutscheine",
 			"ein Gutschein, ohne Käufer",
 			[
-				Col("gutscheinnummer", "TEXT", null, row => row.Gutscheinnummer),
-				Col("kaufdatum", "TEXT", null, row => row.Kaufdatum),
-				Col("betrag", "REAL", null, row => row.Betrag),
-				Col("eingeloest_am", "TEXT", "oder NULL", row => row.EingeloestAm),
-				Col("offen", "INTEGER", "1 = noch nicht eingelöst", row => row.Offen),
+				Col<Zeile>("gutscheinnummer", "TEXT", null, row => row.Gutscheinnummer),
+				Col<Zeile>("kaufdatum", "TEXT", null, row => row.Kaufdatum),
+				Col<Zeile>("betrag", "REAL", null, row => row.Betrag),
+				Col<Zeile>("eingeloest_am", "TEXT", "oder NULL", row => row.EingeloestAm),
+				Col<Zeile>("offen", "INTEGER", "1 = noch nicht eingelöst", row => row.Offen),
 			],
 			LoadAsync);
 
@@ -204,9 +203,6 @@ public static class AssistantTables
 			double openSum = rows.Where(voucher => voucher.Offen).Sum(voucher => voucher.Betrag);
 			return new(rows.Count, openCount, openSum, kept, hinweis);
 		}
-
-		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
-			new(name, sqlType, hinweis, value);
 	}
 
 	internal static class Alpakas
@@ -215,9 +211,9 @@ public static class AssistantTables
 			"alpakas",
 			"ein Alpaka",
 			[
-				Col("id", "TEXT", null, row => row.Id),
-				Col("name", "TEXT", null, row => row.Name),
-				Col("geburtsdatum", "TEXT", null, row => row.Geburtsdatum),
+				Col<Zeile>("id", "TEXT", null, row => row.Id),
+				Col<Zeile>("name", "TEXT", null, row => row.Name),
+				Col<Zeile>("geburtsdatum", "TEXT", null, row => row.Geburtsdatum),
 			],
 			LoadAsync);
 
@@ -248,9 +244,6 @@ public static class AssistantTables
 			var (kept, hinweis) = AssistantTools.Clamp(rows, AssistantTools.MaxRows);
 			return new(rows.Count, kept, hinweis);
 		}
-
-		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
-			new(name, sqlType, hinweis, value);
 	}
 
 	private static class Ereignisse
@@ -259,14 +252,14 @@ public static class AssistantTables
 			"ereignisse",
 			"ein Ereignis eines Alpakas (ein gemeinsames Ereignis mehrerer Alpakas ergibt mehrere Zeilen)",
 			[
-				Col("ereignis_id", "TEXT", null, row => row.EreignisId),
-				Col("alpaka_id", "TEXT", null, row => row.AlpakaId),
-				Col("alpaka_name", "TEXT", null, row => row.AlpakaName),
-				Col("typ", "TEXT", null, row => row.Typ),
-				Col("datum", "TEXT", null, row => row.Datum),
-				Col("monat", "TEXT", null, row => row.Monat),
-				Col("kommentar", "TEXT", null, row => row.Kommentar),
-				Col("kosten", "REAL", "oder NULL", row => row.Kosten),
+				Col<Zeile>("ereignis_id", "TEXT", null, row => row.EreignisId),
+				Col<Zeile>("alpaka_id", "TEXT", null, row => row.AlpakaId),
+				Col<Zeile>("alpaka_name", "TEXT", null, row => row.AlpakaName),
+				Col<Zeile>("typ", "TEXT", null, row => row.Typ),
+				Col<Zeile>("datum", "TEXT", null, row => row.Datum),
+				Col<Zeile>("monat", "TEXT", null, row => row.Monat),
+				Col<Zeile>("kommentar", "TEXT", null, row => row.Kommentar),
+				Col<Zeile>("kosten", "REAL", "oder NULL", row => row.Kosten),
 			],
 			LoadAsync);
 
@@ -293,9 +286,6 @@ public static class AssistantTables
 		private sealed record Zeile(
 			string EreignisId, string AlpakaId, string? AlpakaName, string Typ, string Datum, string Monat,
 			string? Kommentar, double? Kosten);
-
-		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
-			new(name, sqlType, hinweis, value);
 	}
 }
 
