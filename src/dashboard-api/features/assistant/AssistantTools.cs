@@ -36,6 +36,22 @@ public sealed class AssistantTools(
 
 	public const string TruncationHinweis = "gekürzt";
 
+	/// <summary>
+	/// The SQL tool's description: the hand-written intro prose, then the schema text generated from
+	/// <see cref="AssistantTables"/>. It is passed to the tool factory at registration time, because attribute
+	/// arguments must be compile-time constants.
+	/// </summary>
+	public static readonly string DatenAbfrageBeschreibung = $"""
+		Führt eine einzelne schreibgeschützte SQL-Abfrage (SQLite, nur SELECT) gegen die Daten der Farm aus und
+		liefert Spalten und Zeilen. Nutze dieses Werkzeug für alle Auswertungen, die die anderen Werkzeuge nicht
+		abdecken, etwa Aufschlüsselungen nach Wochentag, Uhrzeit oder Monat, Vergleiche, Quoten und Rangfolgen.
+		Zähle und summiere mit GROUP BY in der Abfrage selbst, statt viele Zeilen zu holen. Es kommen nur die ersten Zeilen
+		zurück, bei „gekürzt" fehlen weitere. Bei einem Fehler steht er im Feld 'Fehler', korrigiere dann die Abfrage.
+
+		Tabellen:
+		{AssistantTables.SchemaText}
+		""";
+
 	internal static readonly TimeZoneInfo ViennaTimeZone = ResolveViennaTimeZone();
 
 	private readonly List<Assistant.ToolTrace> _invocations = [];
@@ -55,7 +71,7 @@ public sealed class AssistantTools(
 		AIFunctionFactory.Create(AlpakasAsync, name: "alpakas"),
 		AIFunctionFactory.Create(AlpakaDetailAsync, name: "alpaka_detail"),
 		AIFunctionFactory.Create(EreignisseAsync, name: "ereignisse"),
-		AIFunctionFactory.Create(DatenAbfrageAsync, name: "daten_abfrage"),
+		AIFunctionFactory.Create(DatenAbfrageAsync, name: "daten_abfrage", description: DatenAbfrageBeschreibung),
 		AIFunctionFactory.Create(Heute, name: "heute"),
 	];
 
@@ -313,16 +329,6 @@ public sealed class AssistantTools(
 		return new EreignisListe(filtered.Count, rows, hinweis);
 	}
 
-	[Description($"""
-		Führt eine einzelne schreibgeschützte SQL-Abfrage (SQLite, nur SELECT) gegen die Daten der Farm aus und
-		liefert Spalten und Zeilen. Nutze dieses Werkzeug für alle Auswertungen, die die anderen Werkzeuge nicht
-		abdecken, etwa Aufschlüsselungen nach Wochentag, Uhrzeit oder Monat, Vergleiche, Quoten und Rangfolgen.
-		Zähle und summiere mit GROUP BY in der Abfrage selbst, statt viele Zeilen zu holen. Es kommen nur die ersten Zeilen
-		zurück, bei „gekürzt" fehlen weitere. Bei einem Fehler steht er im Feld 'Fehler', korrigiere dann die Abfrage.
-
-		Tabellen:
-		{AssistantDatabase.Schema}
-		""")]
 	public async Task<DatenAbfrage> DatenAbfrageAsync(
 		[Description("Genau eine SELECT-Abfrage in SQLite-Syntax.")] string sql,
 		CancellationToken cancellationToken = default)
