@@ -232,22 +232,7 @@ public sealed class AssistantTools(
 			.HandleAsync(new GetGutscheine.Query(), cancellationToken)
 			.ConfigureAwait(false);
 
-		// Projected here rather than filtered later: VerkauftAn must never reach the model.
-		List<GutscheinInfo> vouchers = all
-			.Where(voucher => !nurOffen || voucher.EingeloestAm is null)
-			.Select(voucher => new GutscheinInfo(
-				voucher.Gutscheinnummer,
-				voucher.Kaufdatum,
-				voucher.Betrag,
-				voucher.EingeloestAm,
-				voucher.EingeloestAm is null))
-			.ToList();
-
-		int openCount = vouchers.Count(voucher => voucher.Offen);
-		double openSum = vouchers.Where(voucher => voucher.Offen).Sum(voucher => voucher.Betrag);
-
-		var (rows, hinweis) = Clamp(vouchers, MaxRows);
-		return new GutscheinListe(vouchers.Count, openCount, openSum, rows, hinweis);
+		return AssistantTables.Gutscheine.Liste(all, nurOffen);
 	}
 
 	[Description("""
@@ -262,13 +247,7 @@ public sealed class AssistantTools(
 			.HandleAsync(new GetAlpakas.Query(), cancellationToken)
 			.ConfigureAwait(false);
 
-		// ImageUrl is a short-lived signed SAS link: useless to the model and not something to hand out.
-		List<AlpakaInfo> animals = all
-			.Select(alpaka => new AlpakaInfo(alpaka.Id, alpaka.Name, alpaka.Geburtsdatum))
-			.ToList();
-
-		var (rows, hinweis) = Clamp(animals, MaxRows);
-		return new AlpakaListe(animals.Count, rows, hinweis);
+		return AssistantTables.Alpakas.Liste(all);
 	}
 
 	[Description("""

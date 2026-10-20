@@ -10,12 +10,14 @@ namespace DashboardApi.Features.Assistant;
 
 /// <summary>
 /// Every assistant table, defined exactly once: its allowed columns — SQLite type, hand-written schema
-/// annotation and pure value function — and the load that pre-projects its source store data into its rows
+/// annotation and pure value function — the load that pre-projects its source store data into its rows
 /// (row filters, the Vienna-timezone columns, path normalisation, referrer rules and the event-to-alpaka-name
-/// join). Whatever a table's value functions never return — buyer names, contact details, message texts and
-/// image links — never enters the database, so this file is the whole privacy rule of <c>daten_abfrage</c>,
-/// and the CREATE TABLE DDL, the INSERTs and the model-facing schema text are all generated from it: a column
-/// added in one definition shows up everywhere or nowhere.
+/// join) and the tool-record projection that hands the model its result while dropping the private value
+/// (<c>VerkauftAn</c>, <c>ImageUrl</c>). Whatever the value and projection functions never return — buyer
+/// names, contact details, message texts and image links — never reaches the model, so this file is the
+/// whole privacy rule of <c>daten_abfrage</c> and the assistant tools, and the CREATE TABLE DDL, the
+/// INSERTs and the model-facing schema text are all generated from it: a column added in one definition
+/// shows up everywhere or nowhere.
 /// </summary>
 public static class AssistantTables
 {
@@ -103,7 +105,7 @@ public static class AssistantTables
 
 		private sealed record Zeile(
 			string Zeitpunkt, string Datum, string Monat, string Wochentag, int WochentagNr, int Stunde,
-			string Pfad, string? Herkunft, string Geraet, string Navigationsart, string SitzungId, string BesucherId);
+			string Pfad, string? Herkunft, string Geraet, string? Navigationsart, string? SitzungId, string? BesucherId);
 
 		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
 			new(name, sqlType, hinweis, value);
@@ -151,7 +153,7 @@ public static class AssistantTables
 			new(name, sqlType, hinweis, value);
 	}
 
-	private static class Gutscheine
+	internal static class Gutscheine
 	{
 		internal static readonly IAssistantTable Tabelle = new AssistantTable<Zeile>(
 			"gutscheine",
@@ -182,11 +184,33 @@ public static class AssistantTables
 
 		private sealed record Zeile(string Gutscheinnummer, string Kaufdatum, double Betrag, string? EingeloestAm, int Offen);
 
+		/// <summary>
+		/// Projects the store's voucher results into the tool's list record. Projected here rather than
+		/// filtered later: VerkauftAn must never reach the model.
+		/// </summary>
+		internal static AssistantTools.GutscheinListe Liste(IReadOnlyList<GetGutscheine.GutscheinResult> vouchers, bool nurOffen)
+		{
+			List<AssistantTools.GutscheinInfo> rows = vouchers
+				.Where(voucher => !nurOffen || voucher.EingeloestAm is null)
+				.Select(voucher => new AssistantTools.GutscheinInfo(
+					voucher.Gutscheinnummer,
+					voucher.Kaufdatum,
+					voucher.Betrag,
+					voucher.EingeloestAm,
+					voucher.EingeloestAm is null))
+				.ToList();
+
+			var (kept, hinweis) = AssistantTools.Clamp(rows, AssistantTools.MaxRows);
+			int openCount = rows.Count(voucher => voucher.Offen);
+			double openSum = rows.Where(voucher => voucher.Offen).Sum(voucher => voucher.Betrag);
+			return new(rows.Count, openCount, openSum, kept, hinweis);
+		}
+
 		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
 			new(name, sqlType, hinweis, value);
 	}
 
-	private static class Alpakas
+	internal static class Alpakas
 	{
 		internal static readonly IAssistantTable Tabelle = new AssistantTable<Zeile>(
 			"alpakas",
@@ -211,6 +235,20 @@ public static class AssistantTables
 		}
 
 		private sealed record Zeile(string Id, string Name, string Geburtsdatum);
+
+		/// <summary>
+		/// Projects the store's alpaka list into the tool's list record. ImageUrl is a short-lived signed SAS
+		/// link: useless to the model and not something to hand out.
+		/// </summary>
+		internal static AssistantTools.AlpakaListe Liste(IReadOnlyList<GetAlpakas.AlpakaListItem> alpakas)
+		{
+			List<AssistantTools.AlpakaInfo> rows = alpakas
+				.Select(alpaka => new AssistantTools.AlpakaInfo(alpaka.Id, alpaka.Name, alpaka.Geburtsdatum))
+				.ToList();
+
+			var (kept, hinweis) = AssistantTools.Clamp(rows, AssistantTools.MaxRows);
+			return new(rows.Count, kept, hinweis);
+		}
 
 		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
 			new(name, sqlType, hinweis, value);
@@ -255,7 +293,7 @@ public static class AssistantTables
 
 		private sealed record Zeile(
 			string EreignisId, string AlpakaId, string? AlpakaName, string Typ, string Datum, string Monat,
-			string Kommentar, double? Kosten);
+			string? Kommentar, double? Kosten);
 
 		private static AssistantColumn<Zeile> Col(string name, string sqlType, string? hinweis, Func<Zeile, object?> value) =>
 			new(name, sqlType, hinweis, value);
