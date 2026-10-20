@@ -69,7 +69,6 @@ Alpakasölde: a public Astro marketing site and an internal Astro+Svelte dashboa
 - `infra-deploy.yml` aborts the apply when what-if reports any Delete or Replace, so a change forcing resource replacement blocks the pipeline instead of destroying anything — reshape the change.
 - `sync-swappsettings.sh` re-applies SWA app settings from the vault after every infra deploy and after a storage-key rotation, while `seed-keyvault.sh` pushes the other direction and overwrites vault secrets with whatever the SWAs currently hold, so run it only for the initial seed.
 - `build-and-deploy-website.yml` and `-dashboard.yml` are path-filtered per app+API pair and upload a prebuilt `dist/` plus a `dotnet publish` output with `skip_app_build`/`skip_api_build`, so any pre-deploy step must be added to the workflow rather than an SWA build hook.
-- Both `staticwebapp.config.json` declare `apiRuntime: dotnet-isolated:9.0` while the projects target `net10.0`; this deploys fine today, so leave it alone unless a deploy actually fails on it.
 - `infrastructure/*.json` are gitignored `az bicep build` artifacts that no deploy reads.
 
 ## Commits
