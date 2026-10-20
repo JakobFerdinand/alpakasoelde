@@ -20,7 +20,7 @@ namespace DashboardApi.Features.Assistant;
 public sealed class AssistantDatabase(
 	GetPageViewStats.IPageViewReadStore pageViews,
 	GetMessages.IReadStore messages,
-	GetGutscheine.Handler gutscheine,
+	IGutscheinStore gutscheine,
 	GetAlpakas.IAlpakaReadStore alpakas,
 	EventsFeature.IEventStore events)
 {
@@ -170,7 +170,9 @@ public sealed class AssistantDatabase(
 	{
 		var views = await pageViews.GetAllAsync(cancellationToken).ConfigureAwait(false);
 		var messageRows = await messages.GetAllAsync(cancellationToken).ConfigureAwait(false);
-		var vouchers = await gutscheine.HandleAsync(new GetGutscheine.Query(), cancellationToken).ConfigureAwait(false);
+		var vouchers = (await gutscheine.GetAllAsync(cancellationToken).ConfigureAwait(false))
+			.OrderByDescending(voucher => voucher.Kaufdatum)
+			.ThenByDescending(voucher => voucher.Gutscheinnummer);
 		var animals = await alpakas.GetAllAsync(cancellationToken).ConfigureAwait(false);
 		var eventRows = await events.GetAllAsync(cancellationToken).ConfigureAwait(false);
 
@@ -197,8 +199,8 @@ public sealed class AssistantDatabase(
 		foreach (var voucher in vouchers)
 		{
 			// VerkauftAn is dropped here and never enters the database.
-			Insert(connection, "gutscheine", voucher.Gutscheinnummer, voucher.Kaufdatum, voucher.Betrag,
-				voucher.EingeloestAm, voucher.EingeloestAm is null ? 1 : 0);
+			Insert(connection, "gutscheine", voucher.Gutscheinnummer, voucher.Kaufdatum.ToString("yyyy-MM-dd"), voucher.Betrag,
+				voucher.EingeloestAm?.ToString("yyyy-MM-dd"), voucher.EingeloestAm is null ? 1 : 0);
 		}
 
 		Dictionary<string, string> names = [];

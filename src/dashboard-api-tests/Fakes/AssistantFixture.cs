@@ -36,6 +36,7 @@ internal sealed class AssistantFixture
 	{
 		MessageStore messages = new(Messages);
 		PageViewStore pageViews = new(PageViews);
+		InMemoryGutscheinStore gutscheine = new([.. Gutscheine]);
 		AlpakaStore alpakas = new(Alpakas);
 		EventStore events = new(Events);
 
@@ -44,11 +45,11 @@ internal sealed class AssistantFixture
 			new GetPageViewSessions.Handler(pageViews),
 			new GetMessageStats.Handler(messages),
 			new GetOldMessageCount.Handler(messages),
-			new GetGutscheine.Handler(new InMemoryGutscheinStore([.. Gutscheine])),
+			new GetGutscheine.Handler(gutscheine),
 			new GetAlpakas.Handler(alpakas, Signer),
 			new GetAlpakaById.Handler(alpakas, Signer, events),
 			new EventsFeature.GetHandler(events, new AlpakaLookup(AlpakaNames)),
-			new AssistantDatabase(pageViews, messages, new GetGutscheine.Handler(new InMemoryGutscheinStore([.. Gutscheine])), alpakas, events));
+			new AssistantDatabase(pageViews, messages, gutscheine, alpakas, events));
 	}
 
 	/// <summary>Mirrors the registration in <c>Program.cs</c>, including the iteration cap and its guard.</summary>
