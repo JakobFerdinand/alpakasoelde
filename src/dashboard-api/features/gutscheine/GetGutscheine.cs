@@ -34,8 +34,15 @@ public sealed class GetGutscheine
         public async Task<IReadOnlyList<GutscheinResult>> HandleAsync(Query query, CancellationToken cancellationToken)
         {
             IReadOnlyList<GutscheinEntity> vouchers = await _store.GetAllAsync(cancellationToken).ConfigureAwait(false);
+            return Project(vouchers);
+        }
 
-            return vouchers
+        /// <summary>
+        /// The one projection of the store's vouchers that the HTTP handler and the assistant's database
+        /// load share: newest Kaufdatum first, then the highest Gutscheinnummer, both dates as yyyy-MM-dd.
+        /// </summary>
+        internal static IReadOnlyList<GutscheinResult> Project(IReadOnlyList<GutscheinEntity> vouchers) =>
+            vouchers
                 .OrderByDescending(voucher => voucher.Kaufdatum)
                 .ThenByDescending(voucher => voucher.Gutscheinnummer)
                 .Select(voucher => new GutscheinResult(
@@ -45,6 +52,5 @@ public sealed class GetGutscheine
                     voucher.EingeloestAm?.ToString("yyyy-MM-dd"),
                     voucher.VerkauftAn))
                 .ToList();
-        }
     }
 }

@@ -36,6 +36,22 @@ public sealed class AssistantTools(
 
 	public const string TruncationHinweis = "gekürzt";
 
+	/// <summary>
+	/// The SQL tool's description: the hand-written intro prose, then the schema text generated from
+	/// <see cref="AssistantTables"/>. It is passed to the tool factory at registration time, because attribute
+	/// arguments must be compile-time constants.
+	/// </summary>
+	public static readonly string DatenAbfrageBeschreibung = $"""
+		Führt eine einzelne schreibgeschützte SQL-Abfrage (SQLite, nur SELECT) gegen die Daten der Farm aus und
+		liefert Spalten und Zeilen. Nutze dieses Werkzeug für alle Auswertungen, die die anderen Werkzeuge nicht
+		abdecken, etwa Aufschlüsselungen nach Wochentag, Uhrzeit oder Monat, Vergleiche, Quoten und Rangfolgen.
+		Zähle und summiere mit GROUP BY in der Abfrage selbst, statt viele Zeilen zu holen. Es kommen nur die ersten Zeilen
+		zurück, bei „gekürzt" fehlen weitere. Bei einem Fehler steht er im Feld 'Fehler', korrigiere dann die Abfrage.
+
+		Tabellen:
+		{AssistantTables.SchemaText}
+		""";
+
 	internal static readonly TimeZoneInfo ViennaTimeZone = ResolveViennaTimeZone();
 
 	private readonly List<Assistant.ToolTrace> _invocations = [];
@@ -55,7 +71,7 @@ public sealed class AssistantTools(
 		AIFunctionFactory.Create(AlpakasAsync, name: "alpakas"),
 		AIFunctionFactory.Create(AlpakaDetailAsync, name: "alpaka_detail"),
 		AIFunctionFactory.Create(EreignisseAsync, name: "ereignisse"),
-		AIFunctionFactory.Create(DatenAbfrageAsync, name: "daten_abfrage"),
+		AIFunctionFactory.Create(DatenAbfrageAsync, name: "daten_abfrage", description: DatenAbfrageBeschreibung),
 		AIFunctionFactory.Create(Heute, name: "heute"),
 	];
 
@@ -216,22 +232,7 @@ public sealed class AssistantTools(
 			.HandleAsync(new GetGutscheine.Query(), cancellationToken)
 			.ConfigureAwait(false);
 
-		// Projected here rather than filtered later: VerkauftAn must never reach the model.
-		List<GutscheinInfo> vouchers = all
-			.Where(voucher => !nurOffen || voucher.EingeloestAm is null)
-			.Select(voucher => new GutscheinInfo(
-				voucher.Gutscheinnummer,
-				voucher.Kaufdatum,
-				voucher.Betrag,
-				voucher.EingeloestAm,
-				voucher.EingeloestAm is null))
-			.ToList();
-
-		int openCount = vouchers.Count(voucher => voucher.Offen);
-		double openSum = vouchers.Where(voucher => voucher.Offen).Sum(voucher => voucher.Betrag);
-
-		var (rows, hinweis) = Clamp(vouchers, MaxRows);
-		return new GutscheinListe(vouchers.Count, openCount, openSum, rows, hinweis);
+		return AssistantTables.Gutscheine.Liste(all, nurOffen);
 	}
 
 	[Description("""
@@ -246,13 +247,7 @@ public sealed class AssistantTools(
 			.HandleAsync(new GetAlpakas.Query(), cancellationToken)
 			.ConfigureAwait(false);
 
-		// ImageUrl is a short-lived signed SAS link: useless to the model and not something to hand out.
-		List<AlpakaInfo> animals = all
-			.Select(alpaka => new AlpakaInfo(alpaka.Id, alpaka.Name, alpaka.Geburtsdatum))
-			.ToList();
-
-		var (rows, hinweis) = Clamp(animals, MaxRows);
-		return new AlpakaListe(animals.Count, rows, hinweis);
+		return AssistantTables.Alpakas.Liste(all);
 	}
 
 	[Description("""
@@ -313,16 +308,6 @@ public sealed class AssistantTools(
 		return new EreignisListe(filtered.Count, rows, hinweis);
 	}
 
-	[Description($"""
-		Führt eine einzelne schreibgeschützte SQL-Abfrage (SQLite, nur SELECT) gegen die Daten der Farm aus und
-		liefert Spalten und Zeilen. Nutze dieses Werkzeug für alle Auswertungen, die die anderen Werkzeuge nicht
-		abdecken, etwa Aufschlüsselungen nach Wochentag, Uhrzeit oder Monat, Vergleiche, Quoten und Rangfolgen.
-		Zähle und summiere mit GROUP BY in der Abfrage selbst, statt viele Zeilen zu holen. Es kommen nur die ersten Zeilen
-		zurück, bei „gekürzt" fehlen weitere. Bei einem Fehler steht er im Feld 'Fehler', korrigiere dann die Abfrage.
-
-		Tabellen:
-		{AssistantDatabase.Schema}
-		""")]
 	public async Task<DatenAbfrage> DatenAbfrageAsync(
 		[Description("Genau eine SELECT-Abfrage in SQLite-Syntax.")] string sql,
 		CancellationToken cancellationToken = default)
