@@ -170,13 +170,12 @@ public static class AssistantTables
 		private static async Task<IReadOnlyList<Zeile>> LoadAsync(AssistantSources sources, CancellationToken cancellationToken)
 		{
 			List<Zeile> rows = [];
-			foreach (GutscheinEntity voucher in (await sources.Gutscheine.GetAllAsync(cancellationToken).ConfigureAwait(false))
-				.OrderByDescending(voucher => voucher.Kaufdatum)
-				.ThenByDescending(voucher => voucher.Gutscheinnummer))
+			foreach (GetGutscheine.GutscheinResult voucher in GetGutscheine.Handler.Project(
+				await sources.Gutscheine.GetAllAsync(cancellationToken).ConfigureAwait(false)))
 			{
-				// VerkauftAn is dropped here and never enters the database.
-				rows.Add(new Zeile(voucher.Gutscheinnummer, voucher.Kaufdatum.ToString("yyyy-MM-dd"), voucher.Betrag,
-					voucher.EingeloestAm?.ToString("yyyy-MM-dd"), voucher.EingeloestAm is null ? 1 : 0));
+				// VerkauftAn stays in the handler's result and is not copied into the database.
+				rows.Add(new Zeile(voucher.Gutscheinnummer, voucher.Kaufdatum, voucher.Betrag,
+					voucher.EingeloestAm, voucher.EingeloestAm is null ? 1 : 0));
 			}
 
 			return rows;
