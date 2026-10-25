@@ -15,7 +15,7 @@ test.describe('the slideshow deck', () => {
 
     // "Vorheriges Bild" from the first slide wraps around to the last slide.
     await slideshow(page).getByRole('button', { name: 'Vorheriges Bild' }).click();
-    await expect(dot(page, 6)).toHaveAttribute('aria-current', 'true');
+    await expect(dot(page, 5)).toHaveAttribute('aria-current', 'true');
     await expect(dot(page, 1)).not.toHaveAttribute('aria-current');
 
     await dot(page, 1).click();
@@ -49,7 +49,7 @@ test.describe('the slideshow lightbox', () => {
 
     // The arrow keys page through the slides while the lightbox is open.
     await page.keyboard.press('ArrowRight');
-    await expect(lightbox.getByText('Zauberwolle', { exact: true })).toBeVisible();
+    await expect(lightbox.getByText('Wolle Amadeus', { exact: true })).toBeVisible();
 
     await page.keyboard.press('Escape');
     await expect(lightbox).toBeHidden();
@@ -71,7 +71,7 @@ test.describe('the slideshow lightbox', () => {
     // the lightbox open – proven by the dialog still being navigable here.
     await lightbox.getByRole('img').click();
     await page.keyboard.press('ArrowRight');
-    await expect(lightbox.getByText('Zauberwolle', { exact: true })).toBeVisible();
+    await expect(lightbox.getByText('Wolle Amadeus', { exact: true })).toBeVisible();
 
     // A click on the empty area of the fullscreen dialog is a backdrop tap.
     await lightbox.click({ position: { x: 5, y: 200 } });
@@ -158,10 +158,10 @@ test.describe('without JavaScript', () => {
       story.getByRole('group', { name: 'Direktnavigation' }).getByRole('button'),
     ).toBeHidden();
 
-    await expect(story.getByRole('group', { name: 'Bild 1 von 6' }).getByRole('img')).toBeVisible();
+    await expect(story.getByRole('group', { name: 'Bild 1 von 5' }).getByRole('img')).toBeVisible();
 
     const mediaButtons = story.getByRole('button', { name: /Bild groß anzeigen/ });
-    await expect(mediaButtons).toHaveCount(6);
+    await expect(mediaButtons).toHaveCount(5);
     for (const button of await mediaButtons.all()) {
       await expect(button).toBeDisabled();
     }

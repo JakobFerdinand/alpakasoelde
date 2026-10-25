@@ -2,10 +2,41 @@
 import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from '../layouts/Layout.astro';
 import ServiceHero from "../components/ServiceHero.astro";
+import Slideshow, { type StorySlide } from '../components/Slideshow.astro';
 
 import heroImage from "../images/impressions/impression_32.jpg";
 
 import impression_102 from "../images/impressions/impression_102.jpg";
+
+import Spinnrad from '../images/workshops/IMG_8407.jpeg';
+import Spule from '../images/workshops/IMG_8406.jpeg';
+import Haspel from '../images/workshops/IMG_8731.jpeg';
+
+const slideData = [
+  {
+    src: Spinnrad,
+    alt: 'Hand zieht beim Spinnen am Spinnrad einen Faden aus, auf der Spule dahinter rosa-graues Garn',
+    title: 'Am Spinnrad',
+    text: 'Mit den Füßen im Takt und den Händen am Faden wird aus lockerer Faser Garn.',
+  },
+  {
+    src: Spule,
+    alt: 'Nahaufnahme einer Spule mit buntem, gesponnenem Garn am hölzernen Spinnrad',
+    title: 'Aus Faser wird Garn',
+    text: 'Zug um Zug dreht sich der Faden auf die Spule, und jedes Garn wird ein Unikat.',
+  },
+  {
+    src: Haspel,
+    alt: 'Hölzerne Haspel mit aufgewickeltem cremeweißem Garn',
+    title: 'Auf der Haspel',
+    text: 'Zum Schluss wird das Garn zum Strang gewickelt, bereit zum Waschen und Verstricken.',
+  },
+];
+
+const slides: StorySlide[] = slideData.map((slide, i) => ({
+  ...slide,
+  kicker: `Schritt ${String(i + 1).padStart(2, '0')}`,
+}));
 ---
 
 <Layout
@@ -32,6 +63,8 @@ import impression_102 from "../images/impressions/impression_102.jpg";
       </p>
     </div>
   </section>
+
+  <Slideshow slides={slides} label="Fotos aus dem Wollworkshop" eyebrow="Vom Vlies zum Garn" />
 
   <ImpressionBreak
     image={impression_102}
