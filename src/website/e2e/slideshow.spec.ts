@@ -15,7 +15,7 @@ test.describe('the slideshow deck', () => {
 
     // "Vorheriges Bild" from the first slide wraps around to the last slide.
     await slideshow(page).getByRole('button', { name: 'Vorheriges Bild' }).click();
-    await expect(dot(page, 5)).toHaveAttribute('aria-current', 'true');
+    await expect(dot(page, 18)).toHaveAttribute('aria-current', 'true');
     await expect(dot(page, 1)).not.toHaveAttribute('aria-current');
 
     await dot(page, 1).click();
@@ -158,10 +158,12 @@ test.describe('without JavaScript', () => {
       story.getByRole('group', { name: 'Direktnavigation' }).getByRole('button'),
     ).toBeHidden();
 
-    await expect(story.getByRole('group', { name: 'Bild 1 von 5' }).getByRole('img')).toBeVisible();
+    await expect(
+      story.getByRole('group', { name: 'Bild 1 von 18' }).getByRole('img'),
+    ).toBeVisible();
 
     const mediaButtons = story.getByRole('button', { name: /Bild groß anzeigen/ });
-    await expect(mediaButtons).toHaveCount(5);
+    await expect(mediaButtons).toHaveCount(18);
     for (const button of await mediaButtons.all()) {
       await expect(button).toBeDisabled();
     }
