@@ -14,26 +14,26 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/svelte": "^9.1.0",
+    "@astrojs/svelte": "^9.1.1",
     "@astrojs/ts-plugin": "^1.10.12",
-    "@lucide/svelte": "^1.57.0",
-    "astro": "^7.4.0",
+    "@lucide/svelte": "^1.61.0",
+    "astro": "^7.4.2",
     "d3-array": "^3.2.4",
     "d3-scale": "^4.0.2",
-    "layerchart": "^2.8.0",
+    "layerchart": "^2.8.1",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.35.5",
     "svelte": "^5.57.2"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.10",
+    "@astrojs/check": "^0.9.12",
     "@types/d3-array": "^3.2.2",
     "@types/d3-scale": "^4.0.9",
     "@types/node": "^26.6.5",
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.1",
     "prettier-plugin-svelte": "^4.1.1",
-    "svelte-check": "^4.7.6",
+    "svelte-check": "^4.7.7",
     "typescript": "^6.0.3",
     "vitest": "^5.0.5"
   }
