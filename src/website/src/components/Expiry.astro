@@ -1,0 +1,10 @@
+---
+// Tidies up Veranstaltungen that ended after the last build; see
+// src/scripts/expiry.ts. Included by both layouts.
+---
+
+<script>
+  import { applyExpiry } from '../scripts/expiry';
+
+  applyExpiry(document, new Date());
+</script>

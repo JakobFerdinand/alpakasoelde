@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import Footer from "../components/Footer.astro";
+import Expiry from "../components/Expiry.astro";
 import Head from "../components/Head.astro";
 import '@fontsource/bricolage-grotesque/300.css';
 import '@fontsource/bricolage-grotesque/400.css';
@@ -9,16 +10,17 @@ interface Props {
   title: string;
   description: string;
   robots?: string;
+  structuredData?: Record<string, unknown>;
 }
 
-const { title, description, robots } = Astro.props;
+const { title, description, robots, structuredData } = Astro.props;
 ---
 <!doctype html>
 <html lang="de">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <Head title={title} description={description} robots={robots} />
+    <Head title={title} description={description} robots={robots} structuredData={structuredData} />
   </head>
   <body class="event-page-body">
     <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
@@ -26,6 +28,7 @@ const { title, description, robots } = Astro.props;
       <slot />
     </main>
     <Footer />
+    <Expiry />
   </body>
 </html>
 
