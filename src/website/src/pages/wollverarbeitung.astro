@@ -2,10 +2,90 @@
 import ImpressionBreak from "../components/ImpressionBreak.astro";
 import Layout from '../layouts/Layout.astro';
 import ServiceHero from "../components/ServiceHero.astro";
+import Slideshow, { type StorySlide } from '../components/Slideshow.astro';
 
 import heroImage from "../images/impressions/impression_32.jpg";
 
 import impression_102 from "../images/impressions/impression_102.jpg";
+
+import Spinnrad from '../images/workshops/IMG_8407.jpeg';
+import Spule from '../images/workshops/IMG_8406.jpeg';
+import Haspel from '../images/workshops/IMG_8731.jpeg';
+import FilzenKonzentriert from '../images/workshops/IMG_3203.jpeg';
+import FilzenRunde from '../images/workshops/IMG_3214.jpeg';
+import Getraenke from '../images/workshops/IMG_3160.jpeg';
+import KinderFilzen from '../images/workshops/IMG_9521.jpeg';
+import KinderGruppe from '../images/workshops/IMG_9523.jpeg';
+import YogaWiese from '../images/workshops/IMG_6752.jpeg';
+import YogaAlpakas from '../images/workshops/IMG_6761.jpeg';
+
+const slideData = [
+  {
+    src: Spinnrad,
+    alt: 'Hand zieht beim Spinnen am Spinnrad einen Faden aus, auf der Spule dahinter rosa-graues Garn',
+    title: 'Am Spinnrad',
+    text: 'Mit den Füßen im Takt und den Händen am Faden wird aus lockerer Faser Garn.',
+  },
+  {
+    src: Spule,
+    alt: 'Nahaufnahme einer Spule mit buntem, gesponnenem Garn am hölzernen Spinnrad',
+    title: 'Aus Faser wird Garn',
+    text: 'Zug um Zug dreht sich der Faden auf die Spule, und jedes Garn wird ein Unikat.',
+  },
+  {
+    src: Haspel,
+    alt: 'Hölzerne Haspel mit aufgewickeltem cremeweißem Garn',
+    title: 'Auf der Haspel',
+    text: 'Zum Schluss wird das Garn zum Strang gewickelt, bereit zum Waschen und Verstricken.',
+  },
+  {
+    src: FilzenKonzentriert,
+    alt: 'Eine Frau filzt an einem Tisch im Garten konzentriert ein kleines Stück Wolle auf einer Filzunterlage',
+    title: 'Filzen',
+    text: 'Mit Nadel und Geduld entstehen aus bunter Wolle kleine Kunstwerke.',
+  },
+  {
+    src: FilzenRunde,
+    alt: 'Mehrere Frauen sitzen an einem gedeckten Tisch im Garten und filzen',
+    title: 'Gemeinsam am Tisch',
+    text: 'Im Garten am Hof arbeitet es sich in der Gruppe am besten.',
+  },
+  {
+    src: Getraenke,
+    alt: 'Zwei Glaskrüge mit Kräuter- und Holunderblütenlimonade auf einem gedeckten Tisch im Grünen',
+    title: 'Zwischendurch erfrischen',
+    text: 'Eine Pause mit etwas Kühlem gehört bei den Workshops dazu.',
+  },
+  {
+    src: KinderFilzen,
+    alt: 'Kinder sitzen an einem Tisch und gestalten Filzbilder auf runden Unterlagen',
+    title: 'Workshop für Kinder',
+    text: 'Auch die Kleinen gestalten mit bunter Wolle ihre eigenen Bilder.',
+  },
+  {
+    src: KinderGruppe,
+    alt: 'Eine Gruppe Kinder steht auf der Wiese vor einem Holzstadel und hält ihre Filzbilder vor die Gesichter',
+    title: 'Die Werke präsentieren',
+    text: 'Zum Abschluss zeigen alle stolz, was sie gemacht haben.',
+  },
+  {
+    src: YogaWiese,
+    alt: 'Zwei Personen liegen auf Yogamatten auf einer Wiese unter einem Baum, im Hintergrund grasen Alpakas',
+    title: 'Yoga auf der Wiese',
+    text: 'Entspannen im Gras, während die Alpakas nebenan weiden.',
+  },
+  {
+    src: YogaAlpakas,
+    alt: 'Alpakas gehen über die Wiese an zwei auf Matten liegenden Personen vorbei',
+    title: 'Alpakas zu Besuch',
+    text: 'Manchmal schauen die Tiere neugierig vorbei und leisten Gesellschaft.',
+  },
+];
+
+const slides: StorySlide[] = slideData.map((slide, i) => ({
+  ...slide,
+  kicker: `Moment ${String(i + 1).padStart(2, '0')}`,
+}));
 ---
 
 <Layout
@@ -30,8 +110,14 @@ import impression_102 from "../images/impressions/impression_102.jpg";
         vorbereitet wird. Du lernst, die Fasern zu kardieren und am
         Spinnrad zu spinnen.
       </p>
+      <p>
+        Neben der Wollverarbeitung bieten wir weitere Workshops am Hof an: Filzen für Erwachsene
+        und Kinder sowie Yoga auf der Wiese mit den Alpakas als Nachbarn.
+      </p>
     </div>
   </section>
+
+  <Slideshow slides={slides} label="Fotos aus unseren Workshops" eyebrow="Workshops am Hof" />
 
   <ImpressionBreak
     image={impression_102}
