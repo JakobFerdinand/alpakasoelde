@@ -17,65 +17,44 @@ import heroImage from '../images/impressions/impression_64.jpg';
 
 import impression_72 from '../images/impressions/impression_72.jpg';
 
-const slideData = [
+const slides: StorySlide[] = [
   {
     src: Wanderung1,
     alt: 'Eine Frau führt zwei cremeweiße Alpakas über eine Wiese, dahinter Häuser und Bäume im Abendlicht',
-    title: "Los geht's",
-    text: 'Bevor es losgeht, lernst du bei einem Hofbesuch deine Begleiter in Ruhe kennen.',
     focal: 'center 60%',
   },
   {
     src: Wanderung2,
     alt: 'Ein Mann geht in kurzer Hose mit einem hellbraunen Alpaka an roter Leine über einen asphaltierten Weg neben einer grünen Wiese',
-    title: 'Auf dem Flurweg',
-    text: 'Zwischen Wiesen und Getreidefeldern führt der Weg direkt vom Hof los. Das Alpaka trottet locker an der Leine mit und schaut gelegentlich, wo du bleibst.',
     focal: 'center 70%',
   },
   {
     src: Wanderung3,
     alt: 'Zwei Personen führen ein schwarzes und ein braunes Alpaka von hinten gesehen über eine Wiese mit trockenem Gras',
-    title: 'Querfeldein',
-    text: 'Abseits der Straße geht es über Wiesenpfade, ganz in der Nähe der Inn-Auen und manchmal auch mitten hinein.',
   },
   {
     src: Wanderung4,
     alt: 'Blick über die Schulter auf drei Alpakas und zwei Personen, die sie an Leinen über einen asphaltierten Weg am Feld führen',
-    title: 'An der Leine',
-    text: 'Die Leine liegt in deiner Hand, und in zwei Stunden bleibt genug Zeit, Fragen zu stellen und die Tiere zu beobachten.',
     focal: 'center 32%',
   },
   {
     src: Wanderung5,
     alt: 'Eine Gruppe führt mehrere Alpakas an Leinen über einen Kiesplatz, dahinter ein altes Gebäude und große Bäume unter blauem Himmel',
-    title: 'Gemeinsam unterwegs',
-    text: 'Ob allein, mit Freunden oder als Gruppe: Jede Person bekommt ihr eigenes Alpaka an die Leine.',
   },
   {
     src: Wanderung6,
     alt: 'Nahaufnahme eines hellbraunen Alpakas an blauer Leine, im Vordergrund hohes Gras und Wiesenblumen',
-    title: 'Mitten im Gras',
-    text: 'Zwischendurch bleibt das Alpaka stehen und knabbert ein paar Halme, dafür ist Zeit.',
   },
   {
     src: Wanderung7,
     alt: 'Eine Gruppe wandert mit einem braunen Alpaka über einen verschneiten Weg auf ein Burgtor mit spitzem Turm zu',
-    title: 'Auch im Winter',
-    text: 'Die Wanderungen finden das ganze Jahr statt, und im Schnee hat der Weg einen ganz eigenen Zauber.',
   },
   {
     src: Wanderung8,
     alt: 'Eine Frau mit Rucksack und roter Haube führt ein schwarzes Alpaka an der Leine über einen Waldweg',
-    title: 'Durch den Wald',
-    text: 'Wo der Weg schmal wird, geht das Alpaka ruhig hinter dir her.',
     focal: 'center 40%',
   },
 ];
-
-const slides: StorySlide[] = slideData.map((slide, i) => ({
-  ...slide,
-  kicker: `Moment ${String(i + 1).padStart(2, '0')}`,
-}));
 ---
 
 <Layout
