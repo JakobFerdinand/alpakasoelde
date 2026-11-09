@@ -16,7 +16,7 @@
   "dependencies": {
     "@astrojs/svelte": "^9.1.2",
     "@astrojs/ts-plugin": "^1.10.12",
-    "@lucide/svelte": "^1.69.0",
+    "@lucide/svelte": "^1.70.0",
     "astro": "^7.4.7",
     "d3-array": "^3.2.5",
     "d3-scale": "^4.0.3",
