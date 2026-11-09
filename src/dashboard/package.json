@@ -16,11 +16,11 @@
   "dependencies": {
     "@astrojs/svelte": "^9.1.2",
     "@astrojs/ts-plugin": "^1.10.12",
-    "@lucide/svelte": "^1.64.0",
-    "astro": "^7.4.4",
-    "d3-array": "^3.2.4",
-    "d3-scale": "^4.0.2",
-    "layerchart": "^2.9.1",
+    "@lucide/svelte": "^1.69.0",
+    "astro": "^7.4.7",
+    "d3-array": "^3.2.5",
+    "d3-scale": "^4.0.3",
+    "layerchart": "^2.9.2",
     "lucide-astro": "^0.556.0",
     "sharp": "^0.35.5",
     "svelte": "^5.57.3"
@@ -33,8 +33,8 @@
     "prettier": "^3.9.10",
     "prettier-plugin-astro": "^1.1.2",
     "prettier-plugin-svelte": "^4.1.1",
-    "svelte-check": "^4.7.7",
+    "svelte-check": "^4.7.8",
     "typescript": "^6.0.3",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.0"
   }
 }
