@@ -30,7 +30,9 @@ updates:
           - "*"
 
   - package-ecosystem: "npm"
-    directory: "/src/website/"
+    directories:
+      - "/src/website/"
+      - "/src/dashboard/"
     schedule:
       interval: weekly
       day: monday
@@ -41,66 +43,17 @@ updates:
         patterns:
           - "*"
     ignore:
-      # Keep website pinned to TypeScript 6 until it supports newer majors
-      - dependency-name: "typescript"
-        versions:
-          - ">=7"
-
-  - package-ecosystem: "npm"
-    directory: "/src/dashboard/"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Vienna"
-    groups:
-      npm-all:
-        patterns:
-          - "*"
-    ignore:
-      # Keep dashboard pinned to TypeScript 6 until it supports newer majors
+      # Keep website and dashboard pinned to TypeScript 6 until they support newer majors
       - dependency-name: "typescript"
         versions:
           - ">=7"
 
   - package-ecosystem: "nuget"
-    directory: "/src/website-api/"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Vienna"
-    groups:
-      nuget-all:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "nuget"
-    directory: "/src/dashboard-api/"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Vienna"
-    groups:
-      nuget-all:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "nuget"
-    directory: "/src/website-api-tests/"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "06:00"
-      timezone: "Europe/Vienna"
-    groups:
-      nuget-all:
-        patterns:
-          - "*"
-
-  - package-ecosystem: "nuget"
-    directory: "/src/dashboard-api-tests/"
+    directories:
+      - "/src/website-api/"
+      - "/src/dashboard-api/"
+      - "/src/website-api-tests/"
+      - "/src/dashboard-api-tests/"
     schedule:
       interval: weekly
       day: monday
