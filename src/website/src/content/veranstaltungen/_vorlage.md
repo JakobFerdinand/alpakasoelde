@@ -19,6 +19,9 @@ cover:
 price: "45 €"
 # Ohne "location" wird die Adresse des Hofs gezeigt.
 location: "Alpakasölde | Frauenstein 12"
+# Der Anmeldeblock (Hofnummer + Button) entfällt bei "registration: false" —
+# für Veranstaltungen, die der Hof nicht selbst veranstaltet.
+# registration: false
 highlights:
   - "Meditation & Yoga mit Sophie"
   - "Alpakaspaziergang"

@@ -119,18 +119,20 @@ const structuredData = buildEventJsonLd({ ...data, id: entry.id }, Astro.site!);
           <Content />
         </div>
 
-        <div class="details__block details__block--cta">
-          <h2>Anmeldung und Infos:</h2>
-          <div class="details__contact-row">
-            <p>
-              {data.contact?.name && <>{data.contact.name}&ensp;|&ensp;</>}
-              <a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>{phone}</a>
-            </p>
-            <a href="/#kontakt" class="btn">
-              Jetzt anmelden
-            </a>
+        {data.registration && (
+          <div class="details__block details__block--cta">
+            <h2>Anmeldung und Infos:</h2>
+            <div class="details__contact-row">
+              <p>
+                {data.contact?.name && <>{data.contact.name}&ensp;|&ensp;</>}
+                <a href={`tel:${phone.replace(/[^+\d]/g, '')}`}>{phone}</a>
+              </p>
+              <a href="/#kontakt" class="btn">
+                Jetzt anmelden
+              </a>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   </section>

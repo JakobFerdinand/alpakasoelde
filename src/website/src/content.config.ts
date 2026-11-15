@@ -26,6 +26,9 @@ const veranstaltungen = defineCollection({
         cover: z.object({ image: image(), alt: z.string().min(1) }).optional(),
         price: z.string().optional(),
         location: z.string().optional(),
+        // Set to false for events the farm does not run itself: hides the whole
+        // "Anmeldung und Infos" block instead of pointing at the farm phone.
+        registration: z.boolean().default(true),
         highlights: z.array(z.string()).default([]),
         bring: z.array(z.string()).default([]),
         contact: z.object({ name: z.string().optional(), phone: z.string().optional() }).optional(),
