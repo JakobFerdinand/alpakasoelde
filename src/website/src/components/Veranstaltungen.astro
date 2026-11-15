@@ -1,0 +1,104 @@
+---
+import { getCollection } from 'astro:content';
+import {
+  endsAt,
+  formatDateLong,
+  formatTimeRange,
+  isUpcoming,
+  veranstaltungPath,
+} from '../data/veranstaltung';
+
+const now = new Date();
+const upcoming = (await getCollection('veranstaltungen'))
+  .filter((event) => isUpcoming(event.data, now))
+  .sort((a, b) => a.data.start.getTime() - b.data.start.getTime());
+---
+
+{upcoming.length > 0 && (
+  <section id="veranstaltungen" class="veranstaltungen section" data-remove-when-empty>
+    <h2>Veranstaltungen</h2>
+    <ul class="veranstaltungen-list container">
+      {upcoming.map((event) => (
+        <li data-expires-at={endsAt(event.data).toISOString()}>
+          <a href={veranstaltungPath(event.id)} class="veranstaltung-card">
+            <h3>{event.data.title}</h3>
+            <p class="veranstaltung-card__when">
+              {formatDateLong(event.data.start)} · {formatTimeRange(event.data)}
+              {event.data.price && <> · {event.data.price}</>}
+            </p>
+            <p>{event.data.summary}</p>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+)}
+
+<style>
+  .veranstaltungen {
+    background-color: var(--auwasser);
+    color: var(--taubenblau);
+  }
+
+  .veranstaltungen-list {
+    list-style: none;
+    display: grid;
+    gap: 1.5rem;
+    margin: 0 auto;
+    padding: 0 1rem;
+    max-width: 800px;
+  }
+
+  .veranstaltung-card {
+    display: block;
+    position: relative;
+    padding: 1.5rem 3rem 1.5rem 1.5rem;
+    background-color: var(--schurwolle);
+    color: var(--taubenblau);
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+
+  .veranstaltung-card::after {
+    content: '→';
+    position: absolute;
+    right: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: transform 0.2s;
+  }
+
+  .veranstaltung-card:hover,
+  .veranstaltung-card:focus-visible {
+    background-color: var(--bluetenhonig);
+    color: var(--schurwolle);
+  }
+
+  .veranstaltung-card:hover::after,
+  .veranstaltung-card:focus-visible::after {
+    transform: translateY(-50%) translateX(0.25rem);
+  }
+
+  .veranstaltung-card:focus-visible {
+    outline: 2px solid var(--taubenblau);
+    outline-offset: 4px;
+  }
+
+  .veranstaltung-card h3 {
+    font-size: 1.25rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .veranstaltung-card p {
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  .veranstaltung-card__when {
+    font-weight: 600;
+    margin-bottom: 0.5rem !important;
+  }
+</style>
