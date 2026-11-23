@@ -15,20 +15,20 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.4",
-    "@astrojs/ts-plugin": "^1.10.12",
+    "@astrojs/sitemap": "^3.7.6",
+    "@astrojs/ts-plugin": "^1.11.0",
     "@fontsource/bricolage-grotesque": "^5.3.0",
-    "astro": "^7.4.7",
+    "astro": "^7.4.13",
     "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^26.6.6",
     "happy-dom": "^21.0.4",
-    "prettier": "^3.9.10",
+    "prettier": "^3.10.1",
     "prettier-plugin-astro": "^1.1.2",
     "typescript": "^6.0.3",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   }
 }
